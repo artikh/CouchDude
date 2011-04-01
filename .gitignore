@@ -1,0 +1,12 @@
+TestResults
+old
+obj
+bin
+_ReSharper.*
+*.user
+*.suo
+*.cache
+~$*
+*.orig
+*.swp
+.sass-cache

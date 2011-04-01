@@ -1,0 +1,36 @@
+﻿/// <summary>Initializes a new instance of the 
+		/// <#=this.ExceptionDocReference#> class.</summary>
+		/// <param name="info">The <see cref="SerializationInfo"/> that holds the 
+		/// serialized object data about the exception being thrown.</param>
+		/// <param name="context">The <see cref="StreamingContext"/> that contains 
+		/// contextual information about the source or destination.</param>
+		/// <exception cref="ArgumentNullException">The <paramref name="info"/> 
+		/// parameter is null. </exception>
+		/// <exception cref="SerializationException">The class name is null or 
+		/// <see cref="Exception.HResult"/> is zero (0). </exception>
+		public <#=this.ExceptionCtorName#>(SerializationInfo info, StreamingContext context)
+			: base(info, context) { }
+
+		/// <summary>Initializes a new instance of the <#=this.ExceptionDocReference#> class.</summary>
+		/// <param name="message">The message.</param>
+		/// <param name="messageParams">The message params.</param>
+		public <#=this.ExceptionCtorName#>(string message, params object[] messageParams)
+			: this(null, message, messageParams) { }
+
+		/// <summary>Initializes a new instance of the 
+		/// <#=this.ExceptionDocReference#> class.</summary>
+		/// <param name="innerException">The inner exception.</param>
+		/// <param name="message">The message.</param>
+		/// <param name="messageParams">The message params.</param>
+		public <#=this.ExceptionCtorName#>(
+			Exception innerException,
+			string message,
+			params object[] messageParams)
+			: base(String.Format(message, messageParams), innerException) { }<#+
+			
+string DocReferenceTemplate = "{0}Exception";
+string CtorNameTemplate = "{0}Exception";
+
+string ExceptionDocReference { get { return "<see cref=\"" + String.Format(DocReferenceTemplate, ExceptionName) + "\" />"; } }
+string ExceptionCtorName { get { return String.Format(CtorNameTemplate, ExceptionName); } }
+#>

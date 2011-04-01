@@ -1,0 +1,6 @@
+﻿<#@ template language="C#" #>
+<#
+    this.ExceptionName = "Convention";
+		this.BaseExceptionName = "CouchDude";
+#>
+<#@ include file="BoilerplateExeption.ttinclude" #>
