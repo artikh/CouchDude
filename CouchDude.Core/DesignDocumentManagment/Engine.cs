@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
-using CouchDude.Core.Implementation;
+using CouchDude.Core.HttpClient;
 using Newtonsoft.Json;
 
 namespace CouchDude.Core.DesignDocumentManagment
@@ -11,19 +11,19 @@ namespace CouchDude.Core.DesignDocumentManagment
 	/// <summary>Orchestrates Couch Dude's actions.</summary>
 	public class Engine
 	{
-		private readonly IHttp http;
+		private readonly IHttpClient httpClient;
 		private readonly IDesignDocumentAssembler designDocumentAssembler;
 		private readonly IDesignDocumentExtractor designDocumentExtractor;
 
 		/// <constructor />
-		public Engine(IHttp http, IDesignDocumentExtractor designDocumentExtractor, IDesignDocumentAssembler designDocumentAssembler)
+		public Engine(IHttpClient httpClient, IDesignDocumentExtractor designDocumentExtractor, IDesignDocumentAssembler designDocumentAssembler)
 		{
-			if(http == null) throw new ArgumentNullException("http");
+			if(httpClient == null) throw new ArgumentNullException("httpClient");
 			if(designDocumentAssembler == null) 
 				throw new ArgumentNullException("designDocumentAssembler");
 			Contract.EndContractBlock();
 
-			this.http = http;
+			this.httpClient = httpClient;
 			this.designDocumentExtractor = designDocumentExtractor;
 			this.designDocumentAssembler = designDocumentAssembler;
 		}
@@ -33,9 +33,9 @@ namespace CouchDude.Core.DesignDocumentManagment
 		{
 			var directory = new Directory(directoryInfo);
 			var documentAssembler = new DesignDocumentAssembler(directory);
-			var couchProxy = new Http();
+			var httpClient = new HttpClientImpl();
 			var designDocumentExtractor = new DesignDocumentExtractor();
-			return new Engine(couchProxy, designDocumentExtractor, documentAssembler);
+			return new Engine(httpClient, designDocumentExtractor, documentAssembler);
 		}
 
 		/// <summary>Checks if database design document set have changed comparing with
@@ -89,9 +89,8 @@ namespace CouchDude.Core.DesignDocumentManagment
 		{
 			var documentUri = new Uri(databaseUri, doc.Id);
 			doc.Definition.ToString(Formatting.None);
-			using (var documentStringReader = 
-				new StringReader(doc.Definition.ToString(Formatting.None)))
-				http.Request(documentUri, "PUT", documentStringReader);
+			httpClient.MakeRequest(new HttpRequest(
+				documentUri, "PUT", body: new StringReader(doc.Definition.ToString(Formatting.None))));
 		}
 
 		private static void FillPasswordIn(ref Uri databaseUri, string password) 
@@ -118,13 +117,14 @@ namespace CouchDude.Core.DesignDocumentManagment
 
 		private IDictionary<string, DesignDocument> GetDesignDocumentsFromDatabase(Uri databaseUri) 
 		{
-			var getAllDocumentsUri = 
-				new Uri(
-					databaseUri, 
-					@"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true");
-
-			using (var textReader = http.RequestAndOpenTextReader(getAllDocumentsUri, "GET", null))
-				return designDocumentExtractor.Extract(textReader);
+			var response = httpClient.MakeRequest(
+				new HttpRequest(
+					new Uri(
+						databaseUri,
+						@"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true"), 
+					HttpMethod.Get)
+				);
+			return designDocumentExtractor.Extract(response.Body);
 		}
 
 		private IDictionary<string, DesignDocument> GetDesignDocumentsFromFileSystem() 

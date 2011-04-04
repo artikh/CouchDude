@@ -34,23 +34,5 @@ namespace CouchDude.Core.Implementation
 			var propertyValue = doc[name] as JValue;
 			return propertyValue == null ? null : propertyValue.Value<string>();
 		}
-
-		/// <summary>Generates unique ID string based on GUID.</summary>
-		public static string GenerateId()
-		{
-			var bytes = Guid.NewGuid().ToByteArray();
-			var id = new StringBuilder(Convert.ToBase64String(bytes));
-			for (var i = 0; i < id.Length; i++)
-				switch (id[i])
-				{
-					case '+':
-						id[i] = '_';
-						break;
-					case '/':
-						id[i] = '-';
-						break;
-				}
-			return id.ToString();
-		}
 	}
 }

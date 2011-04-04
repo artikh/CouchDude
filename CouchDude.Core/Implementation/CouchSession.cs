@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Implementation
 {
@@ -32,13 +33,39 @@ namespace CouchDude.Core.Implementation
 			if(documentEntity.Revision != null)
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
 
+			if (documentEntity.Id == null)
+				documentEntity.SetId(settings.IdGenerator.GenerateId());
+
 			documentEntity.DoMap();
 			var result = couchApi.SaveDocumentToDb(documentEntity.Id, documentEntity.Document);
 			cache.Put(documentEntity);
-			var documentInfo = new DocumentInfo(
-				result.GetRequiredProperty("id"), result.GetRequiredProperty("rev"));
+			var documentInfo = CreateDocumentInfo(result);
 			documentEntity.Revision = documentInfo.Revision;
 			return documentInfo;
+		}
+
+		/// <summary>Deletes provided entity form CouchDB.</summary>
+		public DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : new()
+		{
+			var documentEntity = cache.TryGet(entity);
+			if (documentEntity != null)
+			{
+				if (!typeof (TEntity).IsAssignableFrom(documentEntity.EntityType))
+					throw new EntityTypeMismatchException(documentEntity.EntityType, typeof (TEntity));
+			}
+			else
+				documentEntity = DocumentEntity.FromEntity(entity, settings);
+
+			if (documentEntity.Revision == null)
+				throw new ArgumentException(
+					"No revision property found on entity and no revision information" 
+						+ " found in first level cache.", 
+					"entity");
+
+			cache.Remove(documentEntity);
+
+			return CreateDocumentInfo(
+				couchApi.DeleteDocument(documentEntity.Id, documentEntity.Revision));
 		}
 
 		/// <inheritdoc/>
@@ -50,10 +77,11 @@ namespace CouchDude.Core.Implementation
 
 			var cachedEntity = cache.TryGet(docId);
 			if (cachedEntity != null)
-				if (typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType)) 
-					return (TEntity) cachedEntity.Entity;
-				else
-					throw new EntityTypeMismatchException(cachedEntity.EntityType, typeof(TEntity));
+			{
+				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))
+					throw new EntityTypeMismatchException(cachedEntity.EntityType, typeof (TEntity));
+				return (TEntity) cachedEntity.Entity;
+			}
 
 			var document = couchApi.GetDocumentFromDbById(docId);
 			var documentEntity = DocumentEntity.FromJson<TEntity>(document, settings);
@@ -66,6 +94,12 @@ namespace CouchDude.Core.Implementation
 		public TEntity Find<TEntity>(ViewInfo view) where TEntity : new()
 		{
 			throw new NotImplementedException();
+		}
+
+		private static DocumentInfo CreateDocumentInfo(JObject result)
+		{
+			return new DocumentInfo(
+				result.GetRequiredProperty("id"), result.GetRequiredProperty("rev"));
 		}
 
 		/// <inheritdoc/>

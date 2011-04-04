@@ -6,7 +6,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
-	public class SaveAndLoad
+	public class SaveLoadAndDelete
 	{
 		[Fact]
 		public void ShouldSaveAndThanLoadSimpleEntity()
@@ -39,6 +39,9 @@ namespace CouchDude.Tests.Integration
 				Assert.Equal(savedEntity.Age, loadedEntity.Age);
 				Assert.Equal(savedEntity.Date, loadedEntity.Date);
 			}
+
+			using (var session = sessionFactory.CreateSession())
+				session.Delete(savedEntity);
 		}
 
 		[Fact]
@@ -69,6 +72,10 @@ namespace CouchDude.Tests.Integration
 				Assert.Equal(savedEntity.Name, loadedEntity.Name);
 				Assert.Equal(savedEntity.Age, loadedEntity.Age);
 				Assert.Equal(savedEntity.Date, loadedEntity.Date);
+
+				var docInfo = session.Delete(loadedEntity);
+				Assert.Equal(loadedEntity.Id, docInfo.Id);
+				Assert.NotNull(docInfo.Revision);
 			}
 		}
 	}

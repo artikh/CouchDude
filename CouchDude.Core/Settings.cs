@@ -25,9 +25,6 @@ namespace CouchDude.Core
 		/// <summary>Database name.</summary>
 		public readonly string DatabaseName;
 
-		/// <summary>Database base URI.</summary>
-		public Uri BaseUri { get { return new Uri(ServerUri, DatabaseName + "/"); } }
-
 		/// <summary>Document id property convension.</summary>
 		public ISpecialPropertyConvention IdPropertyConvention = 
 			new PropertyByNameConvention("Id", "ID");
@@ -39,6 +36,9 @@ namespace CouchDude.Core
 		/// <summary>Document type detector convension.</summary>
 		public IDocumentTypeConvention DocumentTypeConvension =
 			new DocumentTypeFromClassNameConvention();
+
+		/// <summary>Document ID generator.</summary>
+		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
 		
 		/// <constructor />
 		public Settings(Uri serverUri, string databaseName)

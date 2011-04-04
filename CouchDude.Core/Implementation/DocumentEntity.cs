@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.IO;
-
+using CouchDude.Core.Conventions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -21,7 +21,9 @@ namespace CouchDude.Core.Implementation
 
 		private string revision;
 
-		private readonly Settings settings;
+		private readonly SpecialPropertyDescriptor revisionPropertyDescriptor;
+
+		private readonly SpecialPropertyDescriptor idPropertyDescriptor;
 
 		/// <summary>Document/entity identitifier.</summary>
 		public readonly string Id;
@@ -34,7 +36,6 @@ namespace CouchDude.Core.Implementation
 			{
 				if (revision == value) return;
 
-				var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor(EntityType);
 				revisionPropertyDescriptor.SetIfAble(Entity, value);
 				if (Document != null)
 					SetRevisionPropertyOnDocument(value, Document);
@@ -73,7 +74,9 @@ namespace CouchDude.Core.Implementation
 
 			var documentType = settings.GetDocumentType<TEntity>();
 
-			return new DocumentEntity(settings, id, revision, typeof(TEntity), documentType, entity);
+			return new DocumentEntity(
+				idPropertyDescriptor, revisionPropertyDescriptor, 
+				id, revision, typeof(TEntity), documentType, entity);
 		}
 
 		/// <summary>Creates instance from JSON document reading it form 
@@ -100,7 +103,7 @@ namespace CouchDude.Core.Implementation
 			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
 			revisionPropertyDescriptor.SetIfAble(entity, revision);
 
-			return new DocumentEntity(settings, id, revision, typeof(TEntity), type, entity, document);
+			return new DocumentEntity(idPropertyDescriptor, revisionPropertyDescriptor, id, revision, typeof(TEntity), type, entity, document);
 		}
 
 		/// <summary>Maps entity to the JSON document.</summary>
@@ -116,7 +119,9 @@ namespace CouchDude.Core.Implementation
 		}
 
 		private DocumentEntity(
-			Settings settings, string id, string revision, 
+			SpecialPropertyDescriptor idPropertyDescriptor,
+			SpecialPropertyDescriptor revisionPropertyDescriptor,  
+			string id, string revision, 
 			Type entityType, string documentType, object entity, JObject document = null)
 		{
 			if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("id");
@@ -125,13 +130,14 @@ namespace CouchDude.Core.Implementation
 			if (entity == null) throw new ArgumentNullException("entity");
 			Contract.EndContractBlock();
 
-			this.settings = settings;
 			Id = id;
 			this.revision = revision;
 			EntityType = entityType;
 			DocumentType = documentType;
 			Entity = entity;
 			Document = document;
+			this.idPropertyDescriptor = idPropertyDescriptor;
+			this.revisionPropertyDescriptor = revisionPropertyDescriptor;
 		}
 
 		private JObject SerializeToDocument()
@@ -170,12 +176,29 @@ namespace CouchDude.Core.Implementation
 			return JsonSerializer.Create(settings);
 		}
 
+		public void SetId(string id)
+		{
+			var newIdValue = JToken.FromObject(id);
+			idPropertyDescriptor.SetIfAble(Entity, id);
+			if(Document != null)
+			{
+				var idProperty = Document.Property(IdPropertyName);
+				if (idProperty != null)
+					idProperty.Value = newIdValue;
+				else
+					Document.AddFirst(new JProperty(IdPropertyName, newIdValue));
+			}
+		}
+
 		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 
 		{
+			var newRevisionValue = JToken.FromObject(revision);
 			var revisionProperty = document.Property(RevisionPropertyName);
-			if(revisionProperty == null)
+			if (revisionProperty != null)
+				revisionProperty.Value = newRevisionValue;
+			else
 			{
-				revisionProperty = new JProperty(RevisionPropertyName, JToken.FromObject(revision));
+				revisionProperty = new JProperty(RevisionPropertyName, newRevisionValue);
 				var idProperty = document.Property(IdPropertyName);
 				if (idProperty != null)
 					idProperty.AddAfterSelf(revisionProperty);

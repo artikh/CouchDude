@@ -1,4 +1,5 @@
 ﻿using System;
+using CouchDude.Core.HttpClient;
 
 namespace CouchDude.Core.Implementation
 {
@@ -14,7 +15,8 @@ namespace CouchDude.Core.Implementation
 			if (settings == null) throw new ArgumentNullException("settings");
 
 			this.settings = settings;
-			this.couchApi = couchProxy ?? new CouchApi(new Http(), settings.BaseUri);
+			couchApi = couchProxy 
+				?? new CouchApi(new HttpClientImpl(), settings.ServerUri, settings.DatabaseName);
 		}
 
 		/// <inheritdoc/>

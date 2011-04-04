@@ -1,10 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using CouchDude.Core;
+﻿using System.IO;
 using CouchDude.Core.Implementation;
-using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Implementation

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
-using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -75,13 +73,8 @@ namespace CouchDude.Tests.Unit.Implementation
 		public void ShouldThrowCouchCommunicationExceptionOnWebExceptionWhenGettingDocument()
 		{
 			var webExeption = new WebException("Something wrong detected");
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndOpenTextReader(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Throws(webExeption);
-
-			var couchApi = new CouchApi(httpMock.Object, new Uri("http://example.com/"));
+			var httpMock = new HttpClientMock(webExeption);
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var couchCommunicationException = 
 				Assert.Throws<CouchCommunicationException>(() => couchApi.GetDocumentFromDbById("doc1"));
@@ -89,37 +82,21 @@ namespace CouchDude.Tests.Unit.Implementation
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
-
+		
 
 
 		private static TestResult TestInMockEnvironment(
 			Func<ICouchApi, JObject> doTest, string response = "")
 		{
-			Uri requestedUri = null;
-			string requestedMethod = null;
-			string requestBody = null;
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndOpenTextReader(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Returns(
-					(Uri uri, string method, TextReader bodyReader) =>
-					{
-						requestedUri = uri;
-						requestedMethod = method;
-						requestBody = bodyReader == null ? null : bodyReader.ReadToEnd();
+			var httpMock = new HttpClientMock(response);
+			var result = doTest(new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb"));
 
-						return response.ToTextReader();
-					});
-			var result = doTest(
-				new CouchApi(httpMock.Object, new Uri("http://example.com:5984/testdb/"))
-			);
-
+			var recivedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = requestedUri == null ? null : requestedUri.ToString(),
-				RequestedMethod = requestedMethod,
-				RequestBody = requestBody,
+				RequestedUri = recivedRequest.Uri == null ? null : recivedRequest.Uri.ToString(),
+				RequestedMethod = recivedRequest.Method,
+				RequestBody = recivedRequest.Body == null ? null : recivedRequest.Body.ReadToEnd(),
 				Result = result
 			};
 		}

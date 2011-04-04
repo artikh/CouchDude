@@ -95,7 +95,10 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Conventions\DocumentTypeFromClassNameConvention.cs" />
+    <Compile Include="Conventions\GuidIdGenerator.cs" />
     <Compile Include="Conventions\IDocumentTypeConvention.cs" />
+    <Compile Include="Conventions\IIdGenerator.cs" />
+    <Compile Include="Conventions\SequentialUuidIdGenerator.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -117,9 +120,13 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="HttpClient\HttpClientImpl.cs" />
+    <Compile Include="HttpClient\HttpMethod.cs" />
+    <Compile Include="HttpClient\HttpRequest.cs" />
+    <Compile Include="HttpClient\HttpResponse.cs" />
+    <Compile Include="HttpClient\IHttpClient.cs" />
     <Compile Include="Implementation\CouchApi.cs" />
     <Compile Include="Implementation\CouchSessionFactory.cs" />
-    <Compile Include="Implementation\Http.cs" />
     <Compile Include="Implementation\CouchSession.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocument.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocumentExtractor.cs" />
@@ -140,7 +147,6 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="DesignDocumentManagment\File.cs" />
-    <Compile Include="IHttp.cs" />
     <Compile Include="DesignDocumentManagment\IDesignDocumentAssembler.cs" />
     <Compile Include="DesignDocumentManagment\IDesignDocumentExtractor.cs" />
     <Compile Include="DesignDocumentManagment\IDirectory.cs" />

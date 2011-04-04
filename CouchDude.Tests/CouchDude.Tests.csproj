@@ -42,7 +42,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Moles.Framework, Version=0.94.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
@@ -50,7 +49,6 @@
       <HintPath>..\packages\Newtonsoft.Json.4.0.1\lib\40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Behaviors, Version=0.94.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="xunit">
@@ -64,11 +62,13 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Integration\SaveUpdateAndLoad.cs" />
+    <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
+    <Compile Include="HttpClientMock.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Conventions\DocumentTypeFromClassNameConventionTests.cs" />
     <Compile Include="Unit\Conventions\PropertyByNameConventionTests.cs" />
+    <Compile Include="Unit\Conventions\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentExtractorTest.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentTests.cs" />
@@ -82,6 +82,7 @@
     <Compile Include="Unit\Implementation\CouchApiGetDocumentFromDbByIdTests.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionLoadTests.cs">
       <SubType>Code</SubType>
@@ -95,7 +96,7 @@
     <Compile Include="Unit\Implementation\UtilsTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Integration\SaveAndLoad.cs" />
+    <Compile Include="Integration\SaveLoadAndDelete.cs" />
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

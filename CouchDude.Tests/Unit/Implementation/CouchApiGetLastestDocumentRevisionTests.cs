@@ -2,9 +2,8 @@
 using System.IO;
 using System.Net;
 using CouchDude.Core;
+using CouchDude.Core.HttpClient;
 using CouchDude.Core.Implementation;
-using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Implementation
@@ -44,13 +43,9 @@ namespace CouchDude.Tests.Unit.Implementation
 		public void ShouldThrowCouchCommunicationExceptionOnWebExceptionWhenUpdatingDocumentInDb()
 		{
 			var webExeption = new WebException("Something wrong detected");
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndGetHeaders(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Throws(webExeption);
+			var httpMock = new HttpClientMock(webExeption);
 
-			var couchApi = new CouchApi(httpMock.Object, new Uri("http://example.com/"));
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
@@ -63,30 +58,20 @@ namespace CouchDude.Tests.Unit.Implementation
 		private static TestResult TestInMockEnvironment(
 			string docId, WebHeaderCollection response = null)
 		{
-			Uri requestedUri = null;
-			string requestedMethod = null;
-			string requestBody = null;
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndGetHeaders(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Returns(
-					(Uri uri, string method, TextReader bodyReader) =>
-					{
-						requestedUri = uri;
-						requestedMethod = method;
-						requestBody = bodyReader == null ? null : bodyReader.ReadToEnd();
-
-						return response ?? new WebHeaderCollection();
-					});
-			var couchApi = new CouchApi(httpMock.Object, new Uri("http://example.com:5984/testdb/"));
+			var httpMock = new HttpClientMock(new HttpResponse {
+				Status = HttpStatusCode.OK,
+				Headers = response ?? new WebHeaderCollection(),
+				Body = new StringReader(string.Empty)
+			});
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 			var result = couchApi.GetLastestDocumentRevision(docId);
 
+			var requestedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = requestedUri == null ? null : requestedUri.ToString(),
-				RequestedMethod = requestedMethod,
-				RequestBody = requestBody,
+				RequestedUri = requestedRequest.Uri == null ? null : requestedRequest.Uri.ToString(),
+				RequestedMethod = requestedRequest.Method,
+				RequestBody = requestedRequest.Body == null ? null : requestedRequest.Body.ReadToEnd(),
 				Result = result
 			};
 		}

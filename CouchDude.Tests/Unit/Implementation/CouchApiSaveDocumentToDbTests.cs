@@ -1,9 +1,7 @@
 ﻿using System;
-using System.IO;
 using System.Net;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
-using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -79,13 +77,8 @@ namespace CouchDude.Tests.Unit.Implementation
 		public void ShouldThrowCouchCommunicationExceptionOnWebExceptionWhenSavingToDb()
 		{
 			var webExeption = new WebException("Something wrong detected");
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndOpenTextReader(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Throws(webExeption);
-
-			var couchApi = new CouchApi(httpMock.Object, new Uri("http://example.com/"));
+			var httpMock = new HttpClientMock(webExeption);
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
@@ -100,31 +93,17 @@ namespace CouchDude.Tests.Unit.Implementation
 		private static TestResult TestInMockEnvironment(
 			Func<ICouchApi, JObject> doTest, string response = "")
 		{
-			Uri requestedUri = null;
-			string requestedMethod = null;
-			string requestBody = null;
-			var httpMock = new Mock<IHttp>();
-			httpMock
-				.Setup(h => h.RequestAndOpenTextReader(
-					It.IsAny<Uri>(), It.IsAny<string>(), It.IsAny<TextReader>()))
-				.Returns(
-					(Uri uri, string method, TextReader bodyReader) =>
-					{
-						requestedUri = uri;
-						requestedMethod = method;
-						requestBody = bodyReader == null ? null : bodyReader.ReadToEnd();
-
-						return response.ToTextReader();
-					});
+			var httpMock = new HttpClientMock(response);
 			var result = doTest(
-				new CouchApi(httpMock.Object, new Uri("http://example.com:5984/testdb/"))
+				new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb")
 			);
 
+			var recivedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = requestedUri == null ? null : requestedUri.ToString(),
-				RequestedMethod = requestedMethod,
-				RequestBody = requestBody,
+				RequestedUri = recivedRequest.Uri == null ? null : recivedRequest.Uri.ToString(),
+				RequestedMethod = recivedRequest.Method,
+				RequestBody = recivedRequest.Body == null ? null : recivedRequest.Body.ReadToEnd(),
 				Result = result
 			};
 		}

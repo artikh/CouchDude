@@ -172,7 +172,11 @@ namespace CouchDude.Tests.Unit.Implementation
 		{
 			Assert.Throws<CouchResponseParseException>(
 				() => DocumentEntity.FromJson<TestEntity>(
-					new { _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "testEntity", name = "John Smith" }.ToJObject(), 
+					new {
+						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7", 
+						type = "testEntity", 
+						name = "John Smith"
+					}.ToJObject(), 
 					settings
 			));
 		}
@@ -208,6 +212,23 @@ namespace CouchDude.Tests.Unit.Implementation
 
 			Assert.Contains("TestEntity", ex.Message);
 			Assert.Contains("anotherEntity", ex.Message);
+		}
+
+		[Fact]
+		public void ShouldSetIdOnEntity()
+		{
+			var documentEntity = DocumentEntity.FromEntity(entity, settings);
+			documentEntity.SetId("new_id");
+			Assert.Equal("new_id", entity.Id);
+		}
+
+		[Fact]
+		public void ShouldSetIdOnDocument()
+		{
+			var documentEntity = DocumentEntity.FromEntity(entity, settings);
+			documentEntity.DoMap();
+			documentEntity.SetId("new_id");
+			Assert.Equal("new_id", documentEntity.Document.Value<string>("_id"));
 		}
 	}
 }

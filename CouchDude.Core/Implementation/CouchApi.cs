@@ -3,6 +3,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
 using System.Text;
+using CouchDude.Core.HttpClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -10,14 +11,19 @@ namespace CouchDude.Core.Implementation
 {
 	internal class CouchApi: ICouchApi
 	{
-		private readonly IHttp http;
+		private readonly IHttpClient httpClient;
 		private readonly Uri databaseUri;
 
 		/// <constructor />
-		public CouchApi(IHttp http, Uri databaseUri)
+		public CouchApi(IHttpClient httpClient, Uri serverUri, string databaseName)
 		{
-			this.http = http;
-			this.databaseUri = databaseUri;
+			if (httpClient == null) throw new ArgumentNullException("httpClient");
+			if (serverUri == null) throw new ArgumentNullException("serverUri");
+			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			Contract.EndContractBlock();
+
+			this.httpClient = httpClient;
+			databaseUri = new Uri(serverUri, databaseName + "/");
 		}
 
 		public JObject GetDocumentFromDbById(string docId)
@@ -26,18 +32,23 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			TextReader responseTextReader1;
-			try
-			{
-				responseTextReader1 = http.RequestAndOpenTextReader(documentUri, "GET", null);
-			}
-			catch (WebException e)
-			{
-				throw new CouchCommunicationException(e, TryGetCouchErrorMessage(e) ?? e.Message);
-			}
-			var responseTextReader = responseTextReader1;
-			var document = ReadJObject(responseTextReader);
-			return document;
+			var request = new HttpRequest(documentUri, HttpMethod.Get);
+			var response = MakeRequest(request);
+			ThrowIfNotOk(response);
+			return ReadJObject(response.Body);
+		}
+
+		public JObject DeleteDocument(string docId, string revision)
+		{
+			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
+			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
+			Contract.EndContractBlock();
+
+			var documentUri = GetDocumentUri(docId, revision);
+			var request = new HttpRequest(documentUri, HttpMethod.Delete);
+			var response = MakeRequest(request);
+			ThrowIfNotOk(response);
+			return ReadJObject(response.Body);
 		}
 
 		public JObject SaveDocumentToDb(string docId, JObject document)
@@ -47,22 +58,14 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			TextReader responseTextReader;
-			using (var documentStringReader = new StringReader(document.ToString(Formatting.None)))
-				try
-				{
-					responseTextReader = 
-						http.RequestAndOpenTextReader(documentUri, "PUT", documentStringReader);
-				}
-				catch (WebException e)
-				{
-					throw new CouchCommunicationException(e, TryGetCouchErrorMessage(e) ?? e.Message);
-				}
-			var responseJObject = ReadJObject(responseTextReader);
-			if (responseJObject == null)
-				throw new CouchResponseParseException(
-					"CouchDB have not returned response object when saving document.");
-			return responseJObject;
+			var request = new HttpRequest(
+				documentUri, 
+				HttpMethod.Put, 
+				body: new StringReader(document.ToString(Formatting.None))
+			);
+			var response = MakeRequest(request);
+			ThrowIfNotOk(response);
+			return ReadJObject(response.Body);
 		}
 
 		public JObject UpdateDocumentInDb(string docId, JObject document)
@@ -72,27 +75,14 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			TextReader responseTextReader;
-			using (var documentStringReader = new StringReader(document.ToString(Formatting.None)))
-				try
-				{
-					responseTextReader = 
-						http.RequestAndOpenTextReader(documentUri, "PUT", documentStringReader);
-				}
-				catch(WebException e)
-				{
-					var httpWebResponse = (HttpWebResponse)e.Response;
-					if (httpWebResponse.StatusCode == HttpStatusCode.Conflict)
-						throw new StaleObjectStateException(
-							"Document update conflict detected:\n{0}", document);
-					else
-						throw new CouchCommunicationException(e, TryGetCouchErrorMessage(e) ?? e.Message);
-				}
-			var responseJObject = ReadJObject(responseTextReader);
-			if (responseJObject == null)
-				throw new CouchResponseParseException(
-					"CouchDB have not returned response object when saving document.");
-			return responseJObject;
+			var request = new HttpRequest(
+				documentUri,
+				HttpMethod.Put,
+				body: new StringReader(document.ToString(Formatting.None))
+			);
+			var response = MakeRequest(request);
+			ThrowIfNotOk(response);
+			return ReadJObject(response.Body);
 		}
 
 		public string GetLastestDocumentRevision(string docId)
@@ -100,17 +90,11 @@ namespace CouchDude.Core.Implementation
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			Contract.EndContractBlock();
 
-			WebHeaderCollection headers;
 			var documentUri = GetDocumentUri(docId);
-				try
-				{
-					headers = http.RequestAndGetHeaders(documentUri, "HEAD");
-				}
-				catch (WebException e)
-				{
-					throw new CouchCommunicationException(e, TryGetCouchErrorMessage(e) ?? e.Message);
-				}
-			var etag = headers[HttpResponseHeader.ETag];
+			var request = new HttpRequest(documentUri, HttpMethod.Head);
+			var response = MakeRequest(request);
+			ThrowIfNotOk(response);
+			var etag = response.Headers[HttpResponseHeader.ETag];
 			if (string.IsNullOrEmpty(etag))
 				throw new CouchResponseParseException("Etag header expected.");
 			return etag;
@@ -139,49 +123,18 @@ namespace CouchDude.Core.Implementation
 			return response;
 		}
 
-		private Uri GetDocumentUri(string docId)
+		private Uri GetDocumentUri(string docId, string revision = null)
 		{
-			return new Uri(databaseUri, docId);
+			return revision != null 
+				? new Uri(databaseUri, docId + "?rev=" + revision) 
+				: new Uri(databaseUri, docId);
 		}
 
-		private static T GetErrorJToken<T>(WebException webException)
-			where T : JToken
-		{
-			try
-			{
-				var response = (HttpWebResponse)webException.Response;
-				using (var stream = response.GetResponseStream())
-					if (stream != null)
-						using (var errorTextReader = new StreamReader(stream, Http.GetEncoding(response)))
-						using (var jsonReader = new JsonTextReader(errorTextReader))
-							return JToken.ReadFrom(jsonReader) as T;
-				return null;
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
-
-		private static string TryGetCouchErrorMessage(WebException webException)
-		{
-			try
-			{
-				var response = (HttpWebResponse)webException.Response;
-				using (var stream = response.GetResponseStream())
-					if(stream != null)
-						using (var textReader = new StreamReader(stream, Http.GetEncoding(response)))
-							return ParseErrorResponseBody(textReader);
-				return null;
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
-		
 		internal static string ParseErrorResponseBody(TextReader errorTextReader)
 		{
+			if (errorTextReader == null)
+				return null;
+
 			JObject errorObject;
 			using (var jsonReader = new JsonTextReader(errorTextReader))
 				try
@@ -206,6 +159,30 @@ namespace CouchDude.Core.Implementation
 				message.Append(": ");
 			message.Append(reasonMessage);
 			return message.Length > 0 ? message.ToString() : null;
+		}
+
+		private static void ThrowIfNotOk(HttpResponse response)
+		{
+			if (response.IsOk) return;
+			
+			if (response.Status == HttpStatusCode.Conflict)
+				throw new StaleObjectStateException("Document update conflict detected");
+			else
+				throw new CouchCommunicationException(
+					(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB ")
+					+ (int) response.Status);
+		}
+
+		private HttpResponse MakeRequest(HttpRequest request)
+		{
+			try
+			{
+				return httpClient.MakeRequest(request);
+			}
+			catch (WebException e)
+			{
+				throw new CouchCommunicationException(e, e.Message);
+			}
 		}
 	}
 }

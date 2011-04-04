@@ -6,7 +6,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
-	public class SaveUpdateAndLoad
+	public class SaveUpdateLoadAndDelete
 	{
 		[Fact]
 		public void ShouldSaveUpdateAndLoadSimpleEntity()
@@ -39,6 +39,9 @@ namespace CouchDude.Tests.Integration
 				loadedEntity = session.Load<SimpleEntity>(updatingEntity.Id);
 				Assert.Equal("Artem Tikhomirov", loadedEntity.Name);
 			}
+			
+			using (var session = sessionFactory.CreateSession())
+				session.Delete(loadedEntity);
 		}
 	}
 }

@@ -17,5 +17,8 @@ namespace CouchDude.Core
 
 		/// <summary>Synchronises all changes to CouchDB.</summary>
 		void Flush();
+
+		/// <summary>Deletes provided entity form CouchDB.</summary>
+		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : new();
 	}
 }
