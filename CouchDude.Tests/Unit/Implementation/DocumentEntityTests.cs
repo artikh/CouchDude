@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using CouchDude.Core;
+using CouchDude.Core.Conventions;
 using CouchDude.Core.Implementation;
+using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -215,20 +217,19 @@ namespace CouchDude.Tests.Unit.Implementation
 		}
 
 		[Fact]
-		public void ShouldSetIdOnEntity()
+		public void ShouldSetIdIfNoneWasSetBefore()
 		{
-			var documentEntity = DocumentEntity.FromEntity(entity, settings);
-			documentEntity.SetId("new_id");
-			Assert.Equal("new_id", entity.Id);
-		}
+			var savingEntity = new TestEntity
+			{
+				Name = "John Smith",
+				Age = 42
+			};
+			settings.IdGenerator = Mock.Of<IIdGenerator>(g => g.GenerateId() == "generated_id");
 
-		[Fact]
-		public void ShouldSetIdOnDocument()
-		{
-			var documentEntity = DocumentEntity.FromEntity(entity, settings);
-			documentEntity.DoMap();
-			documentEntity.SetId("new_id");
-			Assert.Equal("new_id", documentEntity.Document.Value<string>("_id"));
+			var documentEntity = DocumentEntity.FromEntity(savingEntity, settings);
+
+			Assert.Equal("generated_id", documentEntity.Id);
+			Assert.Equal("generated_id", savingEntity.Id);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
+using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -69,6 +70,33 @@ namespace CouchDude.Tests.Unit.Implementation
 		{
 			DoSave();
 			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", entity.Revision);
+		}
+
+		[Fact]
+		public void ShouldAssignOnSaveIfNoneWasAssignedBefore()
+		{
+			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
+			couchApiMock
+				.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<JObject>()))
+				.Returns(
+					(string docId, JObject doc) =>
+					new
+					{
+						id = docId,
+						rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
+					}.ToJObject()
+				);
+
+			var savingEntity = new SimpleEntity
+			{
+				Name = "John Smith"
+			};
+			var session = new CouchSession(settings, couchApiMock.Object);
+			var docInfo = session.Save(savingEntity);
+
+			Assert.NotNull(savingEntity.Id);
+			Assert.NotEqual(string.Empty, savingEntity.Id);
+			Assert.Equal(savingEntity.Id, docInfo.Id);
 		}
 
 		private DocumentInfo DoSave(

@@ -32,10 +32,7 @@ namespace CouchDude.Core.Implementation
 			
 			if(documentEntity.Revision != null)
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
-
-			if (documentEntity.Id == null)
-				documentEntity.SetId(settings.IdGenerator.GenerateId());
-
+			
 			documentEntity.DoMap();
 			var result = couchApi.SaveDocumentToDb(documentEntity.Id, documentEntity.Document);
 			cache.Put(documentEntity);

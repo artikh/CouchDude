@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.IO;
-using CouchDude.Core.Conventions;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+
+using CouchDude.Core.Conventions;
 
 namespace CouchDude.Core.Implementation
 {
@@ -23,7 +25,9 @@ namespace CouchDude.Core.Implementation
 
 		private readonly SpecialPropertyDescriptor revisionPropertyDescriptor;
 
+		// ReSharper disable UnaccessedField.Local
 		private readonly SpecialPropertyDescriptor idPropertyDescriptor;
+		// ReSharper restore UnaccessedField.Local
 
 		/// <summary>Document/entity identitifier.</summary>
 		public readonly string Id;
@@ -68,7 +72,8 @@ namespace CouchDude.Core.Implementation
 			where TEntity: new()
 		{
 			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
-			var id = idPropertyDescriptor.GetIfAble(entity);
+			var id = GetIdOrGenerateOne(entity, idPropertyDescriptor, settings);
+
 			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
 			var revision = revisionPropertyDescriptor.GetIfAble(entity);
 
@@ -77,6 +82,23 @@ namespace CouchDude.Core.Implementation
 			return new DocumentEntity(
 				idPropertyDescriptor, revisionPropertyDescriptor, 
 				id, revision, typeof(TEntity), documentType, entity);
+		}
+
+		private static string GetIdOrGenerateOne<TEntity>(
+			TEntity entity, SpecialPropertyDescriptor idPropertyDescriptor, Settings settings) 
+		{
+			var id = idPropertyDescriptor.GetIfAble(entity);
+			if(id == null)
+			{
+				var generatedId = settings.IdGenerator.GenerateId();
+				Contract.Assert(!string.IsNullOrEmpty(generatedId));
+				idPropertyDescriptor.SetIfAble(entity, generatedId);
+				id = idPropertyDescriptor.GetIfAble(entity);
+			}
+			if (id == null)
+				throw new ArgumentException(
+					"Entity's ID property should be set or settable.", "entity");
+			return id;
 		}
 
 		/// <summary>Creates instance from JSON document reading it form 
@@ -174,20 +196,6 @@ namespace CouchDude.Core.Implementation
 			};
 
 			return JsonSerializer.Create(settings);
-		}
-
-		public void SetId(string id)
-		{
-			var newIdValue = JToken.FromObject(id);
-			idPropertyDescriptor.SetIfAble(Entity, id);
-			if(Document != null)
-			{
-				var idProperty = Document.Property(IdPropertyName);
-				if (idProperty != null)
-					idProperty.Value = newIdValue;
-				else
-					Document.AddFirst(new JProperty(IdPropertyName, newIdValue));
-			}
 		}
 
 		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 
