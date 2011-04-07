@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace CouchDude.Core
 {
@@ -12,8 +13,8 @@ namespace CouchDude.Core
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
 		TEntity Load<TEntity>(string docId) where TEntity : class;
 
-		/// <summary>Finds entity using provided view.</summary>
-		TEntity Find<TEntity>(ViewInfo view) where TEntity : class;
+		/// <summary>Returns all documents from DB, filtering them by type in memory.</summary>
+		IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class;
 
 		/// <summary>Synchronises all changes to CouchDB.</summary>
 		void Flush();

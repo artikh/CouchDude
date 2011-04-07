@@ -3,10 +3,7 @@ using System.Diagnostics.Contracts;
 using System.IO;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-
 using CouchDude.Core.Conventions;
 
 namespace CouchDude.Core.Implementation
@@ -17,9 +14,6 @@ namespace CouchDude.Core.Implementation
 		private const string IdPropertyName = "_id";
 		private const string RevisionPropertyName = "_rev";
 		private const string TypePropertyName = "type";
-
-		[ThreadStatic]
-		private static JsonSerializer serializer;
 
 		private string revision;
 
@@ -55,6 +49,12 @@ namespace CouchDude.Core.Implementation
 
 		/// <summary>Entity instance.</summary>
 		public object Entity { get; private set; }
+
+		/// <summary>Return entity casted to specified type.</summary>
+		public TEntity GetEntity<TEntity>() where TEntity: class
+		{
+			return (TEntity) Entity;
+		}
 
 		/// <summary>Database document raw.</summary>
 		public JObject Document { get; private set; }
@@ -103,7 +103,7 @@ namespace CouchDude.Core.Implementation
 
 		/// <summary>Creates instance from JSON document reading it form 
 		/// provided text reader.</summary>
-		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings) 
+		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings, bool throwOnTypeMismatch = true) 
 			where TEntity : class
 		{
 			var id = document.GetRequiredProperty(IdPropertyName);
@@ -114,11 +114,14 @@ namespace CouchDude.Core.Implementation
 
 			var expectedType = settings.GetDocumentType<TEntity>();
 			if (expectedType != type)
-				throw new EntityTypeMismatchException(type, typeof (TEntity));
+				if (throwOnTypeMismatch)
+					throw new EntityTypeMismatchException(type, typeof (TEntity));
+				else
+					return null;
 
 			TEntity entity;
 			using (var reader = new JTokenReader(document))
-				entity = Serializer.Deserialize<TEntity>(reader);
+				entity = JsonSerializer.Instance.Deserialize<TEntity>(reader);
 
 			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
 			idPropertyDescriptor.SetIfAble(entity, id);
@@ -167,7 +170,7 @@ namespace CouchDude.Core.Implementation
 			JObject document;
 			using (var writer = new JTokenWriter())
 			{
-				Serializer.Serialize(writer, Entity);
+				JsonSerializer.Instance.Serialize(writer, Entity);
 				writer.Flush();
 				document = (JObject)writer.Token;
 			}
@@ -177,25 +180,6 @@ namespace CouchDude.Core.Implementation
 				document.AddFirst(new JProperty(RevisionPropertyName, Revision));
 			document.AddFirst(new JProperty(IdPropertyName, Id));
 			return document;
-		}
-
-		private static JsonSerializer Serializer
-		{
-			get { return serializer ?? (serializer = CreateSerializer()); }
-		}
-
-		private static JsonSerializer CreateSerializer()
-		{
-			var settings = new JsonSerializerSettings
-			{
-				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-				MissingMemberHandling = MissingMemberHandling.Ignore,
-				NullValueHandling = NullValueHandling.Ignore,
-				ContractResolver = new CamelCasePropertyNamesContractResolver(),
-				Converters = { new IsoDateTimeConverter() }
-			};
-
-			return JsonSerializer.Create(settings);
 		}
 
 		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 

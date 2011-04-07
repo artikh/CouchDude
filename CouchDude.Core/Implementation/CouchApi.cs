@@ -37,6 +37,8 @@ namespace CouchDude.Core.Implementation
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequest(documentUri, HttpMethod.Get);
 			var response = MakeRequest(request);
+			if (response.Status == HttpStatusCode.NotFound)
+				return null;
 			ThrowIfNotOk(response);
 			return ReadJObject(response.Body);
 		}
@@ -101,6 +103,24 @@ namespace CouchDude.Core.Implementation
 			if (string.IsNullOrEmpty(etag))
 				throw new CouchResponseParseException("Etag header expected.");
 			return etag;
+		}
+
+		/// <inheritdoc/>
+		public ViewResult Query(ViewQuery query)
+		{
+			if (query == null) throw new ArgumentNullException("query");
+			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10.", "query");
+			Contract.EndContractBlock();
+
+			var viewUri = databaseUri + query.ToUri();
+			var request = new HttpRequest(viewUri, HttpMethod.Get);
+			var response = MakeRequest(request);
+			ViewResult viewResult;
+			using (var responseBodyReader = response.Body)
+			using (var jsonReader = new JsonTextReader(responseBodyReader))
+				viewResult = JsonSerializer.Instance.Deserialize<ViewResult>(jsonReader);
+			viewResult.Query = query;
+			return viewResult;
 		}
 
 		private static JObject ReadJObject(TextReader responseTextReader)

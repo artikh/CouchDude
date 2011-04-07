@@ -62,6 +62,7 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
     <Compile Include="HttpClientMock.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="Unit\DesignDocumentManagment\EngineTests.cs" />
     <Compile Include="Unit\Implementation\CouchApiDeleteDocumentFromDbTests.cs" />
     <Compile Include="Unit\Implementation\CouchApiGetLastestDocumentRevisionTests.cs" />
+    <Compile Include="Unit\Implementation\CouchApiQueryTests.cs" />
     <Compile Include="Unit\Implementation\CouchApiUpdateDocumentInDbTests.cs" />
     <Compile Include="Unit\Implementation\CouchApiSaveDocumentToDbTests.cs" />
     <Compile Include="Unit\Implementation\CouchApiParseErrorResponseBodyTests.cs" />
@@ -84,6 +86,7 @@
     </Compile>
     <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
+    <Compile Include="Unit\Implementation\CouchSessionGetAllTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionLoadTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -100,6 +103,7 @@
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Unit\Implementation\ViewQueryTests.cs" />
     <Compile Include="Unit\SettingsTests.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Utils.cs" />

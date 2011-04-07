@@ -217,6 +217,17 @@ namespace CouchDude.Tests.Unit.Implementation
 		}
 
 		[Fact]
+		public void ShouldReturnNullIfThrowOnTypeMismatchSetToFalseAndTypeIsDifferent()
+		{
+			var documentEntity = DocumentEntity.FromJson<TestEntity>(
+				new { _id = "doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "anotherEntity", name = "John Smith" }.ToJObject(), 
+				settings,
+				throwOnTypeMismatch: false
+			);
+			Assert.Null(documentEntity);
+		}
+
+		[Fact]
 		public void ShouldSetIdIfNoneWasSetBefore()
 		{
 			var savingEntity = new TestEntity

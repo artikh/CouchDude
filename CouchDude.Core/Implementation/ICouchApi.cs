@@ -20,5 +20,8 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
 		/// is equal to provided <param name="revision"/>.</summary>
 		JObject DeleteDocument(string docId, string revision);
+
+		/// <summary>Queries CouchDB view.</summary>
+		ViewResult Query(ViewQuery query);
 	}
 }

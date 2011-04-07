@@ -9,7 +9,7 @@ namespace CouchDude.Tests.Integration
 	public class SaveLoadAndDelete
 	{
 		[Fact]
-		public void ShouldSaveAndThanLoadSimpleEntity()
+		public void ShouldSaveLoadAndThanGetAllSimpleEntities()
 		{
 			var settings = new Settings(new Uri("http://127.0.0.1:5984"), "temp");
 			var sessionFactory = new CouchSessionFactory(settings);

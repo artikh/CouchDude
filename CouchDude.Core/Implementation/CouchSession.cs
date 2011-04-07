@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -88,9 +89,23 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public TEntity Find<TEntity>(ViewInfo view) where TEntity : class
+		public IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class
 		{
-			throw new NotImplementedException();
+			var allDocuments = couchApi.Query(new ViewQuery {
+				DesignDocumentName = null,
+				ViewName = "_all_docs",
+				IncludeDocs = true
+			});
+			
+			foreach (var resultRow in allDocuments.Rows)
+			{
+				var documentEntity = DocumentEntity.FromJson<TEntity>(resultRow.Document, settings, throwOnTypeMismatch: false);
+				if (documentEntity != null)
+				{
+					cache.Put(documentEntity);
+					yield return documentEntity.GetEntity<TEntity>();
+				}
+			}
 		}
 
 		private static DocumentInfo CreateDocumentInfo(JObject result)
@@ -124,7 +139,6 @@ namespace CouchDude.Core.Implementation
 
 		private void Dispose(bool disposing)
 		{
-			Flush();
 			if (disposing)
 				cache.Clear();
 		}

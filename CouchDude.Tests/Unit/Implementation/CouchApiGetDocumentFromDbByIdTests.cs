@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using CouchDude.Core;
+using CouchDude.Core.HttpClient;
 using CouchDude.Core.Implementation;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -114,8 +115,15 @@ namespace CouchDude.Tests.Unit.Implementation
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
-		
 
+		[Fact]
+		public void ShouldReturnNullOn404WebExceptionWhenGettingDocument()
+		{
+			var httpMock = new HttpClientMock(new HttpResponse{ Status = HttpStatusCode.NotFound });
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+
+			Assert.Null(couchApi.GetDocumentFromDbById("doc1"));
+		}
 
 		private static TestResult TestInMockEnvironment(
 			Func<ICouchApi, JObject> doTest, string response = "")
