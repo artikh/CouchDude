@@ -69,7 +69,7 @@ namespace CouchDude.Core.Implementation
 
 		/// <summary>Creates instance from entity.</summary>
 		public static DocumentEntity FromEntity<TEntity>(TEntity entity, Settings settings)
-			where TEntity: new()
+			where TEntity: class
 		{
 			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
 			var id = GetIdOrGenerateOne(entity, idPropertyDescriptor, settings);
@@ -104,7 +104,7 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Creates instance from JSON document reading it form 
 		/// provided text reader.</summary>
 		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings) 
-			where TEntity : new()
+			where TEntity : class
 		{
 			var id = document.GetRequiredProperty(IdPropertyName);
 			var revision = document.GetRequiredProperty(RevisionPropertyName);

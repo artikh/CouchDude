@@ -106,7 +106,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1",
-			string documentType = "testEntity") where T: new()
+			string documentType = "testEntity") where T: class
 		{
 			if (apiResponse == null)
 				apiResponse = requestedUrl => new {

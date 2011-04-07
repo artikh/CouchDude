@@ -69,7 +69,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			var requestedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = requestedRequest.Uri == null ? null : requestedRequest.Uri.ToString(),
+				RequestedUri = requestedRequest.Uri,
 				RequestedMethod = requestedRequest.Method,
 				RequestBody = requestedRequest.Body == null ? null : requestedRequest.Body.ReadToEnd(),
 				Result = result

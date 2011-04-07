@@ -17,7 +17,9 @@ namespace CouchDude.Tests.Unit.Implementation
 
 			var resultObject = couchApi.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
 
-			Assert.Equal(new Uri("http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7"), httpMock.Request.Uri);
+			Assert.Equal(
+				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
+				httpMock.Request.Uri);
 			Assert.Equal("DELETE", httpMock.Request.Method);
 			Utils.AssertSameJson(new { ok = true }.ToJObject(), resultObject);
 		}

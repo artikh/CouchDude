@@ -8,7 +8,13 @@ namespace CouchDude.Core.HttpClient
 	public class HttpRequest
 	{
 		/// <constructor />
-		public HttpRequest(Uri uri, string method, WebHeaderCollection headers = null, TextReader body = null)
+		public HttpRequest(
+			Uri uri, string method, WebHeaderCollection headers = null, TextReader body = null)
+			: this (uri.ToString(), method, headers, body) {}
+
+		/// <constructor />
+		public HttpRequest(
+			string uri, string method, WebHeaderCollection headers = null, TextReader body = null)
 		{
 			Uri = uri;
 			Method = method;
@@ -17,7 +23,7 @@ namespace CouchDude.Core.HttpClient
 		}
 
 		/// <summary>Address to make request to.</summary>
-		public Uri Uri { get; private set; }
+		public string Uri { get; private set; }
 
 		/// <summary>HTTP method.</summary>
 		public string Method { get; private set; }

@@ -3,9 +3,12 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
 using System.Text;
+
 using CouchDude.Core.HttpClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using HttpRequest = CouchDude.Core.HttpClient.HttpRequest;
+using HttpResponse = CouchDude.Core.HttpClient.HttpResponse;
 
 namespace CouchDude.Core.Implementation
 {
@@ -123,11 +126,22 @@ namespace CouchDude.Core.Implementation
 			return response;
 		}
 
-		private Uri GetDocumentUri(string docId, string revision = null)
+		private string GetDocumentUri(string docId, string revision = null)
 		{
-			return revision != null 
-				? new Uri(databaseUri, docId + "?rev=" + revision) 
-				: new Uri(databaseUri, docId);
+			const string designDocumentPrefix = "_design/";
+
+			var uriStringBuilder = new StringBuilder(databaseUri.ToString());
+			if (docId.StartsWith(designDocumentPrefix))
+				uriStringBuilder
+					.Append(designDocumentPrefix)
+					.Append(docId.Substring(designDocumentPrefix.Length).Replace("/", "%2F"));
+			else
+				uriStringBuilder.Append(docId.Replace("/", "%2F"));
+
+			if (!string.IsNullOrEmpty(revision))
+				uriStringBuilder.Append("?rev=").Append(revision);
+
+			return uriStringBuilder.ToString();
 		}
 
 		internal static string ParseErrorResponseBody(TextReader errorTextReader)

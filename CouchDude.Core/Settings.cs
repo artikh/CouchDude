@@ -73,7 +73,7 @@ namespace CouchDude.Core
 		}
 		
 		/// <summary>Returns ID property descriptor.</summary>
-		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>() where TEntity: new()
+		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>() where TEntity: class
 		{
 			return idPropertyDescriptorMap.GetOrAdd(
 				typeof (TEntity), 
@@ -88,7 +88,7 @@ namespace CouchDude.Core
 		}
 
 		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>() where TEntity: new()
+		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>() where TEntity: class
 		{
 			return GetRevPropertyDescriptor(typeof(TEntity));
 		}
@@ -101,7 +101,7 @@ namespace CouchDude.Core
 		}
 
 		/// <summary>Returns document type for entity </summary>
-		public string GetDocumentType<TEntity>() where TEntity: new()
+		public string GetDocumentType<TEntity>() where TEntity: class
 		{
 			return docTypeMap.GetOrAdd(typeof (TEntity), t => DocumentTypeConvension.GetType(t));
 		}

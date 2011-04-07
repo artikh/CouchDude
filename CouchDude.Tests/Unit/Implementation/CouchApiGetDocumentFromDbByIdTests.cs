@@ -37,6 +37,38 @@ namespace CouchDude.Tests.Unit.Implementation
 		}
 
 		[Fact]
+		public void ShouldEscapeDocumentId()
+		{
+			var r = TestInMockEnvironment(
+				couchApi => couchApi.GetDocumentFromDbById("docs/doc1"),
+				response: new
+				{
+					_id = "docs/doc1",
+					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
+					name = "John Smith"
+				}.ToJson()
+			);
+
+			Assert.Equal("http://example.com:5984/testdb/docs%2Fdoc1", r.RequestedUri);
+		}
+
+		[Fact]
+		public void ShouldNotEscapeDesignDocumentIdPrefix()
+		{
+			var r = TestInMockEnvironment(
+				couchApi => couchApi.GetDocumentFromDbById("_design/docs/doc1"),
+				response: new
+				{
+					_id = "_design/docs/doc1",
+					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
+					name = "John Smith"
+				}.ToJson()
+			);
+
+			Assert.Equal("http://example.com:5984/testdb/_design/docs%2Fdoc1", r.RequestedUri);
+		}
+
+		[Fact]
 		public void ShouldThrowOnIncorrectJsonGettingDocumentById()
 		{
 			Assert.Throws<CouchResponseParseException>(() =>
@@ -94,7 +126,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			var recivedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = recivedRequest.Uri == null ? null : recivedRequest.Uri.ToString(),
+				RequestedUri = recivedRequest.Uri,
 				RequestedMethod = recivedRequest.Method,
 				RequestBody = recivedRequest.Body == null ? null : recivedRequest.Body.ReadToEnd(),
 				Result = result

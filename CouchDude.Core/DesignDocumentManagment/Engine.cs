@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using Common.Logging;
 using CouchDude.Core.HttpClient;
 using Newtonsoft.Json;
 
@@ -11,6 +12,8 @@ namespace CouchDude.Core.DesignDocumentManagment
 	/// <summary>Orchestrates Couch Dude's actions.</summary>
 	public class Engine
 	{
+		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
 		private readonly IHttpClient httpClient;
 		private readonly IDesignDocumentAssembler designDocumentAssembler;
 		private readonly IDesignDocumentExtractor designDocumentExtractor;
@@ -73,9 +76,19 @@ namespace CouchDude.Core.DesignDocumentManagment
 			var docsFromDatabase = GetDesignDocumentsFromDatabase(databaseUri);
 			var docsFromFileSystem = GetDesignDocumentsFromFileSystem();
 			var changedDocs = GetChangedDocuments(docsFromFileSystem, docsFromDatabase);
+			Log.InfoFormat("{0} design documents will be pushed to database.", changedDocs.Count);
 
-			foreach (var changedDoc in changedDocs)
-				PostOrPutDocument(changedDoc, databaseUri);
+			foreach (var changedDoc in changedDocs) 
+			{
+				Log.InfoFormat("Pushing document {0} to the database.", changedDoc.Id);
+				var documentUri = new Uri(databaseUri, changedDoc.Id);
+				changedDoc.Definition.ToString(Formatting.None);
+				httpClient.MakeRequest(
+					new HttpRequest(
+						documentUri, 
+						"PUT", 
+						body: new StringReader(changedDoc.Definition.ToString(Formatting.None))));
+			}
 		}
 
 		/// <summary>Generates design documents from directory content.</summary>
@@ -85,51 +98,65 @@ namespace CouchDude.Core.DesignDocumentManagment
 				.Select(dd => dd.Definition.ToString(Formatting.Indented));
 		}
 
-		private void PostOrPutDocument(DesignDocument doc, Uri databaseUri)
-		{
-			var documentUri = new Uri(databaseUri, doc.Id);
-			doc.Definition.ToString(Formatting.None);
-			httpClient.MakeRequest(new HttpRequest(
-				documentUri, "PUT", body: new StringReader(doc.Definition.ToString(Formatting.None))));
-		}
-
 		private static void FillPasswordIn(ref Uri databaseUri, string password) 
 		{
 			if (password != null)
 				databaseUri = new UriBuilder(databaseUri) { Password = password }.Uri;
 		}
 
-		private static IEnumerable<DesignDocument> GetChangedDocuments(
+		private static IList<DesignDocument> GetChangedDocuments(
 			IDictionary<string, DesignDocument> docsFromFs, 
 			IDictionary<string, DesignDocument> docsFromDb)
 		{
+			Log.Info("Figuring out if any document have changed.");
 			var changedDocuments = new List<DesignDocument>();
 			foreach (var docFromFs in docsFromFs.Values)
 			{
 				DesignDocument docFromDb;
-				if (!docsFromDb.TryGetValue(docFromFs.Id, out docFromDb)) 
+				if (!docsFromDb.TryGetValue(docFromFs.Id, out docFromDb))
+				{
+					Log.InfoFormat("Design document {0} is new:\n{1}", docFromFs.Id, docFromFs.Definition);
 					changedDocuments.Add(docFromFs);
+				}
 				else if (docFromDb != docFromFs)
+				{
+					Log.InfoFormat("Design document {0} have changed:\n{1}", docFromFs.Id, docFromFs.Definition);
 					changedDocuments.Add(docFromFs.CopyWithRevision(docFromDb.Revision));
+				}
 			}
+
+			if(Log.IsInfoEnabled)
+			{
+				if(changedDocuments.Count == 0)
+					Log.Info("No design documents have changed.");
+				else
+					Log.InfoFormat("{0} design documents will be pushed to database.", changedDocuments.Count);
+			}
+
 			return changedDocuments;
 		}
 
 		private IDictionary<string, DesignDocument> GetDesignDocumentsFromDatabase(Uri databaseUri) 
 		{
+			Log.Info("Downloading design documents from database...");
 			var response = httpClient.MakeRequest(
 				new HttpRequest(
-					new Uri(
-						databaseUri,
-						@"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true"), 
+					databaseUri + @"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true", 
 					HttpMethod.Get)
 				);
-			return designDocumentExtractor.Extract(response.Body);
+			var designDocumentsFromDatabase = designDocumentExtractor.Extract(response.Body);
+			Log.InfoFormat(
+				"{0} design documens downloaded from database.", designDocumentsFromDatabase.Count);
+			return designDocumentsFromDatabase;
 		}
 
-		private IDictionary<string, DesignDocument> GetDesignDocumentsFromFileSystem() 
+		private IDictionary<string, DesignDocument> GetDesignDocumentsFromFileSystem()
 		{
-			return designDocumentAssembler.Assemble();
+			Log.Info("Creating design documents from file system...");
+			var designDocumentsFromFileSystem = designDocumentAssembler.Assemble();
+			Log.InfoFormat(
+				"{0} design documens created from file system.", designDocumentsFromFileSystem.Count);
+			return designDocumentsFromFileSystem;
 		}
 	}
 }

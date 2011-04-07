@@ -100,7 +100,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 
 			engine.PushIfChanged(new Uri("http://example.com"));
 
-			Assert.Equal(new Uri("http://example.com/_design/doc1"), httpClientMock.Request.Uri);
+			Assert.Equal("http://example.com/_design/doc1", httpClientMock.Request.Uri);
 			Assert.Equal("PUT", httpClientMock.Request.Method);
 			Assert.Equal(docAWithoutRev.ToString(), httpClientMock.Request.Body.ReadToEnd(), new JTokenStringCompairer());
 		}
@@ -120,7 +120,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 
 			engine.PushIfChanged(new Uri("http://example.com"));
 
-			Assert.Equal(new Uri("http://example.com/_design/doc2"), httpClientMock.Request.Uri);
+			Assert.Equal("http://example.com/_design/doc2", httpClientMock.Request.Uri);
 			Assert.Equal("PUT", httpClientMock.Request.Method);
 			
 			var expectedDoc = (JObject)docB2WithoutRev.DeepClone();

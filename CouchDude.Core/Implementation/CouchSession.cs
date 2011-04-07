@@ -20,7 +20,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public DocumentInfo Save<TEntity>(TEntity entity) where TEntity : new()
+		public DocumentInfo Save<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
 			Contract.EndContractBlock();
@@ -42,7 +42,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
-		public DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : new()
+		public DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class
 		{
 			var documentEntity = cache.TryGet(entity);
 			if (documentEntity != null)
@@ -66,7 +66,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public TEntity Load<TEntity>(string docId) where TEntity : new()
+		public TEntity Load<TEntity>(string docId) where TEntity : class
 		{
 			if (string.IsNullOrWhiteSpace(docId)) 
 				throw new ArgumentNullException("docId");
@@ -88,7 +88,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public TEntity Find<TEntity>(ViewInfo view) where TEntity : new()
+		public TEntity Find<TEntity>(ViewInfo view) where TEntity : class
 		{
 			throw new NotImplementedException();
 		}

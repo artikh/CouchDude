@@ -2,12 +2,15 @@
 using System.IO;
 using CommandLine;
 using CommandLine.Text;
+using Common.Logging;
 using CouchDude.Core.DesignDocumentManagment;
 
 namespace CouchDude
 {
 	class Program
 	{
+		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+
 		private static readonly HeadingInfo HeadingInfo = new HeadingInfo("CouchDude.Console", "1.0");
 		private const int OkReturnCode = 0;
 		private const int IncorrectOptionsReturnCode = 1;
@@ -27,12 +30,10 @@ namespace CouchDude
 			[Option("c", "command", Required = true, HelpText = "help|generate|check|push")]
 			public CommandType Command = CommandType.Help;
 
-			[Option("a", "address",
-							HelpText = "Database URL")]
-			public string DatabaseUrl = null;
+			[Option("a", "address", HelpText = "Database URL")]
+			public string DatabaseUrl;
 
-			[Option("d", "directory",
-							HelpText = "Base directory for document generation")]
+			[Option("d", "directory", HelpText = "Base directory for document generation")]
 			public string BaseDirectory = string.Empty;
 			
 			[HelpOption(HelpText = "Dispaly this help screen")]
@@ -41,8 +42,7 @@ namespace CouchDude
 				var help = new HelpText(HeadingInfo) {
 					AdditionalNewLineAfterOption = true
 				};
-				help.AddPreOptionsLine(
-					"Usage: couchdude check -a http://admin:passw0rd@example.com:5984/yourdb [-d .\\designDocuments]");
+				help.AddPreOptionsLine("Usage: couchdude check -a http://admin:passw0rd@example.com:5984/yourdb [-d .\\designDocuments]");
 				help.AddPreOptionsLine(PasswordEnvVar + " enviroment option used as database password if set.");
 				help.AddOptions(this);
 				return help;
@@ -52,21 +52,19 @@ namespace CouchDude
 		static int Main(string[] args)
 		{
 			var options = new Options();
-			ICommandLineParser parser = 
-				new CommandLineParser(new CommandLineParserSettings(Console.Error));
+			ICommandLineParser parser = new CommandLineParser(new CommandLineParserSettings(Console.Error));
 			if (!parser.ParseArguments(args, options))
 			{
-				WriteError("Some of argumens are incorrect.\n");
+				Log.ErrorFormat("Some of argumens are incorrect");
 				return IncorrectOptionsReturnCode;
 			}
 
-			var directoryPath =
-				!string.IsNullOrWhiteSpace(options.BaseDirectory)? options.BaseDirectory: Environment.CurrentDirectory;
+			var directoryPath = !string.IsNullOrWhiteSpace(options.BaseDirectory)? options.BaseDirectory: Environment.CurrentDirectory;
 
 			var baseDirectory = new DirectoryInfo(directoryPath);
 			if(!baseDirectory.Exists)
 			{
-				WriteError("Provided directory {0} does not exist.", options.BaseDirectory);
+				Log.ErrorFormat("Provided directory {0} does not exist.", options.BaseDirectory);
 				return IncorrectOptionsReturnCode;
 			}
 
@@ -82,11 +80,7 @@ namespace CouchDude
 				}
 				catch (Exception e)
 				{
-#if DEBUG
-					WriteError(e.ToString());
-#else
-					WriteError(e.Message);
-#endif
+					Log.ErrorFormat(e.ToString());
 					return UnknownErrorReturnCode;
 				}
 
@@ -124,36 +118,25 @@ namespace CouchDude
 		static Uri ParseDatabaseUrl(Options options)
 		{
 			Uri uri;
+			if (!options.DatabaseUrl.EndsWith("/"))
+				options.DatabaseUrl = options.DatabaseUrl + "/";
+
 			if(!Uri.TryCreate(options.DatabaseUrl, UriKind.RelativeOrAbsolute, out uri))
 			{
-				WriteError("Provided URI is malformed: {0}", options.DatabaseUrl);
+				Log.ErrorFormat("Provided URI is malformed: {0}", options.DatabaseUrl);
 				Environment.Exit(IncorrectOptionsReturnCode);
 			}
 			if (uri.Scheme != "http" && uri.Scheme != "https")
 			{
-				WriteError("Provided URI is not of HTTP(S) scheme: {0}", options.DatabaseUrl);
+				Log.ErrorFormat("Provided URI is not of HTTP(S) scheme: {0}", options.DatabaseUrl);
 				Environment.Exit(IncorrectOptionsReturnCode);
 			}
 			if (!uri.IsAbsoluteUri)
 			{
-				WriteError("Provided URI is not absolute: {0}", options.DatabaseUrl);
+				Log.ErrorFormat("Provided URI is not absolute: {0}", options.DatabaseUrl);
 				Environment.Exit(IncorrectOptionsReturnCode);
 			}
 			return uri;
-		}
-
-		private static void WriteError(string message, params object[] messageParams)
-		{
-			var oldColor = Console.ForegroundColor;
-			try
-			{
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.Error.WriteLine(message, messageParams);
-			}
-			finally
-			{
-				Console.ForegroundColor = oldColor;
-			}
 		}
 	}
 }
