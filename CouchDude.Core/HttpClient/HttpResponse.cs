@@ -4,7 +4,7 @@ using System.Net;
 namespace CouchDude.Core.HttpClient
 {
 	/// <summary>Describes HTTP response.</summary>
-	public class HttpResponse
+	internal class HttpResponse
 	{
 		/// <summary>HTTP response status code.</summary>
 		public HttpStatusCode Status { get; set; }

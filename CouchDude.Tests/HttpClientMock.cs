@@ -6,7 +6,7 @@ using CouchDude.Core.HttpClient;
 
 namespace CouchDude.Tests
 {
-	public class HttpClientMock: IHttpClient
+	internal class HttpClientMock: IHttpClient
 	{
 		private readonly Exception exception;
 		private readonly HttpResponse response;

@@ -17,9 +17,9 @@ namespace CouchDude.Core.DesignDocumentManagment
 		private readonly IHttpClient httpClient;
 		private readonly IDesignDocumentAssembler designDocumentAssembler;
 		private readonly IDesignDocumentExtractor designDocumentExtractor;
-
+		
 		/// <constructor />
-		public Engine(IHttpClient httpClient, IDesignDocumentExtractor designDocumentExtractor, IDesignDocumentAssembler designDocumentAssembler)
+		internal Engine(IHttpClient httpClient, IDesignDocumentExtractor designDocumentExtractor, IDesignDocumentAssembler designDocumentAssembler)
 		{
 			if(httpClient == null) throw new ArgumentNullException("httpClient");
 			if(designDocumentAssembler == null) 

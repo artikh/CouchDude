@@ -1,7 +1,7 @@
 ﻿namespace CouchDude.Core.HttpClient
 {
 	/// <summary>Commonly used HTTP methods.</summary>
-	public static class HttpMethod
+	internal static class HttpMethod
 	{
 		/// <summary>HTTP GET method.</summary>
 		public const string Get = "GET";

@@ -9,7 +9,7 @@ namespace CouchDude.Core.HttpClient
 {
 	/// <summary><see cref="IHttpClient"/> implementation using 
 	/// <see cref="HttpWebRequest"/>/<see cref="HttpWebResponse"/>.</summary>
-	public class HttpClientImpl: IHttpClient
+	internal class HttpClientImpl: IHttpClient
 	{
 		private static readonly UTF8Encoding RequestEncoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
 

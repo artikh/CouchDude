@@ -5,7 +5,7 @@ using System.Net;
 namespace CouchDude.Core.HttpClient
 {
 	/// <summary>Describes HTTP request.</summary>
-	public class HttpRequest
+	internal class HttpRequest
 	{
 		/// <constructor />
 		public HttpRequest(

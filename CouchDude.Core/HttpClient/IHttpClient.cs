@@ -3,7 +3,7 @@
 namespace CouchDude.Core.HttpClient
 {
 	/// <summary>HTTP client abstracted interface.</summary>
-	public interface IHttpClient
+	internal interface IHttpClient
 	{
 		/// <summary>Starts HTTP request and returs task.</summary>
 		Task<HttpResponse> StartRequest(HttpRequest request);
