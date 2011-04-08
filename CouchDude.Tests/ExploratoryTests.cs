@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -41,14 +42,23 @@ namespace CouchDude.Tests
 				}
 			}";
 
-		JsonSerializer serializer = JsonSerializer.Create(new JsonSerializerSettings
+		private static JsonSerializer GetSerializer()
 		{
-			ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-			MissingMemberHandling = MissingMemberHandling.Ignore,
-			NullValueHandling = NullValueHandling.Ignore,
-			ContractResolver = new CamelCasePropertyNamesContractResolver(),
-			Converters = { new IsoDateTimeConverter() }
-		});
+			var contractResolver = new CamelCasePropertyNamesContractResolver();
+			contractResolver.DefaultMembersSearchFlags |= BindingFlags.NonPublic;
+
+			var settings = new JsonSerializerSettings
+			{
+				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
+				MissingMemberHandling = MissingMemberHandling.Ignore,
+				NullValueHandling = NullValueHandling.Ignore,
+				ContractResolver = contractResolver,
+				Converters = { new IsoDateTimeConverter() }
+			};
+			return Newtonsoft.Json.JsonSerializer.Create(settings);
+		}
+
+		private readonly JsonSerializer serializer = GetSerializer();
 
 		[Fact]
 		public void SouldCompareTwoJObjectsCorrectly()
@@ -106,6 +116,29 @@ namespace CouchDude.Tests
 				},
 				entity.SubObject[0]
 			);
+		}
+
+		public class PrivatePropertySetterClass
+		{
+			public string Name { get; private set; }
+			public int Age { get; private set; }
+		}
+
+		[Fact]
+		public void ShouldDeserializePrivatePropertySetter()
+		{
+			var json = new {
+				name = "some Name",
+				age = 42
+			}.ToJObject();
+
+			PrivatePropertySetterClass obj;
+			using (var jTokenReader = new JTokenReader(json))
+				obj = serializer.Deserialize<PrivatePropertySetterClass>(jTokenReader);
+
+			Assert.NotNull(obj);
+			Assert.Equal("some Name", obj.Name);
+			Assert.Equal(42, obj.Age);
 		}
 	}
 }

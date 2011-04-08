@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -17,15 +18,17 @@ namespace CouchDude.Core.Implementation
 
 		private static Newtonsoft.Json.JsonSerializer CreateSerializer()
 		{
+			var contractResolver = new CamelCasePropertyNamesContractResolver();
+			contractResolver.DefaultMembersSearchFlags |= BindingFlags.NonPublic;
+
 			var settings = new JsonSerializerSettings
 			{
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
 				MissingMemberHandling = MissingMemberHandling.Ignore,
 				NullValueHandling = NullValueHandling.Ignore,
-				ContractResolver = new CamelCasePropertyNamesContractResolver(),
+				ContractResolver = contractResolver,
 				Converters = { new IsoDateTimeConverter() }
 			};
-
 			return Newtonsoft.Json.JsonSerializer.Create(settings);
 		}
 	}

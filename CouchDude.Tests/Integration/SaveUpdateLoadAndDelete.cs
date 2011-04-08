@@ -32,6 +32,7 @@ namespace CouchDude.Tests.Integration
 			{
 				updatingEntity = session.Load<SimpleEntity>(savedEntity.Id);
 				updatingEntity.Name = "Artem Tikhomirov";
+				session.Flush();
 			}
 
 			using (var session = sessionFactory.CreateSession())
