@@ -1,10 +1,8 @@
 using System.Collections.Generic;
-using System.Reflection;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using Xunit;
+
+using JsonSerializer = CouchDude.Core.Implementation.JsonSerializer;
 
 namespace CouchDude.Tests
 {
@@ -41,24 +39,6 @@ namespace CouchDude.Tests
 					""boolean"": false
 				}
 			}";
-
-		private static JsonSerializer GetSerializer()
-		{
-			var contractResolver = new CamelCasePropertyNamesContractResolver();
-			contractResolver.DefaultMembersSearchFlags |= BindingFlags.NonPublic;
-
-			var settings = new JsonSerializerSettings
-			{
-				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-				MissingMemberHandling = MissingMemberHandling.Ignore,
-				NullValueHandling = NullValueHandling.Ignore,
-				ContractResolver = contractResolver,
-				Converters = { new IsoDateTimeConverter() }
-			};
-			return Newtonsoft.Json.JsonSerializer.Create(settings);
-		}
-
-		private readonly JsonSerializer serializer = GetSerializer();
 
 		[Fact]
 		public void SouldCompareTwoJObjectsCorrectly()
@@ -105,7 +85,7 @@ namespace CouchDude.Tests
 
 			ClassWithJObjectProperty entity;
 			using (var reader = new JTokenReader(json))
-				entity = serializer.Deserialize<ClassWithJObjectProperty>(reader);
+				entity = JsonSerializer.Instance.Deserialize<ClassWithJObjectProperty>(reader);
 
 			Assert.Equal("some ID", entity.Id);
 			Assert.Equal(2, entity.SubObject.Count);
@@ -120,7 +100,16 @@ namespace CouchDude.Tests
 
 		public class PrivatePropertySetterClass
 		{
-			public string Name { get; private set; }
+			private string _name = "name name";
+
+			public PrivatePropertySetterClass(string name, int age)
+			{
+				_name = name;
+				Age = age;
+			}
+
+			public string Name { get { return _name; } private set { _name = value; } }
+
 			public int Age { get; private set; }
 		}
 
@@ -134,11 +123,23 @@ namespace CouchDude.Tests
 
 			PrivatePropertySetterClass obj;
 			using (var jTokenReader = new JTokenReader(json))
-				obj = serializer.Deserialize<PrivatePropertySetterClass>(jTokenReader);
+				obj = JsonSerializer.Instance.Deserialize<PrivatePropertySetterClass>(jTokenReader);
 
 			Assert.NotNull(obj);
 			Assert.Equal("some Name", obj.Name);
 			Assert.Equal(42, obj.Age);
+		}
+
+		[Fact]
+		public void ShouldNotSerializePrivateFields()
+		{
+			var instance = new PrivatePropertySetterClass("John Don", 42);
+
+			var writer = new JTokenWriter();
+			JsonSerializer.Instance.Serialize(writer, instance);
+			var json = (JObject)writer.Token;
+
+			Assert.Null(json.Property("_name"));
 		}
 	}
 }

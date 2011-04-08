@@ -18,9 +18,7 @@ namespace CouchDude.Core.Implementation
 
 		private static Newtonsoft.Json.JsonSerializer CreateSerializer()
 		{
-			var contractResolver = new CamelCasePropertyNamesContractResolver();
-			contractResolver.DefaultMembersSearchFlags |= BindingFlags.NonPublic;
-
+			var contractResolver = new ContractResolver();
 			var settings = new JsonSerializerSettings
 			{
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
@@ -32,4 +30,25 @@ namespace CouchDude.Core.Implementation
 			return Newtonsoft.Json.JsonSerializer.Create(settings);
 		}
 	}
+
+	internal class ContractResolver : CamelCasePropertyNamesContractResolver
+	{
+		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+		{
+			var jsonProperty = base.CreateProperty(member, memberSerialization);
+
+			if (!jsonProperty.Writable)
+			{
+				var propertyInfo = member as PropertyInfo;
+				if (propertyInfo != null)
+				{
+					var hasPrivateSetter = propertyInfo.GetSetMethod(true) != null;
+					jsonProperty.Writable = hasPrivateSetter;
+				}
+			}
+
+			return jsonProperty;
+		}
+	}
+
 }
