@@ -108,9 +108,10 @@ namespace CouchDude.Core.Implementation
 		{
 			var id = document.GetRequiredProperty(IdPropertyName);
 			var revision = document.GetRequiredProperty(RevisionPropertyName);
-			var type = document.GetRequiredProperty(
-				TypePropertyName, 
-				"Type is required by CouchDude itself so it colud do it magic stuff");
+
+			var type = GetDocumnetType(document, throwOnTypeMismatch);
+			if (type == null)
+				return null;
 
 			var expectedType = settings.GetDocumentType<TEntity>();
 			if (expectedType != type)
@@ -129,6 +130,28 @@ namespace CouchDude.Core.Implementation
 			revisionPropertyDescriptor.SetIfAble(entity, revision);
 
 			return new DocumentEntity(idPropertyDescriptor, revisionPropertyDescriptor, id, revision, typeof(TEntity), type, entity, document);
+		}
+
+		private static string GetDocumnetType(JObject document, bool throwOnTypeMismatch)
+		{
+			var propertyValue = document[TypePropertyName] as JValue;
+			if (propertyValue != null)
+			{
+				var value = propertyValue.Value<string>();
+				if (!string.IsNullOrWhiteSpace(value))
+					return value;
+			}
+
+			if (!throwOnTypeMismatch) 
+				return null;
+
+			throw new CouchResponseParseException(
+				"Required field '{0}' have not found on document. " 
+					+ "Type is required by CouchDude itself so it colud do it magic stuff:\n {1}",
+				TypePropertyName,
+				"Type is required by CouchDude itself so it colud do it magic stuff",
+				document.ToString(Formatting.None)
+				);
 		}
 
 		/// <summary>Maps entity to the JSON document.</summary>
