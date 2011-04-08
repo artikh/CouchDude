@@ -82,6 +82,8 @@ namespace CouchDude.Core.Implementation
 			}
 
 			var document = couchApi.GetDocumentFromDbById(docId);
+			if (document == null)
+				return null;
 			var documentEntity = DocumentEntity.FromJson<TEntity>(document, settings);
 			cache.Put(documentEntity);
 
