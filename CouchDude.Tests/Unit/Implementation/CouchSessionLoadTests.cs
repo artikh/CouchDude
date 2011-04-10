@@ -1,7 +1,7 @@
 using System;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
-
+using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -25,6 +25,15 @@ namespace CouchDude.Tests.Unit.Implementation
 
 		private readonly Settings settings =
 			new Settings(new Uri("http://example.com"), "temp");
+
+		[Fact]
+		public void ShouldReturnNullIfApiReturnedNull()
+		{
+			var api = new Mock<ICouchApi>();
+			api.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>())).Returns((JObject) null);
+			var session = new CouchSession(settings, api.Object);
+			Assert.Null(session.Load<SimpleEntity>("doc1"));
+		}
 
 		[Fact]
 		public void ShouldReturnSameInstanceWhenRequestingTwice()
