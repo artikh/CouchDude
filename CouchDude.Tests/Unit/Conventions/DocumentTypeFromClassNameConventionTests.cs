@@ -10,7 +10,7 @@ namespace CouchDude.Tests.Unit.Conventions
 		[Fact]
 		public void ShouldProvideLowerCasedTypeNameAsDocType()
 		{
-			var docName = new DocumentTypeFromClassNameConvention().GetType(typeof(TestConventionClass));
+			var docName = new DocumentTypeFromClassNameConvention().GetDocumentType(typeof(TestConventionClass));
 			Assert.Equal("testConventionClass", docName);
 		}
 	}

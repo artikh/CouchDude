@@ -34,7 +34,7 @@ namespace CouchDude.Core
 			new PropertyByNameConvention("Revision", "Rev");
 
 		/// <summary>Document type detector convension.</summary>
-		public IDocumentTypeConvention DocumentTypeConvension =
+		public ITypeConvention TypeConvension =
 			new DocumentTypeFromClassNameConvention();
 
 		/// <summary>Document ID generator.</summary>
@@ -103,7 +103,7 @@ namespace CouchDude.Core
 		/// <summary>Returns document type for entity </summary>
 		public string GetDocumentType<TEntity>() where TEntity: class
 		{
-			return docTypeMap.GetOrAdd(typeof (TEntity), t => DocumentTypeConvension.GetType(t));
+			return docTypeMap.GetOrAdd(typeof (TEntity), t => TypeConvension.GetDocumentType(t));
 		}
 	}
 }

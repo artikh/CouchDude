@@ -95,9 +95,9 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Conventions\DocumentTypeFromClassNameConvention.cs" />
+    <Compile Include="Conventions\TypeConventionBase.cs" />
     <Compile Include="Conventions\GuidIdGenerator.cs" />
-    <Compile Include="Conventions\IDocumentTypeConvention.cs" />
+    <Compile Include="Conventions\ITypeConvention.cs" />
     <Compile Include="Conventions\IIdGenerator.cs" />
     <Compile Include="Conventions\SequentialUuidIdGenerator.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
@@ -203,8 +203,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir $(SolutionDir)..\..\Packages\CouchDude.1.0
-copy /y /v $(TargetDir)CouchDude.Core.* $(SolutionDir)..\..\Packages\CouchDude.1.0\</PostBuildEvent>
+    <PostBuildEvent>mkdir $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)
+copy /y /v $(TargetDir)*.dll $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\
+copy /y /v $(TargetDir)*.pdb $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\
+copy /y /v $(TargetDir)*.xml $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

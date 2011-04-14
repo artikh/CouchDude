@@ -213,6 +213,10 @@ namespace CouchDude.Core.Implementation
 			{
 				return httpClient.MakeRequest(request);
 			}
+			catch (SocketException e)
+			{
+				throw new CouchCommunicationException(e, e.Message);
+			}
 			catch (WebException e)
 			{
 				throw new CouchCommunicationException(e, e.Message);
