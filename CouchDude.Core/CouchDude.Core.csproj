@@ -203,10 +203,10 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)
-copy /y /v $(TargetDir)*.dll $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\
-copy /y /v $(TargetDir)*.pdb $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\
-copy /y /v $(TargetDir)*.xml $(SolutionDir)..\..\Binaries\CouchDude\$(Configuration)\</PostBuildEvent>
+    <PostBuildEvent>mkdir $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
+copy /y /v $(TargetDir)$(TargetName).dll $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
+copy /y /v $(TargetDir)$(TargetName).pdb $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
+copy /y /v $(TargetDir)$(TargetName).xml $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
