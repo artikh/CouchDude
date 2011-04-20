@@ -1,8 +1,14 @@
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
 using JsonSerializer = CouchDude.Core.Implementation.JsonSerializer;
+
+
+// ReSharper disable UnusedMember.Local
+// ReSharper disable ClassNeverInstantiated.Local
+#pragma warning disable 649
 
 namespace CouchDude.Tests
 {
@@ -58,13 +64,11 @@ namespace CouchDude.Tests
 			Assert.False(new JTokenEqualityComparer().Equals(obj1, obj2));
 		}
 
-#pragma warning disable 649
 		class ClassWithJObjectProperty
 		{
 			public string Id;
 			public IList<JObject> SubObject;
 		}
-#pragma warning restore 649
 
 		[Fact]
 		public void ShouldDeserializeDocumentsWithJObjectProperties()
@@ -79,7 +83,7 @@ namespace CouchDude.Tests
 					new {
 						prop1 = "prop 1 second value",
 						prop2 = "prop 2 second value"
-					},
+					}
 				}
 			}.ToJObject();
 
@@ -100,15 +104,15 @@ namespace CouchDude.Tests
 
 		public class PrivatePropertySetterClass
 		{
-			private string _name = "name name";
+			private string name = "name name";
 
 			public PrivatePropertySetterClass(string name, int age)
 			{
-				_name = name;
+				this.name = name;
 				Age = age;
 			}
 
-			public string Name { get { return _name; } private set { _name = value; } }
+			public string Name { get { return name; } private set { name = value; } }
 
 			public int Age { get; private set; }
 		}

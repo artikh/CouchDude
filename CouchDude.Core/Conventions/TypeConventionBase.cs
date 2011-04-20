@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 
@@ -11,9 +12,18 @@ namespace CouchDude.Core.Conventions
 	{
 		private readonly IDictionary<Type, string> entity2DocMap = new Dictionary<Type, string>();
 		private readonly IDictionary<string, Type> doc2EntityMap = new Dictionary<string, Type>();
+		private readonly Assembly[] assembliesToScan;
 
 		// ReSharper disable DoNotCallOverridableMethodsInConstructor
+		/// <constructor />
 		protected TypeConventionBase(params Assembly[] assembliesToScan)
+		{
+			this.assembliesToScan = assembliesToScan ?? new Assembly[0];
+		}
+
+		/// <summary>Initializes convention.</summary>
+		/// <remarks>Run it before use.</remarks>
+		public void Init()
 		{
 			foreach (var entityType in assembliesToScan.SelectMany(a => a.GetTypes()))
 			{
@@ -25,16 +35,9 @@ namespace CouchDude.Core.Conventions
 				}
 			}
 		}
-		// ReSharper restore DoNotCallOverridableMethodsInConstructor
 
 		/// <summary>Returns document type for entity type if it's one.</summary>
-		protected abstract string ProcessType(Type type);
-
-		/// <summary>Checks if document type have been registered.</summary>
-		protected bool HaveRegistered(string documentType)
-		{
-			return doc2EntityMap.ContainsKey(documentType);
-		}
+		protected internal abstract string ProcessType(Type type);
 		
 		/// <inheritdoc/>
 		public string GetDocumentType(Type entityType)
@@ -48,15 +51,6 @@ namespace CouchDude.Core.Conventions
 		{
 			Type entityType;
 			return !doc2EntityMap.TryGetValue(documentType, out entityType) ? null : entityType;
-		}
-	}
-
-	/// <summary></summary>
-	public class TypeNameToCamelCaseConvention: TypeConventionBase
-	{
-		protected override string ProcessType(Type type)
-		{
-			
 		}
 	}
 }

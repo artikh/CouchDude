@@ -10,7 +10,7 @@ namespace CouchDude.Core.Conventions
 		/// <summary>Returns document type for given entity type.</summary>
 		string GetDocumentType(Type entityType);
 
-	    /// <summary>Returns entity type for given document type.</summary>
-	    Type GetEntityType(string documentType);
+		/// <summary>Returns entity type for given document type.</summary>
+		Type GetEntityType(string documentType);
 	}
 }

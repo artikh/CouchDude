@@ -95,11 +95,14 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Conventions\TypeNameTypeConvention.cs" />
+    <Compile Include="Conventions\EmptyTypeConvention.cs" />
     <Compile Include="Conventions\TypeConventionBase.cs" />
     <Compile Include="Conventions\GuidIdGenerator.cs" />
     <Compile Include="Conventions\ITypeConvention.cs" />
     <Compile Include="Conventions\IIdGenerator.cs" />
     <Compile Include="Conventions\SequentialUuidIdGenerator.cs" />
+    <Compile Include="Conventions\CamelCaseTypeNameToConvention.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
