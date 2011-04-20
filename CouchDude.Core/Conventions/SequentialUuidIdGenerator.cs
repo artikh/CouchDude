@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Text;
+using System.Threading;
 
 namespace CouchDude.Core.Conventions
 {
@@ -51,15 +53,42 @@ namespace CouchDude.Core.Conventions
 			}
 		}
 
-		[ThreadStatic]
-		private Generator generator;
+		private const int IdsToPregenerate = 30000;
+		private readonly ConcurrentQueue<string> pregeneratedIds = new ConcurrentQueue<string>();
+		private readonly ReaderWriterLockSlim readerWriterLock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+		private readonly Generator generator = new Generator();
 
 		/// <inheritdoc/>
 		public string GenerateId()
 		{
-			if(generator == null)
-				generator = new Generator();
-			return generator.GetNext();
+			string generatedId;
+			readerWriterLock.EnterUpgradeableReadLock();	
+			try
+			{
+				if(!pregeneratedIds.TryDequeue(out generatedId))
+				{
+					try
+					{
+						readerWriterLock.EnterWriteLock();
+						var i = IdsToPregenerate;
+						while (--i > 0)
+						{
+							pregeneratedIds.Enqueue(generator.GetNext());
+						}
+						generatedId = generator.GetNext();
+					}
+					finally
+					{
+						readerWriterLock.ExitWriteLock();
+					}
+				}
+			}
+			finally
+			{
+				readerWriterLock.ExitUpgradeableReadLock();
+			}
+
+			return generatedId;
 		}
 	}
 }
