@@ -19,26 +19,64 @@ namespace CouchDude.Core
 		private readonly ConcurrentDictionary<Type, string>
 			docTypeMap = new ConcurrentDictionary<Type, string>();
 
+		private Uri serverUri;
+		private string databaseName;
+
 		/// <summary>Base server URL.</summary>
-		public readonly Uri ServerUri;
+		public Uri ServerUri
+		{
+			get { return serverUri; }
+			set
+			{
+				if (value == null)
+					throw new ArgumentNullException("value");
+				if (!value.IsAbsoluteUri)
+					throw new ArgumentException("Server URL should be absolute.", "value");
+				Contract.EndContractBlock();
+
+				serverUri = value;
+			}
+		}
 
 		/// <summary>Database name.</summary>
-		public readonly string DatabaseName;
+		public string DatabaseName
+		{
+			get { return databaseName; }
+			set
+			{
+				if (string.IsNullOrWhiteSpace(value))
+					throw new ArgumentNullException("value");
+				if (!ValidDbName(value))
+					throw new ArgumentException(
+						"A database must be named with all lowercase letters (a-z), " +
+							"digits (0-9), or any of the _$()+-/ characters and must end with a " +
+							"slash in the URL. The name has to start with a lowercase letter (a-z).",
+						"value");
+				Contract.EndContractBlock();
+
+				if(databaseName == value) return;
+				databaseName = value;
+			}
+		}
 
 		/// <summary>Document id property convension.</summary>
-		public ISpecialPropertyConvention IdPropertyConvention = 
+		public IIdPropertyConvention IdPropertyConvention = 
 			new PropertyByNameConvention("Id", "ID");
 
 		/// <summary>Document revision property convension.</summary>
-		public ISpecialPropertyConvention RevisionPropertyConvention = 
-			new PropertyByNameConvention("Revision", "Rev");
+		public IRevisionPropertyConvention RevisionPropertyConvention = new PropertyByNameConvention("Revision", "Rev");
 
 		/// <summary>Document type detector convension.</summary>
-		public ITypeConvention TypeConvension =
-			new DocumentTypeFromClassNameConvention();
+		public ITypeConvention TypeConvension = new EmptyTypeConvention();
 
 		/// <summary>Document ID generator.</summary>
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
+
+		/// <summary>Reports</summary>
+		public bool Incomplete { get { return databaseName == null || serverUri == null; } }
+
+		/// <constructor />
+		public Settings() { }
 		
 		/// <constructor />
 		public Settings(Uri serverUri, string databaseName)
@@ -47,13 +85,13 @@ namespace CouchDude.Core
 				throw new ArgumentNullException("serverUri");
 			if (!serverUri.IsAbsoluteUri)
 				throw new ArgumentException("Server URL should be absolute.", "serverUri");
-			if(string.IsNullOrWhiteSpace(databaseName))
+			if (string.IsNullOrWhiteSpace(databaseName))
 				throw new ArgumentNullException("databaseName");
-			if(!ValidDbName(databaseName))
+			if (!ValidDbName(databaseName))
 				throw new ArgumentException(
-					"A database must be named with all lowercase letters (a-z), " + 
-						"digits (0-9), or any of the _$()+-/ characters and must end with a " + 
-						"slash in the URL. The name has to start with a lowercase letter (a-z).", 
+					"A database must be named with all lowercase letters (a-z), " +
+					"digits (0-9), or any of the _$()+-/ characters and must end with a " +
+					"slash in the URL. The name has to start with a lowercase letter (a-z).",
 					"databaseName");
 			Contract.EndContractBlock();
 
@@ -67,9 +105,9 @@ namespace CouchDude.Core
 		{
 			var firstLetter = databaseName[0];
 			return Char.IsLetter(firstLetter)
-				&& Char.IsLower(firstLetter)
-				&& databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
-			);
+			       && Char.IsLower(firstLetter)
+			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
+			          	);
 		}
 		
 		/// <summary>Returns ID property descriptor.</summary>
@@ -78,12 +116,12 @@ namespace CouchDude.Core
 			return idPropertyDescriptorMap.GetOrAdd(
 				typeof (TEntity), 
 				t => {
-					var idPropertyDescriptor = IdPropertyConvention.Get(t);
-					if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
-						throw new ConventionException(
-							"Convention have not found any readable ID property on {0} entity.", 
-							typeof(TEntity).FullName);
-					return idPropertyDescriptor;
+				     	var idPropertyDescriptor = IdPropertyConvention.Get(t);
+				     	if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
+				     		throw new ConventionException(
+				     			"Convention have not found any readable ID property on {0} entity.", 
+				     			typeof(TEntity).FullName);
+				     	return idPropertyDescriptor;
 				});
 		}
 

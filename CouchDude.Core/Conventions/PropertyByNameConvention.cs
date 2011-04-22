@@ -6,7 +6,7 @@ using System.Reflection;
 namespace CouchDude.Core.Conventions
 {
 	/// <summary>Searhes for document ID entity property.</summary>
-	public class PropertyByNameConvention: ISpecialPropertyConvention
+	public class PropertyByNameConvention : IRevisionPropertyConvention, IIdPropertyConvention
 	{
 		private readonly string[] propertyNames;
 

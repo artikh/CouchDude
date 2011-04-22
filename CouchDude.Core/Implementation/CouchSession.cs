@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Implementation
 {
@@ -16,6 +15,11 @@ namespace CouchDude.Core.Implementation
 		/// <constructor />
 		public CouchSession(Settings settings, ICouchApi couchApi)
 		{
+			if (settings == null) throw new ArgumentNullException("settings");
+			if (settings.Incomplete) throw new ArgumentException("Settings are incomplete.", "settings");
+			if (couchApi == null) throw new ArgumentNullException("couchApi");
+			Contract.EndContractBlock();
+
 			this.settings = settings;
 			this.couchApi = couchApi;
 		}
@@ -35,11 +39,12 @@ namespace CouchDude.Core.Implementation
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
 			
 			documentEntity.DoMap();
-			var result = couchApi.SaveDocumentToDb(documentEntity.Id, documentEntity.Document);
+			var result = couchApi.SaveDocumentToDb(documentEntity.DocumentId, documentEntity.Document);
 			cache.Put(documentEntity);
-			var documentInfo = CreateDocumentInfo(result);
-			documentEntity.Revision = documentInfo.Revision;
-			return documentInfo;
+
+			var newRevision = result.GetRequiredProperty("rev");
+			documentEntity.Revision = newRevision;
+			return new DocumentInfo(documentEntity.EntityId, newRevision);
 		}
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
@@ -62,24 +67,30 @@ namespace CouchDude.Core.Implementation
 
 			cache.Remove(documentEntity);
 
-			return CreateDocumentInfo(
-				couchApi.DeleteDocument(documentEntity.Id, documentEntity.Revision));
+			var result = couchApi.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
+			var newRevision = result.GetRequiredProperty("rev");
+			return new DocumentInfo(documentEntity.EntityId, newRevision);
 		}
 
 		/// <inheritdoc/>
-		public TEntity Load<TEntity>(string docId) where TEntity : class
+		public TEntity Load<TEntity>(string entityId) where TEntity : class
 		{
-			if (string.IsNullOrWhiteSpace(docId)) 
-				throw new ArgumentNullException("docId");
+			if (string.IsNullOrWhiteSpace(entityId)) 
+				throw new ArgumentNullException("entityId");
 			Contract.EndContractBlock();
 
-			var cachedEntity = cache.TryGet(docId);
+			var cachedEntity = cache.TryGet(entityId);
 			if (cachedEntity != null)
 			{
 				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))
 					throw new EntityTypeMismatchException(cachedEntity.EntityType, typeof (TEntity));
 				return (TEntity) cachedEntity.Entity;
 			}
+
+			var documentType = settings.GetDocumentType<TEntity>();
+			if (documentType == null)
+				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
+			var docId = documentType + "." + entityId;
 
 			var document = couchApi.GetDocumentFromDbById(docId);
 			if (document == null)
@@ -110,12 +121,6 @@ namespace CouchDude.Core.Implementation
 			}
 		}
 
-		private static DocumentInfo CreateDocumentInfo(JObject result)
-		{
-			return new DocumentInfo(
-				result.GetRequiredProperty("id"), result.GetRequiredProperty("rev"));
-		}
-
 		/// <inheritdoc/>
 		public void Flush()
 		{
@@ -123,7 +128,7 @@ namespace CouchDude.Core.Implementation
 				in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
 				documentEntity.DoMap();
-				couchApi.UpdateDocumentInDb(documentEntity.Id, documentEntity.Document);
+				couchApi.UpdateDocumentInDb(documentEntity.DocumentId, documentEntity.Document);
 			}
 		}
 

@@ -11,8 +11,7 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveLoadAndThanGetAllSimpleEntities()
 		{
-			var settings = new Settings(new Uri("http://127.0.0.1:5984"), "temp");
-			var sessionFactory = new CouchSessionFactory(settings);
+			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
 			var savedEntity = new SimpleEntity {
 				Id = Guid.NewGuid().ToString(),
@@ -33,6 +32,7 @@ namespace CouchDude.Tests.Integration
 			{
 				var loadedEntity = session.Load<SimpleEntity>(savedEntity.Id);
 
+				Assert.NotNull(loadedEntity);
 				Assert.Equal(savedEntity.Id, loadedEntity.Id);
 				Assert.Equal(savedEntity.Revision, loadedEntity.Revision);
 				Assert.Equal(savedEntity.Name, loadedEntity.Name);
@@ -47,15 +47,15 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveAndThanLoadSimpleEntityWithoutRevision()
 		{
-			var settings = new Settings(new Uri("http://127.0.0.1:5984"), "temp");
-			var sessionFactory = new CouchSessionFactory(settings);
+			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var savedEntity = new SimpleEntityWithoutRevision {
-				Id = Guid.NewGuid().ToString(),
-				Name = "John Smith",
-				Age = 42,
-				Date = DateTime.Now
-			};
+			var savedEntity = new SimpleEntityWithoutRevision
+			                  	{
+			                  		Id = Guid.NewGuid().ToString(),
+			                  		Name = "John Smith",
+			                  		Age = 42,
+			                  		Date = DateTime.Now
+			                  	};
 
 			using (var session = sessionFactory.CreateSession())
 			{

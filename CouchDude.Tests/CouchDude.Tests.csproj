@@ -65,12 +65,16 @@
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
     <Compile Include="HttpClientMock.cs" />
+    <Compile Include="SampleData\Default.cs" />
+    <Compile Include="SampleData\IEntity.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
+    <Compile Include="Unit\Conventions\CamelCaseTypeNameToConventionTests.cs" />
+    <Compile Include="Unit\Conventions\CustomTypeConventionTests.cs" />
     <Compile Include="Unit\Conventions\TypeConventionBaseTests.cs" />
     <Compile Include="Unit\Conventions\PropertyByNameConventionTests.cs" />
     <Compile Include="Unit\Conventions\SequentialUuidIdGeneratorTests.cs" />
-    <Compile Include="Unit\Conventions\TypeNameTypeConventionTests.cs" />
+    <Compile Include="Unit\Conventions\TypeNameAsIsTypeConventionTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentExtractorTest.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentTests.cs" />
@@ -85,6 +89,7 @@
     <Compile Include="Unit\Implementation\CouchApiGetDocumentFromDbByIdTests.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Unit\Implementation\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionGetAllTests.cs" />
@@ -105,6 +110,7 @@
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unit\Implementation\ViewQueryTests.cs" />
+    <Compile Include="Unit\Initialization\FluentConfigurationTests.cs" />
     <Compile Include="Unit\SettingsTests.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="Utils.cs" />

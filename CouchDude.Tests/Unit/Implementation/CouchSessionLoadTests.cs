@@ -1,7 +1,7 @@
 using System;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
-
+using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -10,32 +10,16 @@ namespace CouchDude.Tests.Unit.Implementation
 {
 	public class CouchSessionLoadTests
 	{
-		public class TestEntity
-		{
-			public string Id { get; set; }
-			public string Revision { get; set; }
-			public string Name { get; set; }
-		}
-
-		public class TestEntity2
-		{
-			public string Id { get; protected set; }
-			public string Name { get; set; }
-		}
-
-		private readonly Settings settings =
-			new Settings(new Uri("http://example.com"), "temp");
-
 		[Fact]
 		public void ShouldReturnSameInstanceWhenRequestingTwice()
 		{
-			TestEntity entityA = null;
-			TestEntity entityB = null;
+			SimpleEntity entityA = null;
+			SimpleEntity entityB = null;
 
 			DoTest(
 				action: session => {
-					entityA = session.Load<TestEntity>("doc1");
-					entityB = session.Load<TestEntity>("doc1");
+					entityA = session.Load<SimpleEntity>("doc1");
+					entityB = session.Load<SimpleEntity>("doc1");
 				});
 
 			Assert.Same(entityA, entityB);
@@ -44,12 +28,12 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldReturnSameInstancePerformingLoadAfterSave()
 		{
-			var entity = new TestEntity { Id = "doc1", Name = "John Smith" };
-			TestEntity loadedEntity = null;
+			var entity = new SimpleEntity { Id = "doc1", Name = "John Smith" };
+			SimpleEntity loadedEntity = null;
 			DoTest(
 				action: session => {
 					session.Save(entity);
-					loadedEntity = session.Load<TestEntity>("doc1");
+					loadedEntity = session.Load<SimpleEntity>("doc1");
 				});
 
 			Assert.Same(entity, loadedEntity);
@@ -58,11 +42,11 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldThrowOnInvalidTypeDuringCacheLookup()
 		{
-			var entity = new TestEntity { Id = "doc1", Name = "John Smith" };
+			var entity = new SimpleEntity { Id = "doc1", Name = "John Smith" };
 			Assert.Throws<EntityTypeMismatchException>(() => DoTest(
 				action: session => {
 					session.Save(entity);
-					session.Load<TestEntity2>("doc1");
+					session.Load<SimpleEntityWithoutRevision>("doc1");
 			}));  
 		}
 
@@ -79,7 +63,12 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldLoadDataCorrectlyIfNoRevisionPropertyFound()
 		{
-			var loadedEntity = DoTest<TestEntity2>(documentType: "testEntity2");
+			var couchApi = Mock.Of<ICouchApi>(
+				ca => ca.GetDocumentFromDbById(It.IsAny<string>()) ==
+					SimpleEntityWithoutRevision.DocumentWithRevision
+				);
+
+			var loadedEntity = new CouchSession(Default.Settings, couchApi).Load<SimpleEntityWithoutRevision>("simpleEntityWithoutRevision");
 			Assert.NotNull(loadedEntity);
 			Assert.Equal("doc1", loadedEntity.Id);
 			Assert.Equal("John Smith", loadedEntity.Name);
@@ -88,17 +77,35 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldThrowOnNullOrEmptyId()
 		{
-			Assert.Throws<ArgumentNullException>(() => DoTest(documentId: null));
-			Assert.Throws<ArgumentNullException>(() => DoTest(documentId: ""));
+			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Load<SimpleEntity>(null));
+			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Load<SimpleEntity>(""));
 		}
 
-		private TestEntity DoTest(
+		[Fact]
+		public void ShouldAskCouchApiUsingPrefixedDocId()
+		{
+			string requestedId = null;
+
+			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
+			couchApiMock
+				.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
+				.Returns<string>(docId => { 
+					requestedId = docId;
+				  return SimpleEntity.DocumentWithRevision;
+				});
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			session.Load<SimpleEntity>("doc1");
+
+			Assert.Equal(requestedId, "simpleEntity.doc1");
+		}
+
+		private SimpleEntity DoTest(
 			Func<string, JObject> apiResponse = null,
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1")
 		{
-			return DoTest<TestEntity>(apiResponse, couchApiMock, action, documentId);
+			return DoTest<SimpleEntity>(apiResponse, couchApiMock, action, documentId);
 		}
 
 		private T DoTest<T>(
@@ -106,15 +113,16 @@ namespace CouchDude.Tests.Unit.Implementation
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1",
-			string documentType = "testEntity") where T: class
+			string documentType = "simpleEntity") where T : class
 		{
 			if (apiResponse == null)
-				apiResponse = requestedUrl => new {
-					_id = "doc1",
-					_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-					type = documentType,
-					name = "John Smith"
-				}.ToJObject();
+				apiResponse = requestedUrl => new
+				                              	{
+				                              		_id = documentType + ".doc1",
+				                              		_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+				                              		type = documentType,
+				                              		name = "John Smith"
+				                              	}.ToJObject();
 
 			if (couchApiMock == null)
 			{
@@ -127,7 +135,7 @@ namespace CouchDude.Tests.Unit.Implementation
 					.Returns(new {id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7"}.ToJObject());
 			}
 
-			var session = new CouchSession(settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 
 			if (action == null)
 				return session.Load<T>(documentId);

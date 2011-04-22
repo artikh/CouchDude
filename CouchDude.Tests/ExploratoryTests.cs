@@ -145,28 +145,5 @@ namespace CouchDude.Tests
 
 			Assert.Null(json.Property("_name"));
 		}
-
-		public class DicObj
-		{
-			private readonly Dictionary<string, string> dic = new Dictionary<string, string> {
-				{"one", "1"},
-				{"two", "2"},
-			};
-			public Dictionary<string, string> Dic { get { return dic; } }
-		}
-
-		[Fact]
-		public void ShouldSerializeDictionaryAsJsonMap()
-		{
-			Utils.AssertSameJson(
-				new {
-					dic = new {
-						one = "1",
-						two = "2"
-					}
-				},
-				JsonConvert.SerializeObject(new DicObj())
-			);
-		}
 	}
 }

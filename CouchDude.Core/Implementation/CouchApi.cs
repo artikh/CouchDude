@@ -2,6 +2,7 @@
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Text;
 
 using CouchDude.Core.HttpClient;
@@ -175,7 +176,7 @@ namespace CouchDude.Core.Implementation
 				{
 					errorObject = JObject.Load(jsonReader);
 				}
-				catch (JsonReaderException)
+				catch (Exception)
 				{
 					return null;
 				}

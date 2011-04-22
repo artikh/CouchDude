@@ -19,12 +19,15 @@ namespace CouchDude.Core.Implementation
 
 		private readonly SpecialPropertyDescriptor revisionPropertyDescriptor;
 
-		// ReSharper disable UnaccessedField.Local
+		// ReSharper disable NotAccessedField.Local
 		private readonly SpecialPropertyDescriptor idPropertyDescriptor;
-		// ReSharper restore UnaccessedField.Local
+		// ReSharper restore NotAccessedField.Local
 
-		/// <summary>Document/entity identitifier.</summary>
-		public readonly string Id;
+		/// <summary>Entity identitifier.</summary>
+		public readonly string EntityId;
+
+		/// <summary>Document identitifier.</summary>
+		public readonly string DocumentId;
 
 		/// <summary>Currently loaded revision of the document/entity.</summary>
 		public string Revision
@@ -78,6 +81,8 @@ namespace CouchDude.Core.Implementation
 			var revision = revisionPropertyDescriptor.GetIfAble(entity);
 
 			var documentType = settings.GetDocumentType<TEntity>();
+			if (documentType == null)
+				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
 
 			return new DocumentEntity(
 				idPropertyDescriptor, revisionPropertyDescriptor, 
@@ -106,30 +111,42 @@ namespace CouchDude.Core.Implementation
 		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings, bool throwOnTypeMismatch = true) 
 			where TEntity : class
 		{
-			var id = document.GetRequiredProperty(IdPropertyName);
+			var docId = document.GetRequiredProperty(IdPropertyName);
 			var revision = document.GetRequiredProperty(RevisionPropertyName);
 
-			var type = GetDocumnetType(document, throwOnTypeMismatch);
-			if (type == null)
+			var documentType = GetDocumnetType(document, throwOnTypeMismatch);
+			if (documentType == null)
 				return null;
 
 			var expectedType = settings.GetDocumentType<TEntity>();
-			if (expectedType != type)
+			if (expectedType == null)
+				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
+
+			if (expectedType != documentType)
 				if (throwOnTypeMismatch)
-					throw new EntityTypeMismatchException(type, typeof (TEntity));
+					throw new EntityTypeMismatchException(documentType, typeof(TEntity));
 				else
 					return null;
+
+			if (!docId.StartsWith(documentType + "."))
+				if (throwOnTypeMismatch)
+					throw new CouchResponseParseException("Document IDs should be prefixed by their type.");
+				else
+					return null;
+
+			var entityId = docId.Substring(documentType.Length + 1);
 
 			TEntity entity;
 			using (var reader = new JTokenReader(document))
 				entity = JsonSerializer.Instance.Deserialize<TEntity>(reader);
 
 			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
-			idPropertyDescriptor.SetIfAble(entity, id);
+			idPropertyDescriptor.SetIfAble(entity, entityId);
 			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
 			revisionPropertyDescriptor.SetIfAble(entity, revision);
 
-			return new DocumentEntity(idPropertyDescriptor, revisionPropertyDescriptor, id, revision, typeof(TEntity), type, entity, document);
+			return new DocumentEntity(
+				idPropertyDescriptor, revisionPropertyDescriptor, entityId, revision, typeof(TEntity), documentType, entity, document);
 		}
 
 		private static string GetDocumnetType(JObject document, bool throwOnTypeMismatch)
@@ -166,19 +183,29 @@ namespace CouchDude.Core.Implementation
 			return Document != null && !new JTokenEqualityComparer().Equals(Document, SerializeToDocument());
 		}
 
+		private static string GetDocumentId(string entityId, string documentType)
+		{
+			return documentType + "." + entityId;
+		}
+
 		private DocumentEntity(
 			SpecialPropertyDescriptor idPropertyDescriptor,
 			SpecialPropertyDescriptor revisionPropertyDescriptor,  
-			string id, string revision, 
-			Type entityType, string documentType, object entity, JObject document = null)
+			string entityId, 
+			string revision, 
+			Type entityType, 
+			string documentType, 
+			object entity, 
+			JObject document = null)
 		{
-			if (string.IsNullOrEmpty(id)) throw new ArgumentNullException("id");
+			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
 			if (string.IsNullOrEmpty(documentType)) throw new ArgumentNullException("documentType");
 			if (entityType == null) throw new ArgumentNullException("entityType");
 			if (entity == null) throw new ArgumentNullException("entity");
 			Contract.EndContractBlock();
 
-			Id = id;
+			EntityId = entityId;
+			DocumentId = GetDocumentId(entityId, documentType);
 			this.revision = revision;
 			EntityType = entityType;
 			DocumentType = documentType;
@@ -201,7 +228,7 @@ namespace CouchDude.Core.Implementation
 			document.AddFirst(new JProperty(TypePropertyName, DocumentType));
 			if (Revision != null)
 				document.AddFirst(new JProperty(RevisionPropertyName, Revision));
-			document.AddFirst(new JProperty(IdPropertyName, Id));
+			document.AddFirst(new JProperty(IdPropertyName, DocumentId));
 			return document;
 		}
 

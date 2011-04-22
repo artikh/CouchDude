@@ -1,17 +1,18 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace CouchDude.Core.Conventions
 {
 	/// <summary>Maps entities to documets camelCasing their type names.</summary>
-	public class CamelCaseTypeNameToConvention: TypeNameTypeConvention
+	public class CamelCaseTypeNameToConvention: TypeConventionBase
 	{
 		/// <constructor />
-		public CamelCaseTypeNameToConvention(Assembly[] assembliesToScan, Type[] baseTypes = null) 
-			: base(assembliesToScan, baseTypes) { }
+		public CamelCaseTypeNameToConvention(IEnumerable<Assembly> assembliesToScanToScan, ICollection<Type> baseTypes = null) 
+			: base(assembliesToScanToScan, baseTypes) { }
 
 		/// <summary>Maps entity type to document type.</summary>
-		protected override string CreateDocumentTypeFromEntityType(Type entityType)
+		protected internal override string CreateDocumentTypeFromEntityType(Type entityType)
 		{
 			var documentType = entityType.Name;
 			if (Char.IsUpper(documentType[0]))

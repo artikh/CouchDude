@@ -12,7 +12,7 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Determines if paticular instance is in the cache.</summary>
 		public bool Contains(DocumentEntity documentEntity)
 		{
-			return idMap.ContainsKey(documentEntity.Id) 
+			return idMap.ContainsKey(documentEntity.EntityId) 
 				|| instanceSet.ContainsKey(documentEntity.Entity);
 		}
 		
@@ -36,13 +36,13 @@ namespace CouchDude.Core.Implementation
 		public void Put(DocumentEntity documentEntity)
 		{
 			instanceSet.Add(documentEntity.Entity, documentEntity);
-			idMap[documentEntity.Id] = documentEntity;
+			idMap[documentEntity.EntityId] = documentEntity;
 		}
 
 		public void Remove(DocumentEntity documentEntity)
 		{
 			instanceSet.Remove(documentEntity.Entity);
-			idMap.Remove(documentEntity.Id);
+			idMap.Remove(documentEntity.EntityId);
 		}
 
 		/// <summary>Returs all cached documents.</summary>

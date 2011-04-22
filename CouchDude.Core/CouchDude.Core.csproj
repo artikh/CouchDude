@@ -95,7 +95,10 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Conventions\TypeNameTypeConvention.cs" />
+    <Compile Include="Conventions\CustomTypeConvention.cs" />
+    <Compile Include="Conventions\IIdPropertyConvention.cs" />
+    <Compile Include="Conventions\IRevisionPropertyConvention.cs" />
+    <Compile Include="Conventions\TypeNameAsIsTypeConvention.cs" />
     <Compile Include="Conventions\EmptyTypeConvention.cs" />
     <Compile Include="Conventions\TypeConventionBase.cs" />
     <Compile Include="Conventions\GuidIdGenerator.cs" />
@@ -105,6 +108,11 @@
     <Compile Include="Conventions\CamelCaseTypeNameToConvention.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Exceptions\ConfigurationException.cs">
+      <DependentUpon>ConfigurationException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -162,6 +170,9 @@
     <Compile Include="Implementation\ICouchApi.cs" />
     <Compile Include="Implementation\JsonSerializer.cs" />
     <Compile Include="Implementation\Utils.cs" />
+    <Compile Include="Initialization\Configure.cs" />
+    <Compile Include="Initialization\SessionFactoryBuilder.cs" />
+    <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
     <Compile Include="ViewQuery.cs" />
     <Compile Include="Implementation\ViewResult.cs" />
     <Compile Include="Implementation\ViewResultRow.cs" />
@@ -177,6 +188,10 @@
     <None Include="Exceptions\ConventionException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ConventionException.cs</LastGenOutput>
+    </None>
+    <None Include="Exceptions\ConfigurationException.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ConfigurationException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\StaleObjectStateException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -206,10 +221,8 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
-copy /y /v $(TargetDir)$(TargetName).dll $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
-copy /y /v $(TargetDir)$(TargetName).pdb $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)
-copy /y /v $(TargetDir)$(TargetName).xml $(SolutionDir)..\..\Binaries\CouchDude.1.0\$(ConfigurationName)</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

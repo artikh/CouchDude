@@ -4,21 +4,22 @@ using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Tests.SampleData
 {
-	public class SimpleEntityWithoutRevision
+	public class SimpleEntityWithoutRevision: IEntity
 	{
 		public const string StandardRevision = "1-1a517022a0c2d4814d51abfedf9bfee7";
-		public const string StandardId = "doc1";
+		public const string StandardEntityId = "doc1";
+		public const string StandardDocId = "simpleEntityWithoutRevision.doc1";
 
 		public static JObject OkResponse = new
 		{
 			ok = true,
-			id = StandardId,
+			id = StandardDocId,
 			rev = StandardRevision
 		}.ToJObject();
 
 		public static JObject DocumentWithRevision = new
 		{
-			_id = StandardId,
+			_id = StandardDocId,
 			_rev = StandardRevision,
 			type = "simpleEntityWithoutRevision",
 			name = "John Smith",
@@ -26,13 +27,16 @@ namespace CouchDude.Tests.SampleData
 			date = "1959-04-10T00:00:00"
 		}.ToJObject();
 
-		public static SimpleEntityWithoutRevision Standard = new SimpleEntityWithoutRevision
+		public static SimpleEntityWithoutRevision CreateStd()
 		{
-			Id = StandardId,
-			Name = "John Smith",
-			Age = 42,
-			Date = new DateTime(1957, 4, 10)
-		};
+			return new SimpleEntityWithoutRevision
+			  {
+			    Id = StandardEntityId,
+			    Name = "John Smith",
+			    Age = 42,
+			    Date = new DateTime(1957, 4, 10)
+			  };
+		}
 
 		[JsonIgnore]
 		public string Id { get; set; }

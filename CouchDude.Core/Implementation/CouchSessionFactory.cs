@@ -10,12 +10,12 @@ namespace CouchDude.Core.Implementation
 		private readonly Settings settings;
 
 		/// <constructor />
-		public CouchSessionFactory(Settings settings, ICouchApi couchProxy = null)
+		public CouchSessionFactory(Settings settings, ICouchApi couchApi = null)
 		{
 			if (settings == null) throw new ArgumentNullException("settings");
 
 			this.settings = settings;
-			couchApi = couchProxy 
+			this.couchApi = couchApi 
 				?? new CouchApi(new HttpClientImpl(), settings.ServerUri, settings.DatabaseName);
 		}
 

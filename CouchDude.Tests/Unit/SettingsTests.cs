@@ -25,5 +25,16 @@ namespace CouchDude.Tests.Unit
 		{
 			Assert.DoesNotThrow(() => new Settings(new Uri("http://example.com"), "a0-9a-z_$()+-/"));
 		}
+
+		[Fact]
+		public void ShouldReportIfIncomplete()
+		{
+			var settings = new Settings();
+			Assert.True(settings.Incomplete);
+			settings.ServerUri = new Uri("http://example.com");
+			Assert.True(settings.Incomplete);
+			settings.DatabaseName = "db1";
+			Assert.False(settings.Incomplete);
+		}
 	}
 }

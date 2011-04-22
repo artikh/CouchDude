@@ -10,19 +10,7 @@ namespace CouchDude.Tests.Unit.Implementation
 {
 	public class CouchSessionSaveTests
 	{
-		public class TestEntity
-		{
-			public string Id { get; set; }
-
-			public string Revision { get; set; }
-
-			public string Name { get; set; }
-		}
-		
-		private readonly Settings settings = 
-			new Settings(new Uri("http://example.com"), "temp");
-
-		private readonly TestEntity entity = new TestEntity {
+		private readonly SimpleEntity entity = new SimpleEntity {
 			Id = "doc1",
 			Name = "John Smith"
 		};
@@ -43,7 +31,7 @@ namespace CouchDude.Tests.Unit.Implementation
 		{
 			Assert.Throws<ArgumentException>(() => 
 				DoSave(
-					new TestEntity {
+					new SimpleEntity {
 						Id = "doc1",
 						Revision = "42-1a517022a0c2d4814d51abfedf9bfee7",
 						Name = "John Smith"
@@ -53,8 +41,8 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldThrowOnNullEntity()
 		{
-			var session = new CouchSession(settings, Mock.Of<ICouchApi>());
-			Assert.Throws<ArgumentNullException>(() => session.Save<TestEntity>(null));
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
+			Assert.Throws<ArgumentNullException>(() => session.Save<SimpleEntity>(null));
 		}
 
 		[Fact]
@@ -91,7 +79,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			{
 				Name = "John Smith"
 			};
-			var session = new CouchSession(settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			var docInfo = session.Save(savingEntity);
 
 			Assert.NotNull(savingEntity.Id);
@@ -100,7 +88,7 @@ namespace CouchDude.Tests.Unit.Implementation
 		}
 
 		private DocumentInfo DoSave(
-			TestEntity savingEntity = null, 
+			SimpleEntity savingEntity = null, 
 			Mock<ICouchApi> couchApiMock = null,
 			Func<ISession, DocumentInfo> action = null)
 		{
@@ -116,7 +104,7 @@ namespace CouchDude.Tests.Unit.Implementation
 					}.ToJObject());
 			}
 			
-			var session = new CouchSession(settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 
 			if (action == null)
 				return session.Save(savingEntity);

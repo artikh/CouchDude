@@ -1,5 +1,4 @@
 ﻿using System;
-using CouchDude.Core;
 using CouchDude.Core.Implementation;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -11,8 +10,7 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveUpdateAndLoadSimpleEntity()
 		{
-			var settings = new Settings(new Uri("http://127.0.0.1:5984"), "temp");
-			var sessionFactory = new CouchSessionFactory(settings);
+			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
 			var savedEntity = new SimpleEntity {
 				Id = Guid.NewGuid().ToString(),

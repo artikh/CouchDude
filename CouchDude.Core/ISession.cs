@@ -11,7 +11,7 @@ namespace CouchDude.Core
 		DocumentInfo Save<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
-		TEntity Load<TEntity>(string docId) where TEntity : class;
+		TEntity Load<TEntity>(string entityId) where TEntity : class;
 
 		/// <summary>Returns all documents from DB, filtering them by type in memory.</summary>
 		IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class;

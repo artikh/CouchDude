@@ -1,5 +1,5 @@
 ﻿using System;
-
+using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,26 +12,7 @@ namespace CouchDude.Tests.Unit.Implementation
 {
 	public class CouchSessionFlushTests
 	{
-		public class TestEntity
-		{
-			[JsonIgnore]
-			public string Id { get; set; }
-
-			[JsonIgnore]
-			public string Revision { get; set; }
-
-			public string Name { get; set; }
-		}
-
-		private readonly Settings settings =
-			new Settings(new Uri("http://example.com"), "temp");
-
-		private readonly TestEntity entity = new TestEntity
-		{
-			Id = "doc1",
-			Name = "John Smith"
-		};
-
+		private readonly SimpleEntity entity = SimpleEntity.CreateStdWithoutRevision();
 
 		[Fact]
 		public void ShouldUpdateChangedDocumentsOnFlush()
@@ -61,22 +42,26 @@ namespace CouchDude.Tests.Unit.Implementation
 					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
 				}.ToJObject());
 			
-			var session = new CouchSession(settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Save(entity);
 			entity.Name = "Artem Tikhomirov";
 			session.Flush();
 
 			Assert.Equal(1, totalUpdateCount);
-			Assert.Equal(entity.Id, updatedDocId);
+			Assert.Equal("simpleEntity.doc1", updatedDocId);
 			Utils.AssertSameJson(
-				new {
-					_id = "doc1",
+				new
+				{
+					_id = "simpleEntity.doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-					type = "testEntity",
-					name = "Artem Tikhomirov"
+					type = "simpleEntity",
+					name = "Artem Tikhomirov",
+					age = 42,
+					date = "1957-04-10T00:00:00"
 				},
 				updatedDoc
 			);
 		}
 	}
 }
+
