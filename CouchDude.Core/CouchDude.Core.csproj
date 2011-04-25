@@ -169,10 +169,12 @@
     <Compile Include="Implementation\DocumentEntityCache.cs" />
     <Compile Include="Implementation\ICouchApi.cs" />
     <Compile Include="Implementation\JsonSerializer.cs" />
+    <Compile Include="Implementation\PagedList.cs" />
     <Compile Include="Implementation\Utils.cs" />
     <Compile Include="Initialization\Configure.cs" />
     <Compile Include="Initialization\SessionFactoryBuilder.cs" />
     <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
+    <Compile Include="IPagedList.cs" />
     <Compile Include="ViewQuery.cs" />
     <Compile Include="Implementation\ViewResult.cs" />
     <Compile Include="Implementation\ViewResultRow.cs" />

@@ -80,7 +80,7 @@ namespace CouchDude.Core.Implementation
 			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
 			var revision = revisionPropertyDescriptor.GetIfAble(entity);
 
-			var documentType = settings.GetDocumentType<TEntity>();
+			var documentType = settings.TypeConvension.GetDocumentType(typeof (TEntity));
 			if (documentType == null)
 				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
 
@@ -118,7 +118,7 @@ namespace CouchDude.Core.Implementation
 			if (documentType == null)
 				return null;
 
-			var expectedType = settings.GetDocumentType<TEntity>();
+			var expectedType = settings.TypeConvension.GetDocumentType(typeof(TEntity));
 			if (expectedType == null)
 				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
 

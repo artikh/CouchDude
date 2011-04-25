@@ -19,10 +19,6 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Total rows in requested range.</summary>
 		[JsonProperty("total_rows")]
 		public int TotalRows { get; internal set; }
-
-		/// <summary>Offset in requested range.</summary>
-		[JsonProperty("offset")]
-		public int Offset { get; internal set; }
 		
 		/// <summary>Selected rows.</summary>
 		[JsonProperty("rows")]

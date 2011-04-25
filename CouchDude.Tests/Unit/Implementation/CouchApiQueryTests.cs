@@ -26,13 +26,12 @@ namespace CouchDude.Tests.Unit.Implementation
 
 			var couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 			var result = couchApi.Query(new ViewQuery {
-				Key = new object[] { "key", 0 }.ToJToken(),
+				Key = new object[] { "key", 0 },
 				Skip = 1,
 				IncludeDocs = true
 			});
 
 			Assert.NotNull(result);
-			Assert.Equal(1, result.Offset);
 			Assert.Equal(2, result.TotalRows);
 			Assert.Equal(1, result.Rows.Count);
 			Assert.Equal(new object[] { "key", 0 }.ToJToken(),	result.Rows[0].Key,					new JTokenEqualityComparer());

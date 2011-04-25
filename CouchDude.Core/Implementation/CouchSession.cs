@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Implementation
 {
@@ -87,7 +88,7 @@ namespace CouchDude.Core.Implementation
 				return (TEntity) cachedEntity.Entity;
 			}
 
-			var documentType = settings.GetDocumentType<TEntity>();
+			var documentType = settings.TypeConvension.GetDocumentType(typeof (TEntity));
 			if (documentType == null)
 				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
 			var docId = documentType + "." + entityId;
@@ -99,26 +100,6 @@ namespace CouchDude.Core.Implementation
 			cache.Put(documentEntity);
 
 			return (TEntity) documentEntity.Entity;
-		}
-
-		/// <inheritdoc/>
-		public IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class
-		{
-			var allDocuments = couchApi.Query(new ViewQuery {
-				DesignDocumentName = null,
-				ViewName = "_all_docs",
-				IncludeDocs = true
-			});
-			
-			foreach (var resultRow in allDocuments.Rows)
-			{
-				var documentEntity = DocumentEntity.FromJson<TEntity>(resultRow.Document, settings, throwOnTypeMismatch: false);
-				if (documentEntity != null)
-				{
-					cache.Put(documentEntity);
-					yield return documentEntity.GetEntity<TEntity>();
-				}
-			}
 		}
 
 		/// <inheritdoc/>
@@ -136,6 +117,74 @@ namespace CouchDude.Core.Implementation
 		~CouchSession()
 		{
 			Dispose(disposing: false);
+		}
+
+		/// <inheritdoc/>
+		public IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class
+		{
+			var allDocuments = couchApi.Query(
+				new ViewQuery
+					{
+						DesignDocumentName = null,
+						ViewName = "_all_docs",
+						IncludeDocs = true
+					});
+
+			var documentEntities =
+				from row in allDocuments.Rows
+				let documentEntity = DocumentEntity.FromJson<TEntity>(row.Document, settings, throwOnTypeMismatch: false)
+				where documentEntity != null
+				select documentEntity;
+
+			foreach (var documentEntity in documentEntities)
+			{
+				cache.Put(documentEntity);
+				yield return documentEntity.GetEntity<TEntity>();
+			}
+		}
+
+		/// <inheritdoc/>
+		public IPagedList<T> Query<T>(ViewQuery<T> query) where T : class
+		{
+			if (query == null) throw new ArgumentNullException("query");
+			Contract.EndContractBlock();
+			var queryResult = couchApi.Query(query);
+			var isEntityType = settings.TypeConvension.GetDocumentType(typeof (T)) != null;
+			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
+		}
+
+		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class
+		{
+			var documentEntities = (
+				from row in queryResult.Rows
+				where row.Document != null
+				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
+				where documentEntity != null
+				select documentEntity
+			).ToArray();
+			foreach (var documentEntity in documentEntities)
+				cache.Put(documentEntity);
+			return new PagedList<T>(
+				queryResult.TotalRows, 
+				documentEntities.Length, 
+				documentEntities.Select(de => (T)de.Entity));
+		}
+
+		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult) where T : class
+		{
+			var viewDataList = (
+				from row in queryResult.Rows.AsParallel()
+				where row.Value != null
+				let viewDataItem = DeserializeViewData<T>(row.Value)
+				select viewDataItem
+			).ToArray();
+			return new PagedList<T>(queryResult.TotalRows, viewDataList.Length, viewDataList);
+		}
+
+		private static T DeserializeViewData<T>(JToken value) where T : class
+		{
+			using (var reader = new JTokenReader(value))
+				return JsonSerializer.Instance.Deserialize<T>(reader);
 		}
 
 		/// <inheritdoc/>

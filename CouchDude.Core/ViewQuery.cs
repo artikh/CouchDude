@@ -1,11 +1,18 @@
-﻿using System.Collections.Specialized;
+﻿using System;
+using System.Collections.Specialized;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core
 {
+	/// <summary>Describes typed CouchDB view query.</summary>
+	public class ViewQuery<T>: ViewQuery
+	{
+		/// <summary>Type of the row result item.</summary>
+		public Type RowType { get { return typeof (T); } }
+	}
+
 	/// <summary>Describes CouchDB view query.</summary>
 	public class ViewQuery
 	{
@@ -16,17 +23,17 @@ namespace CouchDude.Core
 		public string ViewName;
 
 		/// <summary>Key to fetch view rows by.</summary>
-		public JToken Key;
+		public object Key;
 
 		/// <summary>Key to start view result fetching from.</summary>
-		public JToken StartKey;
+		public object StartKey;
 
 		/// <summary>Document id to start view result fetching from.</summary>
 		/// <remarks>Should allways be used with <see cref="StartKey"/>.</remarks>
 		public string StartDocumentId;
 
 		/// <summary>Key to stop view result fetching by.</summary>
-		public JToken EndKey;
+		public object EndKey;
 
 		/// <summary>Document id to stop view result fetching by.</summary>
 		/// <remarks>Should allways be used with <see cref="EndKey"/>.</remarks>
@@ -96,10 +103,10 @@ namespace CouchDude.Core
 					querySring[key] = value.ToString();
 			}
 
-			public void AddIfNotNull(JToken value, string key)
+			public void AddIfNotNull(object value, string key)
 			{
 				if (value != null)
-					querySring[key] = value.ToString(Formatting.None);
+					querySring[key] = JsonConvert.SerializeObject(value, Formatting.None);
 			}
 
 			public void AddIfHasValue<TValue>(TValue? value, string key) where TValue: struct 

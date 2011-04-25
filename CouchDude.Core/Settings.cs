@@ -15,10 +15,7 @@ namespace CouchDude.Core
 
 		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
 			revPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-
-		private readonly ConcurrentDictionary<Type, string>
-			docTypeMap = new ConcurrentDictionary<Type, string>();
-
+		
 		private Uri serverUri;
 		private string databaseName;
 
@@ -136,12 +133,6 @@ namespace CouchDude.Core
 		{
 			return revPropertyDescriptorMap.GetOrAdd(
 				type, t => RevisionPropertyConvention.Get(t) ?? SpecialPropertyDescriptor.Noop);
-		}
-
-		/// <summary>Returns document type for entity </summary>
-		public string GetDocumentType<TEntity>() where TEntity: class
-		{
-			return docTypeMap.GetOrAdd(typeof (TEntity), t => TypeConvension.GetDocumentType(t));
 		}
 	}
 }

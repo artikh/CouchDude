@@ -67,6 +67,7 @@
     <Compile Include="HttpClientMock.cs" />
     <Compile Include="SampleData\Default.cs" />
     <Compile Include="SampleData\IEntity.cs" />
+    <Compile Include="SampleData\SimpleViewData.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Conventions\CamelCaseTypeNameToConventionTests.cs" />
@@ -91,6 +92,7 @@
     </Compile>
     <Compile Include="Unit\Implementation\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
+    <Compile Include="Unit\Implementation\CouchSessionExecuteQueryTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionGetAllTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionLoadTests.cs">

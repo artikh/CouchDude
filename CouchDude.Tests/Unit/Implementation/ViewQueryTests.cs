@@ -1,5 +1,4 @@
 ﻿using CouchDude.Core;
-using CouchDude.Core.Implementation;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -15,8 +14,8 @@ namespace CouchDude.Tests.Unit.Implementation
 				new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
-					StartKey = new JArray(JValue.CreateString("first key"), JToken.FromObject(0)),
-					EndKey = new JArray(JValue.CreateString("second key"), JToken.FromObject(9))
+					StartKey = new object[]{ "first key", 0 },
+					EndKey = new object[]{ "second key", 9 }
 				}.ToUri()
 			);
 		}
@@ -29,7 +28,7 @@ namespace CouchDude.Tests.Unit.Implementation
 				new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
-					Key = new JArray(JValue.CreateString("key"), JToken.FromObject(0))
+					Key = new object[]{ "key", 0 }
 				}.ToUri()
 			);
 		}
@@ -42,7 +41,7 @@ namespace CouchDude.Tests.Unit.Implementation
 				new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
-					Key = JValue.CreateString("key"),
+					Key = "key",
 					IncludeDocs = true
 				}.ToUri()
 			);
