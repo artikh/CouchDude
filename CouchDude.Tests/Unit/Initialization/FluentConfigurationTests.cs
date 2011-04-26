@@ -12,7 +12,7 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldSetServerUriAndDatabaseName()
 		{
-			var settings = Configure.With().ServerUri("http://example.com").DatabaseName("db1").CreateSettings();
+			var settings = ConfigureCouchDude.With().ServerUri("http://example.com").DatabaseName("db1").CreateSettings();
 
 			Assert.Equal(new Uri("http://example.com"), settings.ServerUri);
 			Assert.Equal("db1", settings.DatabaseName);
@@ -21,14 +21,14 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnIncompleteInitialization()
 		{
-			Assert.Throws<ConfigurationException>(() => Configure.With().ServerUri("http://example.com").CreateSettings());
-			Assert.Throws<ConfigurationException>(() => Configure.With().DatabaseName("db1").CreateSettings());
+			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().ServerUri("http://example.com").CreateSettings());
+			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().DatabaseName("db1").CreateSettings());
 		}
 
 		[Fact]
 		public void ShouldCreateCamelCaseTypeNameConvention()
 		{
-			var settings = Configure.With()
+			var settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com")
 				.DatabaseName("db1")
 				.MappingEntities()
@@ -43,7 +43,7 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldCreateTypeNameTypeConvention()
 		{
-			var settings = Configure.With()
+			var settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com")
 				.DatabaseName("db1")
 				.MappingEntities()

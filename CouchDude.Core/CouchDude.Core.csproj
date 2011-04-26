@@ -171,7 +171,7 @@
     <Compile Include="Implementation\JsonSerializer.cs" />
     <Compile Include="Implementation\PagedList.cs" />
     <Compile Include="Implementation\Utils.cs" />
-    <Compile Include="Initialization\Configure.cs" />
+    <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Initialization\SessionFactoryBuilder.cs" />
     <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
     <Compile Include="IPagedList.cs" />

@@ -1,10 +1,11 @@
 using System;
 using CouchDude.Core.Implementation;
+using CouchDude.Core.Initialization;
 
-namespace CouchDude.Core.Initialization
+namespace CouchDude.Core
 {
 	/// <summary>Start point of fluent configuration of CouchDude.</summary>
-	public static class Configure
+	public static class ConfigureCouchDude
 	{
 		/// <summary>Starts CouchDude configuration.</summary>
 		public static SessionFactoryBuilder With()
