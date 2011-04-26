@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using Newtonsoft.Json.Linq;
@@ -123,35 +122,27 @@ namespace CouchDude.Core.Implementation
 		public IPagedList<T> Query<T>(ViewQuery<T> query) where T : class
 		{
 			if (query == null) throw new ArgumentNullException("query");
-			Contract.EndContractBlock();
-			var queryResult = couchApi.Query(query);
 			var isEntityType = settings.TypeConvension.GetDocumentType(typeof (T)) != null;
+			if (isEntityType && !query.IncludeDocs)
+				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
+			Contract.EndContractBlock();
+
+			var queryResult = couchApi.Query(query);
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
 		}
 
 		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class
 		{
-			var documentEntities =
+			var entities = (
 				from row in queryResult.Rows
 				where row.Document != null
 				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
 				where documentEntity != null
-				select documentEntity;
-
-			var entities = PopulateCache(documentEntities).ToArray();
+				select cache.PutOrReplace(documentEntity)
+			).ToArray();
 
 			return new PagedList<T>(
 				queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
-		}
-
-		private IEnumerable<DocumentEntity> PopulateCache(IEnumerable<DocumentEntity> documentEntities)
-		{
-			foreach (var de in documentEntities)
-			{
-				var documentEntity = de;
-				cache.PutOrReplace(ref documentEntity);
-				yield return de;
-			}
 		}
 
 		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult) where T : class

@@ -92,9 +92,8 @@
     </Compile>
     <Compile Include="Unit\Implementation\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionExecuteQueryTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionQueryTests.cs" />
+    <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Implementation\CouchSessionLoadTests.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -118,6 +117,7 @@
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
