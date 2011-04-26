@@ -8,7 +8,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Implementation
 {
-	public class CouchSessionGetAllTests
+	public class CouchSessionQueryTests
 	{
 		[Fact]
 		public void ShouldQuerySpecialAllDocumentsView()
@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Implementation
 					});
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			session.GetAll<SimpleEntity>().ToList();
+			session.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" });
 
 			Assert.NotNull(sendQuery);
 			Assert.Null(sendQuery.DesignDocumentName);
@@ -48,8 +48,7 @@ namespace CouchDude.Tests.Unit.Implementation
 		public void ShouldBindDocumentsCorrectly()
 		{
 			var entity = SimpleEntity.CreateStd();
-
-
+			
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
 				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
@@ -68,15 +67,15 @@ namespace CouchDude.Tests.Unit.Implementation
 					});
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			var loadedEntities = session.GetAll<SimpleEntity>().ToList();
+			var queryResult = session.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" });
 
-			Assert.Equal(1, loadedEntities.Count);
-			Assert.NotNull(loadedEntities[0]);
-			Assert.Equal(SimpleEntity.StandardEntityId, loadedEntities[0].Id);
-			Assert.Equal(SimpleEntity.StandardRevision, loadedEntities[0].Revision);
-			Assert.Equal(entity.Age, loadedEntities[0].Age);
-			Assert.Equal(entity.Date, loadedEntities[0].Date);
-			Assert.Equal(entity.Name, loadedEntities[0].Name);
+			var firstRow = queryResult.Rows.First();
+			Assert.NotNull(firstRow);
+			Assert.Equal(SimpleEntity.StandardEntityId, firstRow.Id);
+			Assert.Equal(SimpleEntity.StandardRevision, firstRow.Revision);
+			Assert.Equal(entity.Age, firstRow.Age);
+			Assert.Equal(entity.Date, firstRow.Date);
+			Assert.Equal(entity.Name, firstRow.Name);
 		}
 	}
 }

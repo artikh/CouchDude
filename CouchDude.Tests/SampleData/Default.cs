@@ -1,5 +1,4 @@
 ﻿using CouchDude.Core;
-using CouchDude.Core.Initialization;
 
 namespace CouchDude.Tests.SampleData
 {

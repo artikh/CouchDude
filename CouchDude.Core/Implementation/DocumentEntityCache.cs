@@ -32,6 +32,20 @@ namespace CouchDude.Core.Implementation
 			return documentEntity;
 		}
 
+		/// <summary>Places provided document entity to the cache or if there is 
+		/// entity of same ID in cache already replaces it with one from cache.</summary>
+		public void PutOrReplace(ref DocumentEntity documentEntity)
+		{
+			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
+
+			// Replacing entity in outer scope with one from cache if there is one
+			if (!idMap.TryGetValue(documentEntity.EntityId, out documentEntity))
+			{
+				// if not - putting one from outer scope in cache
+				Put(documentEntity);
+			}
+		}
+
 		/// <summary>Places provided document entity to the cache.</summary>
 		public void Put(DocumentEntity documentEntity)
 		{

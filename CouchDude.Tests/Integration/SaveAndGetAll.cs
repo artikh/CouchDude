@@ -36,11 +36,11 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var entities = session.GetAll<SimpleEntity>().ToList();
-				Assert.True(entities.Count > 2);
+				var result = session.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" });
+				Assert.True(result.RowCount > 2);
 
-				var loadedEntityA = entities.First(e => e.Id == entityA.Id);
-				var loadedEntityB = entities.First(e => e.Id == entityB.Id);
+				var loadedEntityA = result.Rows.First(e => e.Id == entityA.Id);
+				var loadedEntityB = result.Rows.First(e => e.Id == entityB.Id);
 
 				Assert.NotNull(loadedEntityA);
 				Assert.Equal(entityA.Name,			loadedEntityA.Name);

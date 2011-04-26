@@ -120,30 +120,6 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public IEnumerable<TEntity> GetAll<TEntity>() where TEntity : class
-		{
-			var allDocuments = couchApi.Query(
-				new ViewQuery
-					{
-						DesignDocumentName = null,
-						ViewName = "_all_docs",
-						IncludeDocs = true
-					});
-
-			var documentEntities =
-				from row in allDocuments.Rows
-				let documentEntity = DocumentEntity.FromJson<TEntity>(row.Document, settings, throwOnTypeMismatch: false)
-				where documentEntity != null
-				select documentEntity;
-
-			foreach (var documentEntity in documentEntities)
-			{
-				cache.Put(documentEntity);
-				yield return documentEntity.GetEntity<TEntity>();
-			}
-		}
-
-		/// <inheritdoc/>
 		public IPagedList<T> Query<T>(ViewQuery<T> query) where T : class
 		{
 			if (query == null) throw new ArgumentNullException("query");
@@ -155,19 +131,27 @@ namespace CouchDude.Core.Implementation
 
 		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class
 		{
-			var documentEntities = (
+			var documentEntities =
 				from row in queryResult.Rows
 				where row.Document != null
 				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
 				where documentEntity != null
-				select documentEntity
-			).ToArray();
-			foreach (var documentEntity in documentEntities)
-				cache.Put(documentEntity);
+				select documentEntity;
+
+			var entities = PopulateCache(documentEntities).ToArray();
+
 			return new PagedList<T>(
-				queryResult.TotalRows, 
-				documentEntities.Length, 
-				documentEntities.Select(de => (T)de.Entity));
+				queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
+		}
+
+		private IEnumerable<DocumentEntity> PopulateCache(IEnumerable<DocumentEntity> documentEntities)
+		{
+			foreach (var de in documentEntities)
+			{
+				var documentEntity = de;
+				cache.PutOrReplace(ref documentEntity);
+				yield return de;
+			}
 		}
 
 		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult) where T : class
