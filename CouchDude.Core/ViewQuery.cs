@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Collections.Specialized;
 using System.Text;
 using System.Web;
@@ -14,6 +16,7 @@ namespace CouchDude.Core
 	}
 
 	/// <summary>Describes CouchDB view query.</summary>
+	/// <remarks>http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options</remarks>
 	public class ViewQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
@@ -87,12 +90,20 @@ namespace CouchDude.Core
 
 		private class ViewUriBuilder
 		{
-			readonly NameValueCollection querySring = new NameValueCollection();
+			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
+
+			private readonly NameValueCollection querySring = new NameValueCollection();
 			private readonly string designDocumentName;
 			private readonly string viewName;
 
 			public ViewUriBuilder(string designDocumentName, string viewName)
 			{
+				if(string.IsNullOrEmpty(viewName))
+					throw new QueryException("View name is required.");
+				if (designDocumentName == null && !SpecialViewNames.Contains(viewName))
+					throw new QueryException("Querying view {0} requires design document name to be specified.", viewName);
+				Contract.EndContractBlock();
+
 				this.designDocumentName = designDocumentName;
 				this.viewName = viewName;
 			}
@@ -125,7 +136,7 @@ namespace CouchDude.Core
 			{
 				var uri = new StringBuilder();
 				if (!string.IsNullOrEmpty(designDocumentName))
-					uri.Append("_design/").Append(designDocumentName).Append("/");
+					uri.Append("_design/").Append(designDocumentName).Append("/_view/");
 				uri.Append(viewName);
 
 				if(querySring.Count > 0)

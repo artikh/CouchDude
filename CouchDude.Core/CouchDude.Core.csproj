@@ -116,6 +116,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Exceptions\QueryException.cs">
+      <DependentUpon>QueryException.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Exceptions\StaleObjectStateException.cs">
       <DependentUpon>StaleObjectStateException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -194,6 +199,10 @@
     <None Include="Exceptions\ConfigurationException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ConfigurationException.cs</LastGenOutput>
+    </None>
+    <None Include="Exceptions\QueryException.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>QueryException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\StaleObjectStateException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

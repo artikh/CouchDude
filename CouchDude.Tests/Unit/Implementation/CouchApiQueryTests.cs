@@ -26,6 +26,7 @@ namespace CouchDude.Tests.Unit.Implementation
 
 			var couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 			var result = couchApi.Query(new ViewQuery {
+				ViewName = "_all_docs",
 				Key = new object[] { "key", 0 },
 				Skip = 1,
 				IncludeDocs = true
@@ -60,7 +61,7 @@ namespace CouchDude.Tests.Unit.Implementation
 
 
 			Assert.Equal("GET", httpClientMock.Request.Method);
-			Assert.Equal("http://example.com:5984/testdb/_design/dd/v1?skip=1&include_docs=true", httpClientMock.Request.Uri);
+			Assert.Equal("http://example.com:5984/testdb/_design/dd/_view/v1?skip=1&include_docs=true", httpClientMock.Request.Uri);
 		}
 
 		[Fact]
