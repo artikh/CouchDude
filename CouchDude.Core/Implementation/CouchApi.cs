@@ -204,7 +204,8 @@ namespace CouchDude.Core.Implementation
 				throw new StaleObjectStateException("Document update conflict detected");
 			else
 				throw new CouchCommunicationException(
-					(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB ")
+					(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB")
+					+ " "
 					+ (int) response.Status);
 		}
 

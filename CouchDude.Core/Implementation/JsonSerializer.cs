@@ -1,22 +1,24 @@
 ﻿using System;
 using System.Reflection;
+using System.Threading;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
+
+using NewtonsoftSerializer = Newtonsoft.Json.JsonSerializer;
 
 namespace CouchDude.Core.Implementation
 {
 	internal static class JsonSerializer
 	{
-		[ThreadStatic]
-		private static Newtonsoft.Json.JsonSerializer serializer;
+		private static readonly ThreadLocal<NewtonsoftSerializer> Serializer = new ThreadLocal<NewtonsoftSerializer>(CreateSerializer);
 
 		public static Newtonsoft.Json.JsonSerializer Instance
 		{
-			get { return serializer ?? (serializer = CreateSerializer()); }
+			get { return Serializer.Value; }
 		}
 
-		private static Newtonsoft.Json.JsonSerializer CreateSerializer()
+		private static NewtonsoftSerializer CreateSerializer()
 		{
 			var contractResolver = new ContractResolver();
 			var settings = new JsonSerializerSettings

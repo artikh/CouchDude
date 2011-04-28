@@ -9,7 +9,7 @@ namespace CouchDude.Tests.SampleData
 			.DatabaseName("test")
 			.MappingEntities()
 				.FromAssemblyOf<IEntity>()
-				.Imprementing<IEntity>()
+				.Implementing<IEntity>()
 				.ToDocumentTypeCamelCase()
 			.CreateSettings();
 	}

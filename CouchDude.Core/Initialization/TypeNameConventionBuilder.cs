@@ -65,13 +65,13 @@ namespace CouchDude.Core.Initialization
 		}
 
 		/// <summary>Requires entity types to implement given interface.</summary>
-		public TypeNameConventionBuilder Imprementing<T>()
+		public TypeNameConventionBuilder Implementing<T>()
 		{
-			return Imprementing(typeof(T));
+			return Implementing(typeof(T));
 		}
 
 		/// <summary>Requires entity types to implement given interface.</summary>
-		public TypeNameConventionBuilder Imprementing(Type @interface)
+		public TypeNameConventionBuilder Implementing(Type @interface)
 		{
 			if (@interface == null) throw new ArgumentNullException("interface");
 			if (!@interface.IsInterface) throw new ArgumentException("Type should be an interface.", "interface");
