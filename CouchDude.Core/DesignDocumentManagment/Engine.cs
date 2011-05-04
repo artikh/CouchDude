@@ -81,6 +81,10 @@ namespace CouchDude.Core.DesignDocumentManagment
 			foreach (var changedDoc in changedDocs) 
 			{
 				Log.InfoFormat("Pushing document {0} to the database.", changedDoc.Id);
+
+				//пропускает папки, создаваемые при билде солюшена
+				if (changedDoc.Id == "_design/obj" || changedDoc.Id == "_design/bin" || changedDoc.Id == "_design/Properties") continue;
+
 				var documentUri = new Uri(databaseUri, changedDoc.Id);
 				changedDoc.Definition.ToString(Formatting.None);
 				httpClient.MakeRequest(
@@ -89,6 +93,34 @@ namespace CouchDude.Core.DesignDocumentManagment
 						"PUT", 
 						body: new StringReader(changedDoc.Definition.ToString(Formatting.None))));
 			}
+		}
+
+		/// <summary>Удаляет базу данных и создает снова.</summary>
+		public void Truncate(Uri databaseUri, string password = null)
+		{
+			if (databaseUri == null) throw new ArgumentNullException("databaseUri");
+			if (!databaseUri.IsAbsoluteUri)
+				throw new ArgumentException("databaseUri should be absolute", "databaseUri");
+			if (!databaseUri.Scheme.StartsWith("http"))
+				throw new ArgumentException("databaseUri should be http or https", "databaseUri");
+			Contract.EndContractBlock();
+
+			FillPasswordIn(ref databaseUri, password);
+
+			//var docsFromDatabase = GetDesignDocumentsFromDatabase(databaseUri);
+			//var docsFromFileSystem = GetDesignDocumentsFromFileSystem();
+			//var changedDocs = GetChangedDocuments(docsFromFileSystem, docsFromDatabase);
+			//Log.InfoFormat("{0} design documents will be pushed to database.", changedDocs.Count);
+
+			httpClient.MakeRequest(
+					new HttpRequest(
+						databaseUri,
+						"DELETE"));
+
+			httpClient.MakeRequest(
+					new HttpRequest(
+						databaseUri,
+						"PUT"));
 		}
 
 		/// <summary>Generates design documents from directory content.</summary>
