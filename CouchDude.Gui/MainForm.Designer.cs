@@ -37,6 +37,7 @@
 			this.PushButton = new System.Windows.Forms.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
+			this.button1 = new System.Windows.Forms.Button();
 			this.SuspendLayout();
 			// 
 			// DatabaseUrl
@@ -48,7 +49,7 @@
 			// 
 			// CheckButton
 			// 
-			this.CheckButton.Location = new System.Drawing.Point(61, 63);
+			this.CheckButton.Location = new System.Drawing.Point(513, 6);
 			this.CheckButton.Name = "CheckButton";
 			this.CheckButton.Size = new System.Drawing.Size(108, 23);
 			this.CheckButton.TabIndex = 2;
@@ -79,16 +80,16 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.OutputBox.Font = new System.Drawing.Font("Lucida Console", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.OutputBox.Location = new System.Drawing.Point(15, 92);
+			this.OutputBox.Location = new System.Drawing.Point(15, 110);
 			this.OutputBox.Multiline = true;
 			this.OutputBox.Name = "OutputBox";
 			this.OutputBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.OutputBox.Size = new System.Drawing.Size(557, 257);
+			this.OutputBox.Size = new System.Drawing.Size(606, 239);
 			this.OutputBox.TabIndex = 5;
 			// 
 			// GenerateButton
 			// 
-			this.GenerateButton.Location = new System.Drawing.Point(175, 63);
+			this.GenerateButton.Location = new System.Drawing.Point(513, 40);
 			this.GenerateButton.Name = "GenerateButton";
 			this.GenerateButton.Size = new System.Drawing.Size(108, 23);
 			this.GenerateButton.TabIndex = 6;
@@ -98,7 +99,7 @@
 			// 
 			// PushButton
 			// 
-			this.PushButton.Location = new System.Drawing.Point(289, 63);
+			this.PushButton.Location = new System.Drawing.Point(513, 72);
 			this.PushButton.Name = "PushButton";
 			this.PushButton.Size = new System.Drawing.Size(108, 23);
 			this.PushButton.TabIndex = 7;
@@ -124,11 +125,22 @@
 			this.label2.TabIndex = 8;
 			this.label2.Text = "Путь к данным";
 			// 
+			// button1
+			// 
+			this.button1.Location = new System.Drawing.Point(15, 63);
+			this.button1.Name = "button1";
+			this.button1.Size = new System.Drawing.Size(382, 41);
+			this.button1.TabIndex = 9;
+			this.button1.Text = "ReCreate DB with design";
+			this.button1.UseVisualStyleBackColor = true;
+			this.button1.Click += new System.EventHandler(this.TruncateButton_Click);
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(584, 361);
+			this.ClientSize = new System.Drawing.Size(633, 361);
+			this.Controls.Add(this.button1);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.PushButton);
@@ -156,6 +168,7 @@
 		private System.Windows.Forms.Button PushButton;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Button button1;
 
 	}
 }

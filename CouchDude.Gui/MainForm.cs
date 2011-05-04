@@ -34,7 +34,8 @@ namespace CouchDude.Gui
 			Help = 0,
 			Generate,
 			Check,
-			Push
+			Push,
+			Truncate
 		}
 
 		public sealed class Options
@@ -91,17 +92,25 @@ namespace CouchDude.Gui
 					var generatedDocuments = engine.Generate();
 					foreach (var generatedDocument in generatedDocuments)
 					{
+						OutputBox.AppendText("\r\n");
 						OutputBox.AppendText(generatedDocument.Replace("\\r\\n", "\r\n").Replace("\\t", "\t"));
+						OutputBox.AppendText("\r\n");
 					}
 					break;
 				case CommandType.Check:
 					var haveChanged =
 						engine.CheckIfChanged(url.Value, password);
-					MessageBox.Show(haveChanged ? "Changed" : "Have not changed");
+					OutputBox.AppendText("\r\n");
+					OutputBox.AppendText(haveChanged ? "Changed" : "Have not changed");
+					OutputBox.AppendText("\r\n");
 					break;
 				case CommandType.Push:
 					engine.PushIfChanged(url.Value, password);
-					MessageBox.Show("Pushed");
+					OutputBox.AppendText("\r\nPushed\r\n");
+					break;
+				case CommandType.Truncate:
+					engine.Truncate(url.Value, password);
+					OutputBox.AppendText("\r\nTruncated\r\n");
 					break;
 				default:
 					throw new ArgumentOutOfRangeException();
@@ -160,6 +169,12 @@ namespace CouchDude.Gui
 		private void GenerateButton_Click(object sender, EventArgs e)
 		{
 			Process(CommandType.Generate);
+		}
+
+		private void TruncateButton_Click(object sender, EventArgs e)
+		{
+			Process(CommandType.Truncate);
+			Process(CommandType.Push);
 		}
 	}
 }
