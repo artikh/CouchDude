@@ -4,32 +4,50 @@ using System.Collections.Generic;
 namespace CouchDude.Core.Implementation
 {
 	/// <summary>Document and entity cache.</summary>
+	/// <remarks>Instance methods are not guaranteed to be thread-safe.</remarks>
 	internal class DocumentEntityCache
 	{
 		private readonly IDictionary<object, DocumentEntity> instanceSet = new Dictionary<object, DocumentEntity>();
-		readonly IDictionary<string, DocumentEntity> idMap = new Dictionary<string, DocumentEntity>();
+		private readonly IDictionary<string, DocumentEntity> idMap = new Dictionary<string, DocumentEntity>();
 
-		/// <summary>Determines if paticular instance is in the cache.</summary>
-		public bool Contains(DocumentEntity documentEntity)
+		private DocumentEntity this[string entityId, Type entityType]
 		{
-			return idMap.ContainsKey(documentEntity.DocumentId) 
-				|| instanceSet.ContainsKey(documentEntity.Entity);
+			get
+			{
+				var entityKey = GetEntityKey(entityId, entityType);
+				DocumentEntity documentEntity;
+				idMap.TryGetValue(entityKey, out documentEntity);
+				return documentEntity;
+			}
+			set { idMap[GetEntityKey(entityId, entityType)] = value; }
 		}
-		
+
+		private DocumentEntity this[object instance]
+		{
+			get
+			{
+				DocumentEntity documentEntity;
+				instanceSet.TryGetValue(instance, out documentEntity);
+				return documentEntity;
+			}
+			set { instanceSet[instance] = value; }
+		}
+
+		private static string GetEntityKey(string entityId, Type entityType)
+		{
+			return string.Concat(entityType.FullName, "::", entityId);
+		}
+
 		/// <summary>Tries to get document entity form the cache via ID.</summary>
-		public DocumentEntity TryGet(string id)
+		public DocumentEntity TryGet(string entityId, Type entityType)
 		{
-			DocumentEntity documentEntity;
-			idMap.TryGetValue(id, out documentEntity);
-			return documentEntity;
+			return this[entityId, entityType];
 		}
-		
+
 		/// <summary>Tries to get document entity form the cache via entity reverence.</summary>
 		public DocumentEntity TryGet(object entity)
 		{
-			DocumentEntity documentEntity;
-			instanceSet.TryGetValue(entity, out documentEntity);
-			return documentEntity;
+			return this[entity];
 		}
 
 		/// <summary>Places provided document entity to the cache or if there is 
@@ -38,17 +56,15 @@ namespace CouchDude.Core.Implementation
 		{
 			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
 
-			DocumentEntity cachedDocumentEntity;
-			return !idMap.TryGetValue(documentEntity.DocumentId, out cachedDocumentEntity) 
-				? Put(documentEntity) 
-				: cachedDocumentEntity;
+			var cachedDocumentEntity = this[documentEntity.EntityId, documentEntity.EntityType];
+			return cachedDocumentEntity ?? Put(documentEntity);
 		}
 
 		/// <summary>Places provided document entity to the cache.</summary>
 		public DocumentEntity Put(DocumentEntity documentEntity)
 		{
-			instanceSet.Add(documentEntity.Entity, documentEntity);
-			idMap[documentEntity.DocumentId] = documentEntity;
+			this[documentEntity.Entity] = documentEntity;
+			this[documentEntity.EntityId, documentEntity.EntityType] = documentEntity;
 			return documentEntity;
 		}
 
@@ -56,6 +72,13 @@ namespace CouchDude.Core.Implementation
 		{
 			instanceSet.Remove(documentEntity.Entity);
 			idMap.Remove(documentEntity.DocumentId);
+		}
+
+		/// <summary>Determines if paticular instance is in the cache.</summary>
+		public bool Contains(DocumentEntity documentEntity)
+		{
+			return idMap.ContainsKey(documentEntity.DocumentId) 
+			       || instanceSet.ContainsKey(documentEntity.Entity);
 		}
 
 		/// <summary>Returs all cached documents.</summary>

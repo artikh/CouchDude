@@ -79,7 +79,7 @@ namespace CouchDude.Core.Implementation
 				throw new ArgumentNullException("entityId");
 			Contract.EndContractBlock();
 
-			var cachedEntity = cache.TryGet(entityId);
+			var cachedEntity = cache.TryGet(entityId, typeof(TEntity));
 			if (cachedEntity != null)
 			{
 				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))

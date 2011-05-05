@@ -5,7 +5,7 @@ namespace CouchDude.Tests.SampleData
 	static class Default
 	{
 		public static Settings Settings = ConfigureCouchDude.With()
-			.ServerUri("http://localhost:5984")
+			.ServerUri("http://127.0.0.1:5984")
 			.DatabaseName("test")
 			.MappingEntities()
 				.FromAssemblyOf<IEntity>()
