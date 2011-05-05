@@ -1,16 +1,20 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace CouchDude.Core.Implementation
 {
 	/// <summary>Simple paged list implementation.</summary>
-	public class PagedList<T>: IPagedList<T> where T: class 
+	public class PagedList<T>: IPagedList<T> where T: class
 	{
+		private readonly IEnumerable<T> data;
+		
 		/// <constructor />
-		public PagedList(int totalRowCount, int rowCount, IEnumerable<T> rows)
+		public PagedList(int totalRowCount, int rowCount, IEnumerable<T> data)
 		{
 			TotalRowCount = totalRowCount;
 			RowCount = rowCount;
-			Rows = rows;
+			this.data = data;
 		}
 
 		/// <inheritdoc/>
@@ -18,8 +22,17 @@ namespace CouchDude.Core.Implementation
 
 		/// <inheritdoc/>
 		public int RowCount { get; private set; }
+		
+		/// <inheritdoc/>
+		public IEnumerator<T> GetEnumerator()
+		{
+			return data.GetEnumerator();
+		}
 
 		/// <inheritdoc/>
-		public IEnumerable<T> Rows { get; private set; }
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return GetEnumerator();
+		}
 	}
 }

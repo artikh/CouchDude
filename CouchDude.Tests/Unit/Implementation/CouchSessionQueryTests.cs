@@ -72,7 +72,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			var queryResult = session.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
 
-			var firstRow = queryResult.Rows.First();
+			var firstRow = queryResult.First();
 			Assert.NotNull(firstRow);
 			Assert.Equal(SimpleEntity.StandardEntityId, firstRow.Id);
 			Assert.Equal(SimpleEntity.StandardRevision, firstRow.Revision);
@@ -128,7 +128,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.TotalRowCount);
 
-			var row = queryResult.Rows.First();
+			var row = queryResult.First();
 			Assert.NotNull(row);
 			Assert.Equal(SimpleEntity.StandardEntityId, row.Id);
 			Assert.Equal(SimpleEntity.StandardRevision, row.Revision);
@@ -158,7 +158,7 @@ namespace CouchDude.Tests.Unit.Implementation
 				                    	});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
-			var queriedEntity = session.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true }).Rows.First();
+			var queriedEntity = session.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true }).First();
 			var loadedEntity = session.Load<SimpleEntity>(SimpleEntity.StandardEntityId);
 			Assert.Same(queriedEntity, loadedEntity);
 		}
@@ -189,7 +189,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			var queryResult = session.Query(new ViewQuery<SimpleEntity> {IncludeDocs = true});
 
 			Assert.Equal(0, queryResult.RowCount);
-			Assert.Equal(0, queryResult.Rows.Count());
+			Assert.Equal(0, queryResult.Count());
 		}
 
 		[Fact]
@@ -218,7 +218,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			var queryResult = session.Query(new ViewQuery<SimpleViewData>());
 
 			Assert.Equal(0, queryResult.RowCount);
-			Assert.Equal(0, queryResult.Rows.Count());
+			Assert.Equal(0, queryResult.Count());
 		}
 
 		[Fact]
@@ -254,7 +254,7 @@ namespace CouchDude.Tests.Unit.Implementation
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.TotalRowCount);
 
-			var row = queryResult.Rows.First();
+			var row = queryResult.First();
 			Assert.NotNull(row);
 			Assert.Equal("Object title", row.Title);
 		}

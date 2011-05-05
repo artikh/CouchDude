@@ -80,10 +80,10 @@ namespace CouchDude.Core.DesignDocumentManagment
 
 			foreach (var changedDoc in changedDocs) 
 			{
-				Log.InfoFormat("Pushing document {0} to the database.", changedDoc.Id);
-
 				//пропускает папки, создаваемые при билде солюшена
 				if (changedDoc.Id == "_design/obj" || changedDoc.Id == "_design/bin" || changedDoc.Id == "_design/Properties") continue;
+
+				Log.InfoFormat("Pushing document {0} to the database.", changedDoc.Id);
 
 				var documentUri = new Uri(databaseUri, changedDoc.Id);
 				changedDoc.Definition.ToString(Formatting.None);
@@ -112,15 +112,8 @@ namespace CouchDude.Core.DesignDocumentManagment
 			//var changedDocs = GetChangedDocuments(docsFromFileSystem, docsFromDatabase);
 			//Log.InfoFormat("{0} design documents will be pushed to database.", changedDocs.Count);
 
-			httpClient.MakeRequest(
-					new HttpRequest(
-						databaseUri,
-						"DELETE"));
-
-			httpClient.MakeRequest(
-					new HttpRequest(
-						databaseUri,
-						"PUT"));
+			httpClient.MakeRequest(new HttpRequest(databaseUri, "DELETE"));
+			httpClient.MakeRequest(new HttpRequest(databaseUri, "PUT"));
 		}
 
 		/// <summary>Generates design documents from directory content.</summary>

@@ -39,8 +39,8 @@ namespace CouchDude.Tests.Integration
 				var result = session.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
 				Assert.True(result.RowCount > 2);
 
-				var loadedEntityA = result.Rows.First(e => e.Id == entityA.Id);
-				var loadedEntityB = result.Rows.First(e => e.Id == entityB.Id);
+				var loadedEntityA = result.First(e => e.Id == entityA.Id);
+				var loadedEntityB = result.First(e => e.Id == entityB.Id);
 
 				Assert.NotNull(loadedEntityA);
 				Assert.Equal(entityA.Name,			loadedEntityA.Name);
