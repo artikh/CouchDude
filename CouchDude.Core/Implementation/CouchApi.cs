@@ -202,11 +202,10 @@ namespace CouchDude.Core.Implementation
 			
 			if (response.Status == HttpStatusCode.Conflict)
 				throw new StaleObjectStateException("Document update conflict detected");
-			else
-				throw new CouchCommunicationException(
-					(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB")
-					+ " "
-					+ (int) response.Status);
+			throw new CouchCommunicationException(
+				(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB")
+				+ " "
+				+ (int) response.Status);
 		}
 
 		private HttpResponse MakeRequest(HttpRequest request)
