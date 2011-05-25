@@ -1,6 +1,3 @@
-using System;
-using CouchDude.Core.Implementation;
-
 namespace CouchDude.Core.Conventions
 {
 	/// <summary>Document ID generator interface.</summary>

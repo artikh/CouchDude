@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using CouchDude.Core.Implementation;
 
 namespace CouchDude.Core.Conventions
 {

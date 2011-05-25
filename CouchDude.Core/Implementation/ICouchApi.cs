@@ -1,3 +1,4 @@
+using CouchDude.Core.Implementation.Lucene;
 using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Implementation
@@ -23,5 +24,8 @@ namespace CouchDude.Core.Implementation
 
 		/// <summary>Queries CouchDB view.</summary>
 		ViewResult Query(ViewQuery query);
+
+		/// <summary>Queries CouchDB view.</summary>
+		LuceneResult FulltextQuery(LuceneQuery query);
 	}
 }

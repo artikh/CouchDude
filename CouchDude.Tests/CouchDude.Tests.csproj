@@ -62,6 +62,7 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Integration\Lucene\SaveEntitiesAndSearchByKeyword.cs" />
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
     <Compile Include="HttpClientMock.cs" />

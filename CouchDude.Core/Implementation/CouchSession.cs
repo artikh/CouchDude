@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using CouchDude.Core.Implementation.Lucene;
 using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Implementation
@@ -104,24 +105,19 @@ namespace CouchDude.Core.Implementation
 		/// <inheritdoc/>
 		public void Flush()
 		{
-			foreach (var documentEntity 
-				in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
+			foreach (var documentEntity in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
 				documentEntity.DoMap();
 				couchApi.UpdateDocumentInDb(documentEntity.DocumentId, documentEntity.Document);
 			}
 		}
 
-		/// <summary>Backup plan finalizer - use Dispose() method!</summary>
-		~CouchSession()
-		{
-			Dispose(disposing: false);
-		}
-
 		/// <inheritdoc/>
 		public IPagedList<T> Query<T>(ViewQuery<T> query) where T : class
 		{
-			if (query == null) throw new ArgumentNullException("query");
+			if (query == null) 
+				throw new ArgumentNullException("query");
+
 			var isEntityType = settings.TypeConvension.GetDocumentType(typeof (T)) != null;
 			if (isEntityType && !query.IncludeDocs)
 				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
@@ -131,7 +127,33 @@ namespace CouchDude.Core.Implementation
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
 		}
 
-		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class
+		/// <inheritdoc/>
+		public IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class
+		{
+			if (query == null)
+				throw new ArgumentNullException("query");
+
+			var isEntityType = settings.TypeConvension.GetDocumentType(typeof(T)) != null;
+			if (isEntityType && !query.IncludeDocs)
+				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
+			Contract.EndContractBlock();
+			var queryResult = couchApi.FulltextQuery(query);
+			return isEntityType ? GetEntityList<T>(queryResult) : GetLuceneViewDataList<T>(queryResult);
+		}
+
+		private static IPagedList<T> GetLuceneViewDataList<T>(LuceneResult queryResult) where T : class
+		{
+			var viewDataList = (
+				from row in queryResult.Rows.AsParallel()
+				where row.Fields != null				
+				let viewDataItem = DeserializeViewData<T>(row.Fields) 
+				select viewDataItem
+			).ToArray();
+			return new PagedList<T>(queryResult.TotalRows, viewDataList.Length, viewDataList);
+		}
+
+
+		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class 
 		{
 			var entities = (
 				from row in queryResult.Rows
@@ -141,8 +163,20 @@ namespace CouchDude.Core.Implementation
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();
 
-			return new PagedList<T>(
-				queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
+			return new PagedList<T>(queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
+		}
+
+		private IPagedList<T> GetEntityList<T>(LuceneResult queryResult) where T : class
+		{
+			var entities = (
+				from row in queryResult.Rows
+				where row.Document != null
+				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
+				where documentEntity != null
+				select cache.PutOrReplace(documentEntity)
+			).ToArray();
+
+			return new PagedList<T>(queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
 		}
 
 		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult) where T : class
@@ -160,6 +194,13 @@ namespace CouchDude.Core.Implementation
 		{
 			using (var reader = new JTokenReader(value))
 				return JsonSerializer.Instance.Deserialize<T>(reader);
+		}
+
+
+		/// <summary>Backup plan finalizer - use Dispose() method!</summary>
+		~CouchSession()
+		{
+			Dispose(disposing: false);
 		}
 
 		/// <inheritdoc/>

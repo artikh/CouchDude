@@ -174,12 +174,15 @@
     <Compile Include="Implementation\DocumentEntityCache.cs" />
     <Compile Include="Implementation\ICouchApi.cs" />
     <Compile Include="Implementation\JsonSerializer.cs" />
+    <Compile Include="Implementation\Lucene\LuceneResultRow.cs" />
+    <Compile Include="Implementation\Lucene\LuceneResult.cs" />
     <Compile Include="Implementation\PagedList.cs" />
     <Compile Include="Implementation\Utils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Initialization\SessionFactoryBuilder.cs" />
     <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
     <Compile Include="IPagedList.cs" />
+    <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
     <Compile Include="Implementation\ViewResult.cs" />
     <Compile Include="Implementation\ViewResultRow.cs" />

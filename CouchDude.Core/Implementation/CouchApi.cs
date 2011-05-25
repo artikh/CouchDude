@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Text;
 
 using CouchDude.Core.HttpClient;
+using CouchDude.Core.Implementation.Lucene;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using HttpRequest = CouchDude.Core.HttpClient.HttpRequest;
@@ -110,7 +111,7 @@ namespace CouchDude.Core.Implementation
 		public ViewResult Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
-			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10.", "query");
+			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 			Contract.EndContractBlock();
 
 			var viewUri = databaseUri + query.ToUri();
@@ -120,6 +121,25 @@ namespace CouchDude.Core.Implementation
 			using (var responseBodyReader = response.Body)
 			using (var jsonReader = new JsonTextReader(responseBodyReader))
 				viewResult = JsonSerializer.Instance.Deserialize<ViewResult>(jsonReader);
+			viewResult.Query = query;
+			return viewResult;
+		}
+
+		/// <inheritdoc/>
+		/// TODO: Неплохо бы засовывать вес поиска в результаты
+		public LuceneResult FulltextQuery(LuceneQuery query)
+		{
+			if (query == null) 
+				throw new ArgumentNullException("query");
+			Contract.EndContractBlock();
+
+			var viewUri = databaseUri + query.ToUri();
+			var request = new HttpRequest(viewUri, HttpMethod.Get);
+			var response = MakeRequest(request);
+			LuceneResult viewResult;
+			using (var responseBodyReader = response.Body)
+			using (var jsonReader = new JsonTextReader(responseBodyReader))
+				viewResult = JsonSerializer.Instance.Deserialize<LuceneResult>(jsonReader);
 			viewResult.Query = query;
 			return viewResult;
 		}

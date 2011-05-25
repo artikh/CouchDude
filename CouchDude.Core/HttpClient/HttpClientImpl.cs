@@ -87,8 +87,6 @@ namespace CouchDude.Core.HttpClient
 			var httpWebRequest = (HttpWebRequest) WebRequest.Create(requestDescriptor.Uri);
 			httpWebRequest.AllowAutoRedirect = false;
 			httpWebRequest.AuthenticationLevel = AuthenticationLevel.None;
-			httpWebRequest.Proxy = null;
-
 			httpWebRequest.Method = requestDescriptor.Method;
 			if (requestDescriptor.Headers != null) 
 				httpWebRequest.Headers = requestDescriptor.Headers;

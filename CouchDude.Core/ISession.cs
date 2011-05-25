@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace CouchDude.Core
 {
@@ -19,8 +18,10 @@ namespace CouchDude.Core
 		/// <summary>Deletes provided entity form CouchDB.</summary>
 		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class;
 
-		/// <summary>Queries CouchDB view returning ether paged list of documents or 
-		/// view data items.</summary>
+		/// <summary>Queries CouchDB view returning ether paged list of documents or view data items.</summary>
 		IPagedList<T> Query<T>(ViewQuery<T> query) where T : class;
+
+		/// <summary>Queries LuceneCouchDB</summary>
+		IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
 	}
 }
