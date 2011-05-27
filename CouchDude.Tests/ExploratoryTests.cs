@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -144,6 +146,43 @@ namespace CouchDude.Tests
 			var json = (JObject)writer.Token;
 
 			Assert.Null(json.Property("_name"));
+		}
+
+		[Fact]
+		public void ShouldSuppressUnescaping()
+		{
+			var uri = new Uri("http://www.example.com/value%2fvalue");
+			uri.LeaveDotsAndSlashesEscaped();
+
+			Assert.Equal("http://www.example.com/value%2fvalue", uri.ToString());
+		}
+	}
+
+	public static class UriFix
+	{
+		private const int UnEscapeDotsAndSlashes = 0x2000000;
+		private const int SimpleUserSyntax = 0x20000;
+
+		public static void LeaveDotsAndSlashesEscaped(this Uri uri)
+		{
+			if (uri == null)
+				throw new ArgumentNullException("uri");
+
+			FieldInfo fieldInfo = uri.GetType().GetField("m_Syntax", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (fieldInfo == null)
+				throw new MissingFieldException("'m_Syntax' field not found");
+
+			object uriParser = fieldInfo.GetValue(uri);
+			fieldInfo = typeof (UriParser).GetField("m_Flags", BindingFlags.Instance | BindingFlags.NonPublic);
+			if (fieldInfo == null)
+				throw new MissingFieldException("'m_Flags' field not found");
+
+			object uriSyntaxFlags = fieldInfo.GetValue(uriParser);
+
+			// Clear the flag that we don't want
+			uriSyntaxFlags = (int) uriSyntaxFlags & ~UnEscapeDotsAndSlashes;
+			uriSyntaxFlags = (int) uriSyntaxFlags & ~SimpleUserSyntax;
+			fieldInfo.SetValue(uriParser, uriSyntaxFlags);
 		}
 	}
 }

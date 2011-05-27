@@ -121,7 +121,6 @@ namespace CouchDude.Core.Implementation
 			var isEntityType = settings.TypeConvension.GetDocumentType(typeof (T)) != null;
 			if (isEntityType && !query.IncludeDocs)
 				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
-			Contract.EndContractBlock();
 
 			var queryResult = couchApi.Query(query);
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
