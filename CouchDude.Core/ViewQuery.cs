@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.IO;
 using System.Linq;
 using System.Collections.Specialized;
 using System.Text;
@@ -117,7 +118,11 @@ namespace CouchDude.Core
 			public void AddIfNotNull(object value, string key)
 			{
 				if (value != null)
-					querySring[key] = JsonConvert.SerializeObject(value, Formatting.None);
+					using (var writer = new StringWriter())
+					{
+						Implementation.JsonSerializer.Instance.Serialize(writer, value);
+						querySring[key] = writer.ToString();
+					}
 			}
 
 			public void AddIfHasValue<TValue>(TValue? value, string key) where TValue: struct 
