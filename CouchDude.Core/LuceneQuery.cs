@@ -61,7 +61,7 @@ namespace CouchDude.Core
 			DesignDocumentName = "lucene";
 			Limit = 100;
 			Skip = 0;
-			Analyzer = "snowball:English";
+			Analyzer = null;
 		}
 
 		/// <constructor/>
@@ -81,7 +81,8 @@ namespace CouchDude.Core
 			uriBuilder.Append("q=" + HttpUtility.UrlEncode(Query));
 			if (IncludeDocs)
 				uriBuilder.Append("&include_docs=true");
-			uriBuilder.Append("&analyzer=" + HttpUtility.UrlEncode(Analyzer));
+			if (Analyzer != null)
+				uriBuilder.Append("&analyzer=" + HttpUtility.UrlEncode(Analyzer));
 			return uriBuilder.ToString();
 		}
 	}
