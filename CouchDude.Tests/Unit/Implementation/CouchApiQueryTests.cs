@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
 using Newtonsoft.Json.Linq;
@@ -60,8 +61,10 @@ namespace CouchDude.Tests.Unit.Implementation
 			});
 
 
-			Assert.Equal("GET", httpClientMock.Request.Method);
-			Assert.Equal("http://example.com:5984/testdb/_design/dd/_view/v1?skip=1&include_docs=true", httpClientMock.Request.Uri);
+			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
+			Assert.Equal(
+				"http://example.com:5984/testdb/_design/dd/_view/v1?skip=1&include_docs=true", 
+				httpClientMock.Request.RequestUri.ToString());
 		}
 
 		[Fact]

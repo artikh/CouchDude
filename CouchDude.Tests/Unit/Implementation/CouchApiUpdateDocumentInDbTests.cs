@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net;
+using System.Net; using CouchDude.Core.Http;
 using CouchDude.Core;
 using CouchDude.Core.Implementation;
 using Newtonsoft.Json.Linq;
@@ -102,9 +102,9 @@ namespace CouchDude.Tests.Unit.Implementation
 			var recivedRequest = httpMock.Request;
 			return new TestResult
 			{
-				RequestedUri = recivedRequest.Uri == null ? null : recivedRequest.Uri.ToString(),
-				RequestedMethod = recivedRequest.Method,
-				RequestBody = recivedRequest.Body == null ? null : recivedRequest.Body.ReadToEnd(),
+				RequestedUri = recivedRequest.RequestUri == null ? null : recivedRequest.RequestUri.ToString(),
+				RequestedMethod = recivedRequest.Method.ToString(),
+				RequestBody = recivedRequest.Content.GetTextReader() == null ? null : recivedRequest.Content.GetTextReader().ReadToEnd(),
 				Result = result
 			};
 		}

@@ -1,31 +1,29 @@
 ﻿using System;
-using System.IO;
-using System.Net;
+using System.Net; 
+using CouchDude.Core.Http;
+using System.Net.Http;
 using System.Threading.Tasks;
-using CouchDude.Core.HttpClient;
 
 namespace CouchDude.Tests
 {
 	internal class HttpClientMock: IHttpClient
 	{
 		private readonly Exception exception;
-		private readonly HttpResponse response;
+		private readonly HttpResponseMessage response;
 		
-		public HttpClientMock(string responseText )
+		public HttpClientMock(string responseText)
 		{
-			response = new HttpResponse {
-				Status = HttpStatusCode.OK,
-				Headers = new WebHeaderCollection(),
-				Body = new StringReader(responseText)
-			};
+			response =
+				new HttpResponseMessage
+					{
+						StatusCode = HttpStatusCode.OK,
+						Content = new StringContent(responseText)
+					};
 		}
-		public HttpClientMock(HttpResponse response = null)
+
+		public HttpClientMock(HttpResponseMessage response = null)
 		{
-			this.response = response ?? new HttpResponse {
-				Status = HttpStatusCode.OK,
-				Headers = new WebHeaderCollection(),
-				Body = new StringReader(string.Empty)
-			};
+			this.response = response ?? new HttpResponseMessage {StatusCode = HttpStatusCode.OK, Content = new StringContent(string.Empty)};
 		}
 
 		public HttpClientMock(Exception exception)
@@ -33,21 +31,21 @@ namespace CouchDude.Tests
 			this.exception = exception;
 		}
 
-		public HttpRequest Request { get; private set; }
+		public HttpRequestMessage Request { get; private set; }
 
-		public Task<HttpResponse> StartRequest(HttpRequest request)
+		public Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage)
 		{
 			if (exception != null)
 				throw exception;
-			Request = request;
+			Request = requestMessage;
 			return Task.Factory.StartNew(() => response);
 		}
 
-		public HttpResponse MakeRequest(HttpRequest request)
+		public HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage)
 		{
 			if (exception != null)
 				throw exception;
-			Request = request;
+			Request = requestMessage;
 			return response;
 		}
 	}

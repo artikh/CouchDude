@@ -1,5 +1,5 @@
 ﻿using System;
-using CouchDude.Core.HttpClient;
+using CouchDude.Core.Http;
 
 namespace CouchDude.Core.Implementation
 {

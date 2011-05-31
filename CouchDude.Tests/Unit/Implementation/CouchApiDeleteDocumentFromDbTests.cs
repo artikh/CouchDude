@@ -1,7 +1,7 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using CouchDude.Core;
-using CouchDude.Core.HttpClient;
 using CouchDude.Core.Implementation;
 using Xunit;
 
@@ -19,8 +19,8 @@ namespace CouchDude.Tests.Unit.Implementation
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
-				httpMock.Request.Uri);
-			Assert.Equal("DELETE", httpMock.Request.Method);
+				httpMock.Request.RequestUri.ToString());
+			Assert.Equal("DELETE", httpMock.Request.Method.ToString());
 			Utils.AssertSameJson(new { ok = true }.ToJObject(), resultObject);
 		}
 
@@ -37,8 +37,8 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldThrowStaleObjectStateExceptionOnConflict()
 		{
-			var httpMock = new HttpClientMock(new HttpResponse {
-				Status = HttpStatusCode.Conflict
+			var httpMock = new HttpClientMock(new HttpResponseMessage {
+				StatusCode = HttpStatusCode.Conflict
 			});
 			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 

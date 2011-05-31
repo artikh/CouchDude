@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using CouchDude.Core;
+using CouchDude.Core.Http;
 using CouchDude.Core.Implementation;
 using CouchDude.Tests.SampleData;
 using Newtonsoft.Json.Linq;

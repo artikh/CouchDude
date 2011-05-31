@@ -15,7 +15,8 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Updates document in CouchDB.</summary>
 		JObject UpdateDocumentInDb(string docId, JObject document);
 
-		/// <summary>Retrives current document revision from database.</summary>
+		/// <summary>Retrives current document revision from database. <c>null</c> returned if
+		/// there is no such document in database.</summary>
 		string GetLastestDocumentRevision(string docId);
 
 		/// <summary>Deletes document of provided <param name="docId"/> if it's revision

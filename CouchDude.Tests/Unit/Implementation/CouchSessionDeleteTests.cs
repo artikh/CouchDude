@@ -1,9 +1,9 @@
 using System;
-using CouchDude.Core;
-using CouchDude.Core.Implementation;
-using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
+
+using CouchDude.Core.Implementation;
+using CouchDude.Tests.SampleData;
 
 namespace CouchDude.Tests.Unit.Implementation
 {
