@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json;
+using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 namespace CouchDude.Core
 {
@@ -91,7 +92,7 @@ namespace CouchDude.Core
 
 		private class ViewUriBuilder
 		{
-			public static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
+			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
 
 			private readonly NameValueCollection querySring = new NameValueCollection();
 			private readonly string designDocumentName;
@@ -120,7 +121,7 @@ namespace CouchDude.Core
 				if (value != null)
 					using (var writer = new StringWriter())
 					{
-						Implementation.JsonSerializer.Instance.Serialize(writer, value);
+						JsonSerializer.Instance.Serialize(writer, value);
 						querySring[key] = writer.ToString();
 					}
 			}

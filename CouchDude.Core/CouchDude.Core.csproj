@@ -143,9 +143,9 @@
     <Compile Include="Http\HttpClientHelpers.cs" />
     <Compile Include="Http\HttpClientImpl.cs" />
     <Compile Include="Http\IHttpClient.cs" />
-    <Compile Include="Implementation\CouchApi.cs" />
-    <Compile Include="Implementation\CouchSessionFactory.cs" />
-    <Compile Include="Implementation\CouchSession.cs" />
+    <Compile Include="Api\CouchApi.cs" />
+    <Compile Include="Impl\CouchSessionFactory.cs" />
+    <Compile Include="Impl\CouchSession.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocument.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocumentExtractor.cs" />
     <Compile Include="DesignDocumentManagment\Engine.cs" />
@@ -171,22 +171,23 @@
     <Compile Include="DesignDocumentManagment\IFile.cs" />
     <Compile Include="Conventions\PropertyByNameConvention.cs" />
     <Compile Include="Conventions\ISpecialPropertyConvention.cs" />
-    <Compile Include="Implementation\DocumentEntity.cs" />
-    <Compile Include="Implementation\DocumentEntityCache.cs" />
-    <Compile Include="Implementation\ICouchApi.cs" />
-    <Compile Include="Implementation\JsonSerializer.cs" />
-    <Compile Include="Implementation\Lucene\LuceneResultRow.cs" />
-    <Compile Include="Implementation\Lucene\LuceneResult.cs" />
-    <Compile Include="Implementation\PagedList.cs" />
-    <Compile Include="Implementation\Utils.cs" />
+    <Compile Include="Impl\DocumentEntity.cs" />
+    <Compile Include="Impl\DocumentEntityCache.cs" />
+    <Compile Include="Api\ICouchApi.cs" />
+    <Compile Include="Utils\UriUtils.cs" />
+    <Compile Include="Utils\JsonSerializer.cs" />
+    <Compile Include="Api\LuceneResultRow.cs" />
+    <Compile Include="Api\LuceneResult.cs" />
+    <Compile Include="Impl\PagedList.cs" />
+    <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Initialization\SessionFactoryBuilder.cs" />
     <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
-    <Compile Include="Implementation\ViewResult.cs" />
-    <Compile Include="Implementation\ViewResultRow.cs" />
+    <Compile Include="Api\ViewResult.cs" />
+    <Compile Include="Api\ViewResultRow.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionFactory.cs" />
@@ -233,7 +234,9 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
