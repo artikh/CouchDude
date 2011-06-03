@@ -158,7 +158,7 @@ namespace CouchDude.Core.Impl
 			var entities = (
 				from row in queryResult.Rows
 				where row.Document != null
-				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
+				let documentEntity = DocumentEntity.TryFromJson<T>(row.Document, settings)
 				where documentEntity != null
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();
@@ -171,7 +171,7 @@ namespace CouchDude.Core.Impl
 			var entities = (
 				from row in queryResult.Rows
 				where row.Document != null
-				let documentEntity = DocumentEntity.FromJson<T>(row.Document, settings, throwOnTypeMismatch: false)
+				let documentEntity = DocumentEntity.TryFromJson<T>(row.Document, settings)
 				where documentEntity != null
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();

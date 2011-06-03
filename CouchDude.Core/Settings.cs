@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.RegularExpressions;
+using CouchDude.Core.Configuration;
 using CouchDude.Core.Conventions;
 
 namespace CouchDude.Core
@@ -134,5 +135,18 @@ namespace CouchDude.Core
 			return revPropertyDescriptorMap.GetOrAdd(
 				type, t => RevisionPropertyConvention.Get(t) ?? SpecialPropertyDescriptor.Noop);
 		}
+
+		/// <summary></summary>
+		public IEntityConfig GetConfig<TEntityType>(TEntityType entity)
+		{
+			return null;
+		}
+
+		/// <summary></summary>
+		public IEntityConfig GetConfigFromDocumentType(string documentType)
+		{
+			return null;
+		}
+
 	}
 }

@@ -35,8 +35,6 @@ namespace CouchDude.Core.Initialization
 		public SessionFactoryBuilder ConsumingServicesFrom(IServiceProvider serviceProvider)
 		{
 			Settings.IdGenerator = serviceProvider.GetService<IIdGenerator>() ?? Settings.IdGenerator;
-			Settings.IdPropertyConvention = serviceProvider.GetService<IIdPropertyConvention>() ?? Settings.IdPropertyConvention;
-			Settings.RevisionPropertyConvention = serviceProvider.GetService<IRevisionPropertyConvention>() ?? Settings.RevisionPropertyConvention;
 			return this;
 		}
 

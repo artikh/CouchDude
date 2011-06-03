@@ -227,8 +227,7 @@ namespace CouchDude.Tests.Unit.Impl
 						type = "anotherEntity", 
 						name = "John Smith"
 					}.ToJObject(), 
-				Default.Settings,
-				throwOnTypeMismatch: false
+				Default.Settings
 			);
 			Assert.Null(documentEntity);
 		}

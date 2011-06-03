@@ -24,13 +24,5 @@ namespace CouchDude.Core.Utils
 
 			return value;
 		}
-
-		/// <summary>Grabs optional property value from provided object returning
-		/// null if there is no such.</summary>
-		public static string GetOptionalProperty(this JObject doc, string name)
-		{
-			var propertyValue = doc[name] as JValue;
-			return propertyValue == null ? null : propertyValue.Value<string>();
-		}
 	}
 }

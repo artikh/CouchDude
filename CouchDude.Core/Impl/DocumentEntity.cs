@@ -1,55 +1,45 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
 using System.IO;
+using CouchDude.Core.Configuration;
 using CouchDude.Core.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using CouchDude.Core.Conventions;
-using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 namespace CouchDude.Core.Impl
 {
 	/// <summary>Represents CouchDB document - entity relationship.</summary>
 	internal class DocumentEntity
 	{
-		private const string IdPropertyName = "_id";
-		private const string RevisionPropertyName = "_rev";
-		private const string TypePropertyName = "type";
-
-		private string revision;
-
-		private readonly SpecialPropertyDescriptor revisionPropertyDescriptor;
-
-		// ReSharper disable NotAccessedField.Local
-		private readonly SpecialPropertyDescriptor idPropertyDescriptor;
-		// ReSharper restore NotAccessedField.Local
+		/// <summary>Document entity configuration.</summary>
+		private readonly IEntityConfig entityConfiguration;
 
 		/// <summary>Entity identitifier.</summary>
-		public readonly string EntityId;
+		public string EntityId { get { return entityConfiguration.GetId(Entity); } }
 
 		/// <summary>Document identitifier.</summary>
-		public readonly string DocumentId;
+		public string DocumentId { get { return Document == null ? null : Document.GetRequiredProperty(EntitySerializer.IdPropertyName); } }
 
 		/// <summary>Currently loaded revision of the document/entity.</summary>
 		public string Revision
 		{
-			get { return revision; }
+			get { return entityConfiguration.GetRevision(Entity); }
 			set
 			{
-				if (revision == value) return;
+				if (Revision == value) return;
 
-				revisionPropertyDescriptor.SetIfAble(Entity, value);
+				entityConfiguration.SetRevision(Entity, value);
 				if (Document != null)
 					SetRevisionPropertyOnDocument(value, Document);
-				revision = value;
 			}
 		}
 
 		/// <summary>Type of the entity bound to the document.</summary>
-		public Type EntityType { get; private set; }
+		public Type EntityType { get { return entityConfiguration.EntityType; } }
 
 		/// <summary>Document property type string.</summary>
-		public string DocumentType { get; private set; }
+		public string DocumentType { get { return entityConfiguration.DocumentType; } }
 
 		/// <summary>Entity instance.</summary>
 		public object Entity { get; private set; }
@@ -75,101 +65,75 @@ namespace CouchDude.Core.Impl
 		public static DocumentEntity FromEntity<TEntity>(TEntity entity, Settings settings)
 			where TEntity: class
 		{
-			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
-			var id = GetIdOrGenerateOne(entity, idPropertyDescriptor, settings);
+			var entityConfiguration = settings.GetConfig<TEntity>(entity);
+			if (entityConfiguration == null)
+				throw new ConfigurationException("Entity type {0} have not been registred.", typeof(TEntity));
+			GenerateIdIfNeeded(entity, entityConfiguration, settings.IdGenerator);
 
-			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
-			var revision = revisionPropertyDescriptor.GetIfAble(entity);
-
-			var documentType = settings.TypeConvension.GetDocumentType(typeof (TEntity));
-			if (documentType == null)
-				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
-
-			return new DocumentEntity(
-				idPropertyDescriptor, revisionPropertyDescriptor, 
-				id, revision, typeof(TEntity), documentType, entity);
+			return new DocumentEntity(entityConfiguration, entity);
 		}
 
-		private static string GetIdOrGenerateOne<TEntity>(
-			TEntity entity, SpecialPropertyDescriptor idPropertyDescriptor, Settings settings) 
+		private static void GenerateIdIfNeeded(
+			object entity, IEntityConfig entityConfiguration, IIdGenerator idGenerator) 
 		{
-			var id = idPropertyDescriptor.GetIfAble(entity);
+			var id = entityConfiguration.GetId(entity);
 			if(id == null)
 			{
-				var generatedId = settings.IdGenerator.GenerateId();
+				var generatedId = idGenerator.GenerateId();
 				Contract.Assert(!string.IsNullOrEmpty(generatedId));
-				idPropertyDescriptor.SetIfAble(entity, generatedId);
-				id = idPropertyDescriptor.GetIfAble(entity);
+				entityConfiguration.SetId(entity, generatedId);
 			}
-			if (id == null)
-				throw new ArgumentException(
-					"Entity's ID property should be set or settable.", "entity");
-			return id;
+		}
+
+		/// <summary>Creates instance from JSON document reading it form 
+		/// provided text reader. If any error does occur returns <c>null</c>.</summary>
+		public static DocumentEntity TryFromJson<TEntity>(JObject document, Settings settings)
+			where TEntity : class
+		{
+			var documentType = GetDocumnetType(document);
+			if (!string.IsNullOrWhiteSpace(documentType))
+			{
+				var entityConfiguration = settings.GetConfigFromDocumentType(documentType);
+				if (entityConfiguration != null && entityConfiguration.IsCompatibleWith<TEntity>())
+				{
+					var entity = EntitySerializer.TryDeserialize(document, entityConfiguration);
+					if (entity != null)
+						return new DocumentEntity(entityConfiguration, entity, document);
+				}
+			}
+
+			return null;
 		}
 
 		/// <summary>Creates instance from JSON document reading it form 
 		/// provided text reader.</summary>
-		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings, bool throwOnTypeMismatch = true) 
+		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings) 
 			where TEntity : class
 		{
-			var docId = document.GetRequiredProperty(IdPropertyName);
-			var revision = document.GetRequiredProperty(RevisionPropertyName);
+			var documentType = GetDocumnetType(document);
+			if(string.IsNullOrWhiteSpace(documentType))
+				throw new DocumentTypeMissingException(document);
 
-			var documentType = GetDocumnetType(document, throwOnTypeMismatch);
-			if (documentType == null)
-				return null;
+			var entityConfiguration = settings.GetConfigFromDocumentType(documentType);
+			if (entityConfiguration == null)
+				throw new DocumentTypeNotRegistredException(documentType);
 
-			var expectedType = settings.TypeConvension.GetDocumentType(typeof(TEntity));
-			if (expectedType == null)
-				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
+			if (!entityConfiguration.IsCompatibleWith<TEntity>())
+				throw new EntityTypeMismatchException(documentType, typeof(TEntity));
 
-			if (expectedType != documentType)
-				if (throwOnTypeMismatch)
-					throw new EntityTypeMismatchException(documentType, typeof(TEntity));
-				else
-					return null;
+			var entity = EntitySerializer.Deserialize(document, entityConfiguration);
+			return new DocumentEntity(entityConfiguration, entity, document);}
 
-			if (!docId.StartsWith(documentType + "."))
-				if (throwOnTypeMismatch)
-					throw new CouchResponseParseException("Document IDs should be prefixed by their type.");
-				else
-					return null;
-
-			var entityId = docId.Substring(documentType.Length + 1);
-
-			TEntity entity;
-			using (var reader = new JTokenReader(document))
-				entity = JsonSerializer.Instance.Deserialize<TEntity>(reader);
-
-			var idPropertyDescriptor = settings.GetIdPropertyDescriptor<TEntity>();
-			idPropertyDescriptor.SetIfAble(entity, entityId);
-			var revisionPropertyDescriptor = settings.GetRevPropertyDescriptor<TEntity>();
-			revisionPropertyDescriptor.SetIfAble(entity, revision);
-
-			return new DocumentEntity(
-				idPropertyDescriptor, revisionPropertyDescriptor, entityId, revision, typeof(TEntity), documentType, entity, document);
-		}
-
-		private static string GetDocumnetType(JObject document, bool throwOnTypeMismatch)
+		private static string GetDocumnetType(JObject document)
 		{
-			var propertyValue = document[TypePropertyName] as JValue;
+			var propertyValue = document[EntitySerializer.TypePropertyName] as JValue;
 			if (propertyValue != null)
 			{
 				var value = propertyValue.Value<string>();
 				if (!string.IsNullOrWhiteSpace(value))
 					return value;
 			}
-
-			if (!throwOnTypeMismatch) 
-				return null;
-
-			throw new CouchResponseParseException(
-				"Required field '{0}' have not found on document. " 
-					+ "Type is required by CouchDude itself so it colud do it magic stuff:\n {1}",
-				TypePropertyName,
-				"Type is required by CouchDude itself so it colud do it magic stuff",
-				document.ToString(Formatting.None)
-				);
+			return null;
 		}
 
 		/// <summary>Maps entity to the JSON document.</summary>
@@ -183,66 +147,36 @@ namespace CouchDude.Core.Impl
 		{
 			return Document != null && !new JTokenEqualityComparer().Equals(Document, SerializeToDocument());
 		}
-
-		private static string GetDocumentId(string entityId, string documentType)
-		{
-			return documentType + "." + entityId;
-		}
-
+		
 		private DocumentEntity(
-			SpecialPropertyDescriptor idPropertyDescriptor,
-			SpecialPropertyDescriptor revisionPropertyDescriptor,  
-			string entityId, 
-			string revision, 
-			Type entityType, 
-			string documentType, 
+			IEntityConfig entityConfiguration,
 			object entity, 
 			JObject document = null)
 		{
-			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
-			if (string.IsNullOrEmpty(documentType)) throw new ArgumentNullException("documentType");
-			if (entityType == null) throw new ArgumentNullException("entityType");
+			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
 			Contract.EndContractBlock();
 
-			EntityId = entityId;
-			DocumentId = GetDocumentId(entityId, documentType);
-			this.revision = revision;
-			EntityType = entityType;
-			DocumentType = documentType;
 			Entity = entity;
 			Document = document;
-			this.idPropertyDescriptor = idPropertyDescriptor;
-			this.revisionPropertyDescriptor = revisionPropertyDescriptor;
+			this.entityConfiguration = entityConfiguration;
 		}
 
 		private JObject SerializeToDocument()
 		{
-			JObject document;
-			using (var writer = new JTokenWriter())
-			{
-				JsonSerializer.Instance.Serialize(writer, Entity);
-				writer.Flush();
-				document = (JObject)writer.Token;
-			}
-
-			document.AddFirst(new JProperty(TypePropertyName, DocumentType));
-			if (Revision != null)
-				document.AddFirst(new JProperty(RevisionPropertyName, Revision));
-			document.AddFirst(new JProperty(IdPropertyName, DocumentId));
-			return document;
+			return EntitySerializer.Serialize(Entity, entityConfiguration);
 		}
 
 		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 
 		{
 			var newRevisionValue = JToken.FromObject(revision);
-			var revisionProperty = document.Property(RevisionPropertyName);
+			var revisionProperty = document.Property(EntitySerializer.RevisionPropertyName);
 			if (revisionProperty != null)
 				revisionProperty.Value = newRevisionValue;
 			else
 			{
-				revisionProperty = new JProperty(RevisionPropertyName, newRevisionValue);
-				var idProperty = document.Property(IdPropertyName);
+				revisionProperty = new JProperty(EntitySerializer.RevisionPropertyName, newRevisionValue);
+				var idProperty = document.Property(EntitySerializer.IdPropertyName);
 				if (idProperty != null)
 					idProperty.AddAfterSelf(revisionProperty);
 				else

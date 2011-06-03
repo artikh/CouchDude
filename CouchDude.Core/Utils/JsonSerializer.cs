@@ -15,7 +15,7 @@ namespace CouchDude.Core.Utils
 			get { return Serializer.Value; }
 		}
 
-		private static Newtonsoft.Json.JsonSerializer CreateSerializer()
+		internal static Newtonsoft.Json.JsonSerializer CreateSerializer()
 		{
 			var contractResolver = new ContractResolver();
 			var settings = new JsonSerializerSettings
