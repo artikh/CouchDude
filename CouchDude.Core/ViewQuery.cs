@@ -44,6 +44,9 @@ namespace CouchDude.Core
 		/// <remarks>Should allways be used with <see cref="EndKey"/>.</remarks>
 		public string EndDocumentId;
 
+		/// <summary>Flag that indicates that query should run multiple reduce</summary>
+		public bool Group;
+
 		/// <summary>Limit the number of view rows in the output.</summary>
 		public int? Limit;
 
@@ -75,18 +78,19 @@ namespace CouchDude.Core
 		{
 			// http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options
 			var uriBuilder = new ViewUriBuilder(DesignDocumentName, ViewName);
-			uriBuilder.AddIfNotNull	(	Key,								"key"											);
-			uriBuilder.AddIfNotNull	(	StartKey,						"startkey"								);
-			uriBuilder.AddIfNotNull	(	StartDocumentId,		"startkey_docid"					);
-			uriBuilder.AddIfNotNull	(	EndKey,							"endkey"									);
-			uriBuilder.AddIfNotNull	(	EndDocumentId,			"endkey_docid"						);
-			uriBuilder.AddIfHasValue(	Limit,							"limit"										);
-			uriBuilder.AddIfHasValue(	Skip,								"skip"										);
-			uriBuilder.AddIfTrue		(	StaleViewIsOk,			"stale",					"ok"		);
-			uriBuilder.AddIfTrue		(	FetchDescending,		"descending",			"true"	);
-			uriBuilder.AddIfTrue		(	SuppressReduce,			"reduce",					"false"	);
-			uriBuilder.AddIfTrue		(	IncludeDocs,				"include_docs",		"true"	);
-			uriBuilder.AddIfTrue		(	DoNotIncludeEndKey,	"inclusive_end",	"false"	);
+			uriBuilder.AddIfNotNull	(Key,                "key"                  );
+			uriBuilder.AddIfNotNull	(StartKey,           "startkey"             );
+			uriBuilder.AddIfNotNull	(StartDocumentId,    "startkey_docid"       );
+			uriBuilder.AddIfNotNull	(EndKey,             "endkey"               );
+			uriBuilder.AddIfNotNull	(EndDocumentId,      "endkey_docid"         );
+			uriBuilder.AddIfHasValue(Limit,	             "limit"                );
+			uriBuilder.AddIfHasValue(Skip,               "skip"                 );
+			uriBuilder.AddIfTrue    (StaleViewIsOk,      "stale",         "ok"	 );
+			uriBuilder.AddIfTrue    (FetchDescending,    "descending",    "true" );
+			uriBuilder.AddIfTrue    (SuppressReduce,     "reduce",	      "false");
+			uriBuilder.AddIfTrue    (IncludeDocs,	     "include_docs",  "true" );
+			uriBuilder.AddIfTrue    (DoNotIncludeEndKey, "inclusive_end", "false");
+			uriBuilder.AddIfTrue    (Group,               "group",        "true" );
 			return uriBuilder.ToUri();
 		}
 
