@@ -71,7 +71,7 @@ namespace CouchDude.Core
 			IndexName = indexName;
 		}		
 
-		/// <summary></summary>
+		/// <summary>Трансформировать запрос в строку запроса</summary>
 		public string ToUri()
 		{
 			var uriBuilder = new StringBuilder();
