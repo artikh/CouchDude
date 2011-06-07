@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
 using CouchDude.Core;
-using CouchDude.Core.HttpClient;
 using CouchDude.Core.Implementation;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Implementation
@@ -13,19 +12,19 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldGetDocumentFromDbByIdCorrectly()
 		{
-			var r = TestInMockEnvironment(
-				couchApi => couchApi.GetDocumentFromDbById("doc1"),
-				response: new
-				{
+			var httpMock = new HttpClientMock(
+				new {
 					_id = "doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
-				}.ToJson()
-			);
+				}.ToJson());
 
-			Assert.Equal("http://example.com:5984/testdb/doc1", r.RequestedUri);
-			Assert.Equal("GET", r.RequestedMethod);
-			Assert.Equal(null, r.RequestBody);
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			var result = couchApi.GetDocumentFromDbById("doc1");
+
+			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
+			Assert.Equal(HttpMethod.Get, httpMock.Request.Method);
+			Assert.Null(httpMock.Request.Content);
 			Utils.AssertSameJson(
 				new
 				{
@@ -33,73 +32,69 @@ namespace CouchDude.Tests.Unit.Implementation
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
 				},
-				r.Result
+				result
 			);
 		}
 
 		[Fact]
 		public void ShouldEscapeDocumentId()
 		{
-			var r = TestInMockEnvironment(
-				couchApi => couchApi.GetDocumentFromDbById("docs/doc1"),
-				response: new
+			var httpMock = new HttpClientMock(new
 				{
 					_id = "docs/doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
-				}.ToJson()
-			);
+				}.ToJson());
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			couchApi.GetDocumentFromDbById("docs/doc1");
 
-			Assert.Equal("http://example.com:5984/testdb/docs%2Fdoc1", r.RequestedUri);
+			Assert.Equal("http://example.com:5984/testdb/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
 
 		[Fact]
 		public void ShouldNotEscapeDesignDocumentIdPrefix()
 		{
-			var r = TestInMockEnvironment(
-				couchApi => couchApi.GetDocumentFromDbById("_design/docs/doc1"),
-				response: new
-				{
-					_id = "_design/docs/doc1",
-					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-					name = "John Smith"
-				}.ToJson()
-			);
+			var httpMock = new HttpClientMock(
+				new
+					{
+						_id = "_design/docs/doc1",
+						_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
+						name = "John Smith"
+					}.ToJson());
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			
+			couchApi.GetDocumentFromDbById("_design/docs/doc1");
 
-			Assert.Equal("http://example.com:5984/testdb/_design/docs%2Fdoc1", r.RequestedUri);
+			Assert.Equal("http://example.com:5984/testdb/_design/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonGettingDocumentById()
 		{
-			Assert.Throws<CouchResponseParseException>(() =>
-				TestInMockEnvironment(
-					couchApi => couchApi.GetDocumentFromDbById("doc1"),
-					response: "Some none-json [) content"
-				)
-			);
+			Assert.Throws<CouchResponseParseException>(() => {
+				var httpMock = new HttpClientMock("Some none-json [) content");
+				var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			  couchApi.GetDocumentFromDbById("doc1");
+			});
 		}
 		
 		[Fact]
 		public void ShouldThrowOnNullParametersGettingDocumentById()
 		{
-			Assert.Throws<ArgumentNullException>(() => TestInMockEnvironment(
-					couchApi => couchApi.GetDocumentFromDbById(null)
-			));
-			Assert.Throws<ArgumentNullException>(() => TestInMockEnvironment(
-					couchApi => couchApi.GetDocumentFromDbById("")
-			));
+			var httpMock = new HttpClientMock(string.Empty);
+			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			Assert.Throws<ArgumentNullException>(() => couchApi.GetDocumentFromDbById(null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.GetDocumentFromDbById(string.Empty));
 		}
 
 		[Fact]
 		public void ShouldThrowOnEmptyResponseGettingDocumentById()
 		{
-			Assert.Throws<CouchResponseParseException>(() =>
-				TestInMockEnvironment(
-					couchApi => couchApi.GetDocumentFromDbById("doc1"),
-					response: "    "
-				)
-			);
+			Assert.Throws<CouchResponseParseException>(() => {
+				var httpMock = new HttpClientMock("    ");
+				var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			  couchApi.GetDocumentFromDbById("doc1");
+			});
 		}
 
 		[Fact]
@@ -119,34 +114,10 @@ namespace CouchDude.Tests.Unit.Implementation
 		[Fact]
 		public void ShouldReturnNullOn404WebExceptionWhenGettingDocument()
 		{
-			var httpMock = new HttpClientMock(new HttpResponse{ Status = HttpStatusCode.NotFound });
+			var httpMock = new HttpClientMock(new HttpResponseMessage{ StatusCode = HttpStatusCode.NotFound });
 			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			Assert.Null(couchApi.GetDocumentFromDbById("doc1"));
-		}
-
-		private static TestResult TestInMockEnvironment(
-			Func<ICouchApi, JObject> doTest, string response = "")
-		{
-			var httpMock = new HttpClientMock(response);
-			var result = doTest(new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb"));
-
-			var recivedRequest = httpMock.Request;
-			return new TestResult
-			{
-				RequestedUri = recivedRequest.Uri,
-				RequestedMethod = recivedRequest.Method,
-				RequestBody = recivedRequest.Body == null ? null : recivedRequest.Body.ReadToEnd(),
-				Result = result
-			};
-		}
-
-		private class TestResult
-		{
-			public string RequestedUri;
-			public string RequestedMethod;
-			public string RequestBody;
-			public JObject Result;
 		}
 	}
 }

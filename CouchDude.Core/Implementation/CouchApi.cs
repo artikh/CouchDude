@@ -2,15 +2,15 @@
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 
-using CouchDude.Core.HttpClient;
-using CouchDude.Core.Implementation.Lucene;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using HttpRequest = CouchDude.Core.HttpClient.HttpRequest;
-using HttpResponse = CouchDude.Core.HttpClient.HttpResponse;
+
+using CouchDude.Core.Http;
+using CouchDude.Core.Implementation.Lucene;
 
 namespace CouchDude.Core.Implementation
 {
@@ -37,12 +37,12 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			var request = new HttpRequest(documentUri, HttpMethod.Get);
+			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
 			var response = MakeRequest(request);
-			if (response.Status == HttpStatusCode.NotFound)
+			if (response.StatusCode == HttpStatusCode.NotFound)
 				return null;
 			ThrowIfNotOk(response);
-			return ReadJObject(response.Body);
+			return ReadJObject(response.GetContentTextReader());
 		}
 
 		public JObject DeleteDocument(string docId, string revision)
@@ -52,10 +52,10 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId, revision);
-			var request = new HttpRequest(documentUri, HttpMethod.Delete);
+			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.Body);
+			return ReadJObject(response.GetContentTextReader());
 		}
 
 		public JObject SaveDocumentToDb(string docId, JObject document)
@@ -65,14 +65,11 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			var request = new HttpRequest(
-				documentUri, 
-				HttpMethod.Put, 
-				body: new StringReader(document.ToString(Formatting.None))
-			);
+			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
+			request.WriteContentText(document.ToString(Formatting.None));
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.Body);
+			return ReadJObject(response.GetContentTextReader());
 		}
 
 		public JObject UpdateDocumentInDb(string docId, JObject document)
@@ -82,14 +79,11 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			var request = new HttpRequest(
-				documentUri,
-				HttpMethod.Put,
-				body: new StringReader(document.ToString(Formatting.None))
-			);
+			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
+			request.WriteContentText(document.ToString(Formatting.None));
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.Body);
+			return ReadJObject(response.GetContentTextReader());
 		}
 
 		public string GetLastestDocumentRevision(string docId)
@@ -98,13 +92,16 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
-			var request = new HttpRequest(documentUri, HttpMethod.Head);
+			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
 			var response = MakeRequest(request);
+			if (response.StatusCode == HttpStatusCode.NotFound)
+				return null;
+
 			ThrowIfNotOk(response);
-			var etag = response.Headers[HttpResponseHeader.ETag];
-			if (string.IsNullOrEmpty(etag))
-				throw new CouchResponseParseException("Etag header expected.");
-			return etag;
+			var etag = response.Headers.ETag;
+			if (etag == null || etag.Tag == null)
+				throw new CouchResponseParseException("Etag header expected but was not found.");
+			return etag.Tag.Trim('"');
 		}
 
 		/// <inheritdoc/>
@@ -115,10 +112,10 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var viewUri = databaseUri + query.ToUri();
-			var request = new HttpRequest(viewUri, HttpMethod.Get);
+			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
 			ViewResult viewResult;
-			using (var responseBodyReader = response.Body)
+			using (var responseBodyReader = response.GetContentTextReader())
 			using (var jsonReader = new JsonTextReader(responseBodyReader))
 				viewResult = JsonSerializer.Instance.Deserialize<ViewResult>(jsonReader);
 			viewResult.Query = query;
@@ -134,10 +131,10 @@ namespace CouchDude.Core.Implementation
 			Contract.EndContractBlock();
 
 			var viewUri = databaseUri + query.ToUri();
-			var request = new HttpRequest(viewUri, HttpMethod.Get);
+			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
 			LuceneResult viewResult;
-			using (var responseBodyReader = response.Body)
+			using (var responseBodyReader = response.GetContentTextReader())
 			using (var jsonReader = new JsonTextReader(responseBodyReader))
 				viewResult = JsonSerializer.Instance.Deserialize<LuceneResult>(jsonReader);
 			viewResult.Query = query;
@@ -167,7 +164,7 @@ namespace CouchDude.Core.Implementation
 			return response;
 		}
 
-		private string GetDocumentUri(string docId, string revision = null)
+		private Uri GetDocumentUri(string docId, string revision = null)
 		{
 			const string designDocumentPrefix = "_design/";
 
@@ -182,9 +179,9 @@ namespace CouchDude.Core.Implementation
 			if (!string.IsNullOrEmpty(revision))
 				uriStringBuilder.Append("?rev=").Append(revision);
 
-			return uriStringBuilder.ToString();
+			return new Uri(uriStringBuilder.ToString()).LeaveDotsAndSlashesEscaped();
 		}
-
+		
 		internal static string ParseErrorResponseBody(TextReader errorTextReader)
 		{
 			if (errorTextReader == null)
@@ -216,19 +213,19 @@ namespace CouchDude.Core.Implementation
 			return message.Length > 0 ? message.ToString() : null;
 		}
 
-		private static void ThrowIfNotOk(HttpResponse response)
+		private static void ThrowIfNotOk(HttpResponseMessage response)
 		{
-			if (response.IsOk) return;
-			
-			if (response.Status == HttpStatusCode.Conflict)
+			if (response.IsSuccessStatusCode) return;
+
+			if (response.StatusCode == HttpStatusCode.Conflict)
 				throw new StaleObjectStateException("Document update conflict detected");
 			throw new CouchCommunicationException(
-				(ParseErrorResponseBody(response.Body) ?? "Error returned from CouchDB")
+				(ParseErrorResponseBody(response.GetContentTextReader()) ?? "Error returned from CouchDB")
 				+ " "
-				+ (int) response.Status);
+				+ (int) response.StatusCode);
 		}
 
-		private HttpResponse MakeRequest(HttpRequest request)
+		private HttpResponseMessage MakeRequest(HttpRequestMessage request)
 		{
 			try
 			{

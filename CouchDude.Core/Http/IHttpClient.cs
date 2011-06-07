@@ -1,14 +1,15 @@
 ﻿using System.Threading.Tasks;
+using System.Net.Http;
 
-namespace CouchDude.Core.HttpClient
+namespace CouchDude.Core.Http
 {
 	/// <summary>HTTP client abstracted interface.</summary>
 	internal interface IHttpClient
 	{
 		/// <summary>Starts HTTP request and returs task.</summary>
-		Task<HttpResponse> StartRequest(HttpRequest request);
+		Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage);
 
 		/// <summary>Makes HTTP request and waits for result.</summary>
-		HttpResponse MakeRequest(HttpRequest request);
+		HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage);
 	}
 }

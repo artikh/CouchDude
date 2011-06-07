@@ -1,28 +1,52 @@
 ﻿using System;
 using System.Linq;
 using CouchDude.Core;
+using CouchDude.Core.Http;
 using CouchDude.Core.Implementation;
 using CouchDude.Tests.SampleData;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Integration.Lucene
 {
 	public class SaveEntitiesAndSearchByKeyword
 	{
-		/*
-		 * Must have design doc - _design/lucene and couchdb-lucene 
-		 * 
-		 * {
-		 *	   "_id": "_design/lucene",
-		 *	   "_rev": "7-593ab29fd6747fcb1eb0e7bc3586a770",
-		 *	   "fulltext": {
-		 *		   "all": {
-		 *			   "index": "function (doc) {\u000d\u000a\u0009if (doc.type == 'user') {\u000d\u000a\u0009\u0009var ret = new Document();\u000d\u000a\u0009\u0009ret.add(doc.username);\u000d\u000a\u0009\u0009return ret;\u000d\u000a\u0009}\u000d\u000a\u0009return null;\u000d\u000a}"
-		 *		   }
-		 *	   }
-		 *	}
-		 */
-		[Fact]
+		public SaveEntitiesAndSearchByKeyword()
+		{
+			var settings = Default.Settings;
+			var couchApi = new CouchApi(new HttpClientImpl(), settings.ServerUri, settings.DatabaseName);
+
+			var luceneDoc = new
+			{
+				_id = "_design/lucene",
+				fulltext = new
+				{
+					index = @"
+						function (doc) {
+							if (doc.type == 'user') {
+								var ret = new Document();
+								ret.add(doc.username);
+								return ret;
+							}
+						return null;
+					}"
+				}
+			}.ToJObject();
+
+			var existingLucineDesignDoc = couchApi.GetDocumentFromDbById("_design/lucene");
+			string revision = existingLucineDesignDoc.GetRequiredProperty("_rev");
+			if (existingLucineDesignDoc != null)
+			{
+				luceneDoc["_rev"] = JToken.FromObject(revision);
+				couchApi.UpdateDocumentInDb("_design/lucene", luceneDoc);
+			}
+			else
+			{
+				couchApi.SaveDocumentToDb("_design/lucene", luceneDoc);
+			}
+		}
+
+		[Fact(Skip = "No lucine")]
 		public void ShouldSaveTwoEntitiesAndFindTheyByKeyword()
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);

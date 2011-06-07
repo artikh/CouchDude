@@ -95,7 +95,7 @@ namespace CouchDude.Core
 
 		private class ViewUriBuilder
 		{
-			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
+			public static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
 
 			private readonly NameValueCollection querySring = new NameValueCollection();
 			private readonly string designDocumentName;

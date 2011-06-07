@@ -1,12 +1,9 @@
-﻿using System;
-using CouchDude.Tests.SampleData;
-using Moq;
-using Newtonsoft.Json;
+﻿using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-using CouchDude.Core;
 using CouchDude.Core.Implementation;
+using CouchDude.Tests.SampleData;
 
 namespace CouchDude.Tests.Unit.Implementation
 {

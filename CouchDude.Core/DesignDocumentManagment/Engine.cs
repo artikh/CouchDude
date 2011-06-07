@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using Common.Logging;
-using CouchDude.Core.HttpClient;
+using CouchDude.Core.Http;
 using Newtonsoft.Json;
 
 namespace CouchDude.Core.DesignDocumentManagment
@@ -87,11 +88,10 @@ namespace CouchDude.Core.DesignDocumentManagment
 
 				var documentUri = new Uri(databaseUri, changedDoc.Id);
 				changedDoc.Definition.ToString(Formatting.None);
-				httpClient.MakeRequest(
-					new HttpRequest(
-						documentUri, 
-						"PUT", 
-						body: new StringReader(changedDoc.Definition.ToString(Formatting.None))));
+
+				var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
+				request.WriteContentText(changedDoc.Definition.ToString(Formatting.None));
+				httpClient.MakeRequest(request);
 			}
 		}
 
@@ -112,8 +112,8 @@ namespace CouchDude.Core.DesignDocumentManagment
 			//var changedDocs = GetChangedDocuments(docsFromFileSystem, docsFromDatabase);
 			//Log.InfoFormat("{0} design documents will be pushed to database.", changedDocs.Count);
 
-			httpClient.MakeRequest(new HttpRequest(databaseUri, "DELETE"));
-			httpClient.MakeRequest(new HttpRequest(databaseUri, "PUT"));
+			httpClient.MakeRequest(new HttpRequestMessage(HttpMethod.Delete, databaseUri));
+			httpClient.MakeRequest(new HttpRequestMessage(HttpMethod.Put, databaseUri));
 		}
 
 		/// <summary>Generates design documents from directory content.</summary>
@@ -164,12 +164,11 @@ namespace CouchDude.Core.DesignDocumentManagment
 		private IDictionary<string, DesignDocument> GetDesignDocumentsFromDatabase(Uri databaseUri) 
 		{
 			Log.Info("Downloading design documents from database...");
-			var response = httpClient.MakeRequest(
-				new HttpRequest(
-					databaseUri + @"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true", 
-					HttpMethod.Get)
-				);
-			var designDocumentsFromDatabase = designDocumentExtractor.Extract(response.Body);
+			var request = new HttpRequestMessage(
+				HttpMethod.Get, 
+				databaseUri + @"_all_docs?startkey=""_design/""&endkey=""_design0""&include_docs=true");
+			var response = httpClient.MakeRequest(request);
+			var designDocumentsFromDatabase = designDocumentExtractor.Extract(response.GetContentTextReader());
 			Log.InfoFormat(
 				"{0} design documens downloaded from database.", designDocumentsFromDatabase.Count);
 			return designDocumentsFromDatabase;
