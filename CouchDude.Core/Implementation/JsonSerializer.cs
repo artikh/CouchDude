@@ -26,7 +26,7 @@ namespace CouchDude.Core.Implementation
 				MissingMemberHandling = MissingMemberHandling.Ignore,
 				NullValueHandling = NullValueHandling.Ignore,
 				ContractResolver = contractResolver,
-				Converters = { new IsoDateTimeConverter() }
+				Converters = { new IsoDateTimeConverter(), new StringEnumConverter() }
 			};
 			return Newtonsoft.Json.JsonSerializer.Create(settings);
 		}
