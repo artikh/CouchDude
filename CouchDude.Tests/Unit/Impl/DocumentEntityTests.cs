@@ -1,6 +1,6 @@
 using System.IO;
 using CouchDude.Core;
-using CouchDude.Core.Conventions;
+using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;

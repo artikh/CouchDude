@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using CouchDude.Core.Conventions;
+using CouchDude.Core.Configuration;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Conventions
+namespace CouchDude.Tests.Unit.Configuration
 {
 	public class SequentialUuidIdGeneratorTests
 	{

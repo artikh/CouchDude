@@ -130,7 +130,7 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.Throws<InvalidOperationException>(() => EntitySerializer.Deserialize(CreateDoc(), config));
 		}
 
-		[Fact(DisplayName = "hello")]
+		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{
 			var document = CreateDoc();

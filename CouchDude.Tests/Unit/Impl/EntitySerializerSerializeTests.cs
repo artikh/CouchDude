@@ -13,14 +13,21 @@ namespace CouchDude.Tests.Unit.Impl
 {
 	public class EntitySerializerSerializeTests
 	{
-		public class SampleEntity
+		public enum UserSex
+		{
+			Male,
+			Female
+		}
+
+		public class User
 		{
 			public DateTime Timestamp { get; set; }
 			public string Name { get; set; }
 			public string Field;
+			public UserSex Sex { get; set; }
 		}
 
-		object entity = new SampleEntity();
+		object entity = new User();
 
 		private IEntityConfig config;
 
@@ -37,7 +44,7 @@ namespace CouchDude.Tests.Unit.Impl
 			var configMock = new Mock<IEntityConfig>();
 			configMock.Setup(ec => ec.GetId(It.IsAny<object>())).Returns("doc1");
 			configMock.Setup(ec => ec.DocumentType).Returns(documentType);
-			configMock.Setup(ec => ec.EntityType).Returns(entityType ?? typeof(SampleEntity));
+			configMock.Setup(ec => ec.EntityType).Returns(entityType ?? typeof(User));
 			configMock
 				.Setup(ec => ec.ConvertEntityIdToDocumentId(It.IsAny<string>()))
 				.Returns<string>(entityId => documentType + "." + entityId);
@@ -93,9 +100,17 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
+		public void ShouldSerializeEnumsAsString()
+		{
+			entity = new User { Sex = UserSex.Female};
+			var document = EntitySerializer.Serialize(entity, config);
+			Assert.Equal("Female", document.Value<string>("sex"));
+		}
+
+		[Fact]
 		public void ShouldSerializeDatesAccodingToIso8601()
 		{
-			entity = new SampleEntity {Timestamp = new DateTime(2011, 06, 01, 12, 04, 34, 444, DateTimeKind.Utc)};
+			entity = new User {Timestamp = new DateTime(2011, 06, 01, 12, 04, 34, 444, DateTimeKind.Utc)};
 			var document = EntitySerializer.Serialize(entity, config);
 			Assert.Equal("2011-06-01T12:04:34.444Z", document.Value<string>("timestamp"));
 		}
@@ -103,14 +118,14 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldConvertPropertyNameToCamelCase()
 		{
-			entity = new SampleEntity {Name = "john"};
+			entity = new User {Name = "john"};
 			var document = EntitySerializer.Serialize(entity, config);
 			Assert.NotNull(document.Property("name"));
 		}
 
 		public void ShouldSerializePublicFields()
 		{
-			entity = new SampleEntity {Field = "quantum mechanics"};
+			entity = new User {Field = "quantum mechanics"};
 			var document = EntitySerializer.Serialize(entity, config);
 			Assert.Equal("quantum mechanics", document.Value<string>("field"));
 		}
@@ -180,7 +195,7 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldThrowOnUncompatibleEntityAndEntityConfig()
 		{
-			entity = new SampleEntity();
+			entity = new User();
 			config = MockEntityConfig(
 				documentType: "simpleEntity",
 				entityType: typeof(SimpleEntity)

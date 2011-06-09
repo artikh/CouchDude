@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 
-namespace CouchDude.Core.Conventions
+namespace CouchDude.Core.Configuration
 {
 	/// <summary>Generates UUIDs using algorithm similar to CouchBD's 'sequence'
 	/// algorithm.</summary>

@@ -100,9 +100,9 @@
     </Compile>
     <Compile Include="Configuration\EntityConfigUtils.cs" />
     <Compile Include="Configuration\IEntityConfig.cs" />
-    <Compile Include="Conventions\GuidIdGenerator.cs" />
-    <Compile Include="Conventions\IIdGenerator.cs" />
-    <Compile Include="Conventions\SequentialUuidIdGenerator.cs" />
+    <Compile Include="Configuration\GuidIdGenerator.cs" />
+    <Compile Include="Configuration\IIdGenerator.cs" />
+    <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -116,6 +116,7 @@
     <Compile Include="Exceptions\DocumentIdMissingException.cs" />
     <Compile Include="Exceptions\DocumentTypeMissingException.cs" />
     <Compile Include="Exceptions\DocumentTypeNotRegistredException.cs" />
+    <Compile Include="Exceptions\EntityTypeNotRegistredException.cs" />
     <Compile Include="Exceptions\QueryException.cs">
       <DependentUpon>QueryException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -173,7 +174,6 @@
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Initialization\SessionFactoryBuilder.cs" />
-    <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
@@ -220,7 +220,9 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Conventions\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

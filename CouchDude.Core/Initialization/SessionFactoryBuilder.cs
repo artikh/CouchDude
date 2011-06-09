@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using CouchDude.Core.Conventions;
+using CouchDude.Core.Configuration;
 
 namespace CouchDude.Core.Initialization
 {
@@ -36,12 +36,6 @@ namespace CouchDude.Core.Initialization
 		{
 			Settings.IdGenerator = serviceProvider.GetService<IIdGenerator>() ?? Settings.IdGenerator;
 			return this;
-		}
-
-		/// <summary>Starts type name configuration.</summary>
-		public TypeNameConventionBuilder MappingEntities()
-		{
-			return new TypeNameConventionBuilder(this);
 		}
 		
 		/// <summary>Geterates settings object.</summary>

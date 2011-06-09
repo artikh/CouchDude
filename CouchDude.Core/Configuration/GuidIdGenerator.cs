@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text;
 
-namespace CouchDude.Core.Conventions
+namespace CouchDude.Core.Configuration
 {
 	/// <summary>Generates random IDs using <see cref="Guid.NewGuid"/> method.</summary>
 	public class GuidIdGenerator: IIdGenerator

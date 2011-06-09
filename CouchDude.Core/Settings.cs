@@ -1,22 +1,14 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CouchDude.Core.Configuration;
-using CouchDude.Core.Conventions;
 
 namespace CouchDude.Core
 {
 	/// <summary>CouchDude settings.</summary>
 	public class Settings
 	{
-		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
-			idPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-
-		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
-			revPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-		
 		private Uri serverUri;
 		private string databaseName;
 
@@ -56,17 +48,7 @@ namespace CouchDude.Core
 				databaseName = value;
 			}
 		}
-
-		/// <summary>Document id property convension.</summary>
-		public IIdPropertyConvention IdPropertyConvention = 
-			new PropertyByNameConvention("Id", "ID");
-
-		/// <summary>Document revision property convension.</summary>
-		public IRevisionPropertyConvention RevisionPropertyConvention = new PropertyByNameConvention("Revision", "Rev");
-
-		/// <summary>Document type detector convension.</summary>
-		public ITypeConvention TypeConvension = new EmptyTypeConvention();
-
+		
 		/// <summary>Document ID generator.</summary>
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
 
@@ -106,34 +88,6 @@ namespace CouchDude.Core
 			       && Char.IsLower(firstLetter)
 			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
 			          	);
-		}
-		
-		/// <summary>Returns ID property descriptor.</summary>
-		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>() where TEntity: class
-		{
-			return idPropertyDescriptorMap.GetOrAdd(
-				typeof (TEntity), 
-				t => {
-				     	var idPropertyDescriptor = IdPropertyConvention.Get(t);
-				     	if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
-				     		throw new ConventionException(
-				     			"Convention have not found any readable ID property on {0} entity.", 
-				     			typeof(TEntity).FullName);
-				     	return idPropertyDescriptor;
-				});
-		}
-
-		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>() where TEntity: class
-		{
-			return GetRevPropertyDescriptor(typeof(TEntity));
-		}
-
-		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor(Type type)
-		{
-			return revPropertyDescriptorMap.GetOrAdd(
-				type, t => RevisionPropertyConvention.Get(t) ?? SpecialPropertyDescriptor.Noop);
 		}
 
 		/// <summary></summary>

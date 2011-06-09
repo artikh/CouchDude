@@ -89,10 +89,10 @@ namespace CouchDude.Core.Impl
 				return (TEntity) cachedEntity.Entity;
 			}
 
-			var documentType = settings.TypeConvension.GetDocumentType(typeof (TEntity));
-			if (documentType == null)
-				throw new ConfigurationException("Type {0} have not been registred.", typeof(TEntity));
-			var docId = documentType + "." + entityId;
+			var entityConfig = settings.GetConfig(typeof (TEntity));
+			if (entityConfig == null)
+				throw new EntityTypeNotRegistredException(typeof(TEntity));
+			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
 
 			var document = couchApi.GetDocumentFromDbById(docId);
 			if (document == null)
@@ -119,9 +119,7 @@ namespace CouchDude.Core.Impl
 			if (query == null) 
 				throw new ArgumentNullException("query");
 
-			var isEntityType = settings.TypeConvension.GetDocumentType(typeof (T)) != null;
-			if (isEntityType && !query.IncludeDocs)
-				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
+			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
 
 			var queryResult = couchApi.Query(query);
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
@@ -132,13 +130,22 @@ namespace CouchDude.Core.Impl
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
-
-			var isEntityType = settings.TypeConvension.GetDocumentType(typeof(T)) != null;
-			if (isEntityType && !query.IncludeDocs)
-				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
+			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
 			Contract.EndContractBlock();
+
 			var queryResult = couchApi.FulltextQuery(query);
 			return isEntityType ? GetEntityList<T>(queryResult) : GetLuceneViewDataList<T>(queryResult);
+		}
+
+		// ReSharper disable UnusedParameter.Local
+		[Pure]
+		private bool CheckIfEntityType<T>(bool includeDocs) where T : class
+		// ReSharper restore UnusedParameter.Local
+		{
+			var isEntityType = settings.GetConfig(typeof (T)) != null;
+			if (isEntityType && !includeDocs)
+				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
+			return isEntityType;
 		}
 
 		private static IPagedList<T> GetLuceneViewDataList<T>(LuceneResult queryResult) where T : class

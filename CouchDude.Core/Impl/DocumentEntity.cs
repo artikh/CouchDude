@@ -5,7 +5,6 @@ using CouchDude.Core.Configuration;
 using CouchDude.Core.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using CouchDude.Core.Conventions;
 
 namespace CouchDude.Core.Impl
 {

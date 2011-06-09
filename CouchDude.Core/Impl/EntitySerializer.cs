@@ -126,7 +126,7 @@ namespace CouchDude.Core.Impl
 				MissingMemberHandling = MissingMemberHandling.Ignore,
 				NullValueHandling = NullValueHandling.Ignore,
 				ContractResolver = contractResolver,
-				Converters = { new IsoDateTimeConverter() }
+				Converters = { new IsoDateTimeConverter(), new StringEnumConverter() }
 			};
 			return JsonSerializer.Create(settings);
 		}
@@ -149,7 +149,7 @@ namespace CouchDude.Core.Impl
 				if (jsonProperty.PropertyType == entityType)
 					throw new InvalidOperationException(
 						string.Format(
-							"Entity {0} references (may be indirectly) itself. This configuration is unsupported by CouchDude yet.",
+							"Entity {0} references (including indirect ones) itself. This configuration is unsupported by CouchDude yet.",
 							entityType.AssemblyQualifiedName));
 
 				if (ignoredMembers.Contains(member))

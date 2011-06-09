@@ -1,6 +1,5 @@
 ﻿using System;
 using CouchDude.Core;
-using CouchDude.Core.Conventions;
 using CouchDude.Core.Initialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -23,36 +22,6 @@ namespace CouchDude.Tests.Unit.Initialization
 		{
 			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().ServerUri("http://example.com").CreateSettings());
 			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().DatabaseName("db1").CreateSettings());
-		}
-
-		[Fact]
-		public void ShouldCreateCamelCaseTypeNameConvention()
-		{
-			var settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com")
-				.DatabaseName("db1")
-				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
-					.InheritingFrom<SimpleEntity>()
-					.ToDocumentTypeCamelCase()
-				.CreateSettings();
-			
-			Assert.IsType<CamelCaseTypeNameToConvention>(settings.TypeConvension);
-		}
-
-		[Fact]
-		public void ShouldCreateTypeNameTypeConvention()
-		{
-			var settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com")
-				.DatabaseName("db1")
-				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
-					.InheritingFrom<SimpleEntity>()
-					.ToDocumentTypePascalCase()
-				.CreateSettings();
-
-			Assert.IsType<TypeNameAsIsTypeConvention>(settings.TypeConvension);
 		}
 	}
 }

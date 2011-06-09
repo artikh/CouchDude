@@ -74,12 +74,7 @@
     <Compile Include="SampleData\SimpleViewData.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
-    <Compile Include="Unit\Conventions\CamelCaseTypeNameToConventionTests.cs" />
-    <Compile Include="Unit\Conventions\CustomTypeConventionTests.cs" />
-    <Compile Include="Unit\Conventions\TypeConventionBaseTests.cs" />
-    <Compile Include="Unit\Conventions\PropertyByNameConventionTests.cs" />
-    <Compile Include="Unit\Conventions\SequentialUuidIdGeneratorTests.cs" />
-    <Compile Include="Unit\Conventions\TypeNameAsIsTypeConventionTests.cs" />
+    <Compile Include="Unit\Configuration\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentExtractorTest.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentTests.cs" />

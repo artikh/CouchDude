@@ -1,4 +1,4 @@
-namespace CouchDude.Core.Conventions
+namespace CouchDude.Core.Configuration
 {
 	/// <summary>Document ID generator interface.</summary>
 	public interface IIdGenerator

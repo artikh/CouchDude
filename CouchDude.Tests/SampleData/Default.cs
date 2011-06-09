@@ -11,10 +11,6 @@ namespace CouchDude.Tests.SampleData
 				return ConfigureCouchDude.With()
 					.ServerUri("http://127.0.0.1:5984")
 					.DatabaseName("test")
-					.MappingEntities()
-					.FromAssemblyOf<IEntity>()
-					.Implementing<IEntity>()
-					.ToDocumentTypeCamelCase()
 					.CreateSettings(); 
 			}
 		}
