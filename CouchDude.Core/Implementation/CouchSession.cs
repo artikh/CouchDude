@@ -113,7 +113,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<T> Query<T>(ViewQuery<T> query) where T : class
+		public IPagedList<T> Query<T>(ViewQuery<T> query)
 		{
 			if (query == null) 
 				throw new ArgumentNullException("query");
@@ -152,7 +152,7 @@ namespace CouchDude.Core.Implementation
 		}
 
 
-		private IPagedList<T> GetEntityList<T>(ViewResult queryResult) where T : class 
+		private IPagedList<T> GetEntityList<T>(ViewResult queryResult)
 		{
 			var entities = (
 				from row in queryResult.Rows
@@ -178,7 +178,7 @@ namespace CouchDude.Core.Implementation
 			return new PagedList<T>(queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
 		}
 
-		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult) where T : class
+		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult)
 		{
 			var viewDataList = (
 				from row in queryResult.Rows.AsParallel()
@@ -189,7 +189,7 @@ namespace CouchDude.Core.Implementation
 			return new PagedList<T>(queryResult.TotalRows, viewDataList.Length, viewDataList);
 		}
 
-		private static T DeserializeViewData<T>(JToken value) where T : class
+		private static T DeserializeViewData<T>(JToken value)
 		{
 			using (var reader = new JTokenReader(value))
 				return JsonSerializer.Instance.Deserialize<T>(reader);

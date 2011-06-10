@@ -1,11 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
 namespace CouchDude.Core.Implementation
 {
 	/// <summary>Simple paged list implementation.</summary>
-	public class PagedList<T>: IPagedList<T> where T: class
+	public class PagedList<T>: IPagedList<T>
 	{
 		private readonly IEnumerable<T> data;
 		

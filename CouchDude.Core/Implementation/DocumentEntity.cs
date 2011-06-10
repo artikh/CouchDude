@@ -109,7 +109,6 @@ namespace CouchDude.Core.Implementation
 		/// <summary>Creates instance from JSON document reading it form 
 		/// provided text reader.</summary>
 		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings, bool throwOnTypeMismatch = true) 
-			where TEntity : class
 		{
 			var docId = document.GetRequiredProperty(IdPropertyName);
 			var revision = document.GetRequiredProperty(RevisionPropertyName);
