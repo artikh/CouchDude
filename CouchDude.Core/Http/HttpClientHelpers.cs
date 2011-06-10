@@ -26,7 +26,7 @@ namespace CouchDude.Core.Http
 			if (self == null) throw new ArgumentNullException("self");
 			Contract.EndContractBlock();
 
-			self.Content = new StringContent(contentTextString);
+			self.Content = new StringContent(contentTextString, Encoding.UTF8);
 		}
 		
 		/// <summary>Constructs text reader over HTTP content using response's encoding info.</summary>
