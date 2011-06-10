@@ -49,7 +49,7 @@ namespace CouchDude.Core
 				databaseName = value;
 			}
 		}
-		
+
 		/// <summary>Document ID generator.</summary>
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
 
@@ -96,7 +96,7 @@ namespace CouchDude.Core
 			entityRegistry.Register(entityConfig);
 			return this;
 		}
-
+		
 		/// <summary>Retrives entity configuration by entity type.</summary>
 		public IEntityConfig GetConfig(Type entityType)
 		{
