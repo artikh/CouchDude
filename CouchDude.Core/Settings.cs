@@ -15,7 +15,7 @@ namespace CouchDude.Core
 
 		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
 			revPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-		
+
 		private Uri serverUri;
 		private string databaseName;
 
@@ -46,18 +46,18 @@ namespace CouchDude.Core
 				if (!ValidDbName(value))
 					throw new ArgumentException(
 						"A database must be named with all lowercase letters (a-z), " +
-							"digits (0-9), or any of the _$()+-/ characters and must end with a " +
-							"slash in the URL. The name has to start with a lowercase letter (a-z).",
+						"digits (0-9), or any of the _$()+-/ characters and must end with a " +
+						"slash in the URL. The name has to start with a lowercase letter (a-z).",
 						"value");
 				Contract.EndContractBlock();
 
-				if(databaseName == value) return;
+				if (databaseName == value) return;
 				databaseName = value;
 			}
 		}
 
 		/// <summary>Document id property convension.</summary>
-		public IIdPropertyConvention IdPropertyConvention = 
+		public IIdPropertyConvention IdPropertyConvention =
 			new PropertyByNameConvention("Id", "ID");
 
 		/// <summary>Document revision property convension.</summary>
@@ -70,11 +70,16 @@ namespace CouchDude.Core
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
 
 		/// <summary>Reports</summary>
-		public bool Incomplete { get { return databaseName == null || serverUri == null; } }
+		public bool Incomplete
+		{
+			get { return databaseName == null || serverUri == null; }
+		}
 
 		/// <constructor />
-		public Settings() { }
-		
+		public Settings()
+		{
+		}
+
 		/// <constructor />
 		public Settings(Uri serverUri, string databaseName)
 		{
@@ -106,26 +111,27 @@ namespace CouchDude.Core
 			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
 			          	);
 		}
-		
+
 		/// <summary>Returns ID property descriptor.</summary>
-		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>() where TEntity: class
+		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>()
 		{
 			return idPropertyDescriptorMap.GetOrAdd(
-				typeof (TEntity), 
-				t => {
-				     	var idPropertyDescriptor = IdPropertyConvention.Get(t);
-				     	if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
-				     		throw new ConventionException(
-				     			"Convention have not found any readable ID property on {0} entity.", 
-				     			typeof(TEntity).FullName);
-				     	return idPropertyDescriptor;
-				});
+				typeof (TEntity),
+				t =>
+					{
+						var idPropertyDescriptor = IdPropertyConvention.Get(t);
+						if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
+							throw new ConventionException(
+								"Convention have not found any readable ID property on {0} entity.",
+								typeof (TEntity).FullName);
+						return idPropertyDescriptor;
+					});
 		}
 
 		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>() where TEntity: class
+		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>()
 		{
-			return GetRevPropertyDescriptor(typeof(TEntity));
+			return GetRevPropertyDescriptor(typeof (TEntity));
 		}
 
 		/// <summary>Returns revision property descriptor for given entity type.</summary>
@@ -135,4 +141,4 @@ namespace CouchDude.Core
 				type, t => RevisionPropertyConvention.Get(t) ?? SpecialPropertyDescriptor.Noop);
 		}
 	}
-}
+} ;

@@ -19,7 +19,7 @@ namespace CouchDude.Core
 		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Queries CouchDB view returning ether paged list of documents or view data items.</summary>
-		IPagedList<T> Query<T>(ViewQuery<T> query) where T : class;
+		IPagedList<T> Query<T>(ViewQuery<T> query);
 
 		/// <summary>Queries LuceneCouchDB</summary>
 		IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
