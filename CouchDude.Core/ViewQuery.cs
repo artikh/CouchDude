@@ -47,6 +47,9 @@ namespace CouchDude.Core
 		/// <summary>Flag that indicates that query should run multiple reduce</summary>
 		public bool Group;
 
+		/// <summary>Indicates level of grouping which used when query executed</summary>
+		public int? GroupLevel;
+
 		/// <summary>Limit the number of view rows in the output.</summary>
 		public int? Limit;
 
@@ -90,7 +93,8 @@ namespace CouchDude.Core
 			uriBuilder.AddIfTrue    (SuppressReduce,     "reduce",	      "false");
 			uriBuilder.AddIfTrue    (IncludeDocs,	     "include_docs",  "true" );
 			uriBuilder.AddIfTrue    (DoNotIncludeEndKey, "inclusive_end", "false");
-			uriBuilder.AddIfTrue    (Group,               "group",        "true" );
+			uriBuilder.AddIfTrue    (Group,              "group",         "true" );
+			uriBuilder.AddIfHasValue(GroupLevel,		 "group_level");
 			return uriBuilder.ToUri();
 		}
 
