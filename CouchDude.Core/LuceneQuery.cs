@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Web;
 
 namespace CouchDude.Core
@@ -18,6 +17,13 @@ namespace CouchDude.Core
 
 		/// <summary>Sort order</summary>
 		public bool SortDescending;
+
+		/// <contructor/>
+		public LuceneSort(string fieldName, bool sortDescending = false)
+		{
+			FieldName = fieldName;
+			SortDescending = sortDescending;
+		}
 	}
 
 	/// <summary>Fulltext query to couchdb-lucene</summary>
@@ -65,6 +71,7 @@ namespace CouchDude.Core
 		/// <constructor/>
 		public LuceneQuery()
 		{
+			DesignDocumentName = "lucene";
 			IncludeDocs = false;			
 			Limit = 100;
 			Skip = 0;
