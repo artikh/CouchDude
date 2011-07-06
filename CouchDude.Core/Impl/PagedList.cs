@@ -5,7 +5,12 @@ namespace CouchDude.Core.Impl
 {
 	/// <summary>Simple paged list implementation.</summary>
 	public class PagedList<T>: IPagedList<T>
-	{
+	{	
+		// ReSharper disable StaticFieldInGenericType
+		/// <summary>Empty paged list of given type.</summary>
+		public static PagedList<T> Empty = new PagedList<T>(0, 0, new T[0]);
+		// ReSharper restore StaticFieldInGenericType
+
 		private readonly IEnumerable<T> data;
 		
 		/// <constructor />
