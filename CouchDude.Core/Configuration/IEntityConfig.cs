@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using CouchDude.Core.Utils;
 
 namespace CouchDude.Core.Configuration
 {
@@ -20,10 +21,10 @@ namespace CouchDude.Core.Configuration
 		string ConvertEntityIdToDocumentId(string entityId);
 
 		/// <summary>Sets entity ID property.</summary>
-		void SetId(object entity, string entityId);
+		bool TrySetId(object entity, string entityId);
 
 		/// <summary>Sets entity ID property.</summary>
-		string GetId(object entity);
+		bool TryGetId(object entity, out string entityId);
 
 		/// <summary>Sets entity revision property.</summary>
 		void SetRevision(object entity, string entityRevision);

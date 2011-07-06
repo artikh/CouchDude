@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Impl
 			config = MockEntityConfig();
 		}
 
-		private IEntityConfig MockEntityConfig(
+		private static IEntityConfig MockEntityConfig(
 			Action<Mock<IEntityConfig>> additionalActions = null,
 			string documentType = "sampleEntity",
 			Type entityType = null)

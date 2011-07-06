@@ -14,9 +14,10 @@ namespace CouchDude.Core.Impl
 		/// <summary>Document entity configuration.</summary>
 		private readonly IEntityConfig entityConfiguration;
 
+		private string entityId;
 		/// <summary>Entity identitifier.</summary>
-		public string EntityId { get { return entityConfiguration.GetId(Entity); } }
-
+		public string EntityId { get { return entityId ?? (entityId = entityConfiguration.GetId(Entity)); } }
+		
 		/// <summary>Document identitifier.</summary>
 		public string DocumentId { get { return Document == null ? null : Document.GetRequiredProperty(EntitySerializer.IdPropertyName); } }
 
@@ -64,7 +65,7 @@ namespace CouchDude.Core.Impl
 		public static DocumentEntity FromEntity<TEntity>(TEntity entity, Settings settings)
 			where TEntity: class
 		{
-			var entityConfiguration = settings.GetConfig<TEntity>(entity);
+			var entityConfiguration = settings.GetConfig(entity);
 			if (entityConfiguration == null)
 				throw new ConfigurationException("Entity type {0} have not been registred.", typeof(TEntity));
 			GenerateIdIfNeeded(entity, entityConfiguration, settings.IdGenerator);
@@ -80,7 +81,7 @@ namespace CouchDude.Core.Impl
 			{
 				var generatedId = idGenerator.GenerateId();
 				Contract.Assert(!string.IsNullOrEmpty(generatedId));
-				entityConfiguration.SetId(entity, generatedId);
+				entityConfiguration.TrySetId(entity, generatedId);
 			}
 		}
 

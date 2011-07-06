@@ -42,7 +42,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var configMock = new Mock<IEntityConfig>();
 			configMock
-				.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()))
+				.Setup(ec => ec.TrySetId(It.IsAny<object>(), It.IsAny<string>()))
 				.Callback<object, string>((e, id) => { setId = id; });
 			configMock
 				.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()))

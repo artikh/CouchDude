@@ -39,7 +39,7 @@ namespace CouchDude.Core.Impl
 					"IEntityConfig.ConvertDocumentIdToEntityId() should not ever return null, empty or whitespace string.");
 
 			var entity = DeserializeFromJObject(document, entityConfig);
-			entityConfig.SetId(entity, entityId);
+			entityConfig.TrySetId(entity, entityId);
 			if(revision != null)
 				entityConfig.SetRevision(entity, revision);
 

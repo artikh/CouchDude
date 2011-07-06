@@ -98,6 +98,8 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
+    <Compile Include="Configuration\EntityConfig.cs" />
     <Compile Include="Configuration\EntityConfigUtils.cs" />
     <Compile Include="Configuration\IEntityConfig.cs" />
     <Compile Include="Configuration\GuidIdGenerator.cs" />
@@ -166,6 +168,7 @@
     <Compile Include="Impl\DocumentEntityCache.cs" />
     <Compile Include="Api\ICouchApi.cs" />
     <Compile Include="Impl\EntitySerializer.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
     <Compile Include="Utils\JsonSerializer.cs" />
     <Compile Include="Api\LuceneResultRow.cs" />
