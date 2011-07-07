@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using CouchDude.Core.Utils;
 
 namespace CouchDude.Core.Configuration
@@ -31,25 +32,32 @@ namespace CouchDude.Core.Configuration
 		}
 
 		private static MemberInfo GetMemberOfName(
-			Type entityType, IEnumerable<string> memberNames, ConcurrentDictionary<Type, MemberInfo> cache)
+			Type entityType, string[] memberNames, ConcurrentDictionary<Type, MemberInfo> cache)
 		{
-			return cache.GetOrAdd(
-				entityType,
-				et => memberNames
-				  .Select(memberName => GetMember(entityType, memberName))
-				  .FirstOrDefault(revisionMember => revisionMember != null));
+			return cache.GetOrAdd(entityType, et => GetMember(entityType, memberNames)); 
 		}
 
-		private static MemberInfo GetMember(Type entityType, string memberName)
+		private static MemberInfo GetMember(IReflect entityType, string[] memberNames)
 		{
-			var propertyInfo = entityType.GetProperty(
-				memberName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-			if (propertyInfo != null && TypeIsCompatibleWithString(propertyInfo.PropertyType))
-				return propertyInfo;
-			var fieldInfo = entityType.GetField(memberName, BindingFlags.Instance | BindingFlags.Public);
-			if (fieldInfo != null && TypeIsCompatibleWithString(fieldInfo.FieldType))
-				return fieldInfo;
-			return null;
+			var publicProperties =
+				from n in memberNames
+				select entityType.GetProperty(n, BindingFlags.Instance | BindingFlags.Public) into p
+				where p != null && TypeIsCompatibleWithString(p.PropertyType)
+				select p;
+
+			var privateProperties =
+				from n in memberNames
+				select entityType.GetProperty(n, BindingFlags.Instance | BindingFlags.NonPublic) into p
+				where p != null && TypeIsCompatibleWithString(p.PropertyType)
+				select p;
+
+			var publicFields =
+				from n in memberNames
+				select entityType.GetField(n, BindingFlags.Instance | BindingFlags.Public) into f
+				where f != null && TypeIsCompatibleWithString(f.FieldType)
+				select f;
+
+			return publicProperties.OfType<MemberInfo>().Concat(privateProperties).Concat(publicFields).FirstOrDefault();
 		}
 
 		private static object GetValue(MemberInfo memberInfo, object entity)
@@ -166,14 +174,14 @@ namespace CouchDude.Core.Configuration
 			return false;
 		}
 
-		public static string DocumentIdToEntityId(string documentId, string documentType, Type entityType)
-		{
-			return documentId;
-		}
-		
 		public static string EntityIdToDocumentId(string entityId, Type entityType, string documentType)
 		{
 			return entityId;
+		}
+
+		public static string DocumentIdToEntityId(string documentId, string documentType, Type entityType)
+		{
+			return documentId;
 		}
 
 		public static string EntityTypeToDocumentType(Type entityType)
@@ -183,7 +191,12 @@ namespace CouchDude.Core.Configuration
 
 		public static IEnumerable<MemberInfo> GetIgnoredMembers(Type entityType)
 		{
-			return new MemberInfo[0];
+			var idMember = GetIdMember(entityType);
+			if (idMember != null)
+				yield return idMember;
+			var revisionMember = GetRevisionMember(entityType);
+			if (revisionMember != null)
+				yield return revisionMember;
 		}
 	}
 }
