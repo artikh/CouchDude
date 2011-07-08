@@ -43,6 +43,25 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
+		public void ShouldReturnDocumentRevisionIfThereIsNoRevisionPropertyOnDocument()
+		{
+			var documentEntity = DocumentEntity.FromJson<SimpleEntityWithoutRevision>(
+				SimpleEntityWithoutRevision.DocumentWithRevision, Default.Settings);
+			documentEntity.DoMap();
+
+			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
+		}
+
+		[Fact]
+		public void ShouldReturnDocumentRevisionIfThereIsNoEntityCreatedYet()
+		{
+			var documentEntity = DocumentEntity.FromJson<SimpleEntityWithoutRevision>(
+				SimpleEntityWithoutRevision.DocumentWithRevision, Default.Settings);
+
+			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
+		}
+
+		[Fact]
 		public void ShouldLoadAllDataFromEntity()
 		{
 			var documentEntity = DocumentEntity.FromEntity(entity, Default.Settings);
@@ -52,13 +71,6 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.Equal(typeof(SimpleEntity), documentEntity.EntityType);
 			Assert.Equal("simpleEntity", documentEntity.DocumentType);
 			Assert.Same(entity, documentEntity.Entity);
-		}
-
-		[Fact]
-		public void ShouldThrowConventionExceptionIfNoIdGetterFoundWhenCreatingFromEntity()
-		{
-			Assert.Throws<ConventionException>(() =>
-				DocumentEntity.FromEntity(new NoIdGetterEntity(), Default.Settings));
 		}
 
 		[Fact]
@@ -148,21 +160,7 @@ namespace CouchDude.Tests.Unit.Impl
 				},
 				documentEntity.Document);
 		}
-
-		[Fact]
-		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutId()
-		{
-			Assert.Throws<CouchResponseParseException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new {
-						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						type = "simpleEntity", 
-						name = "John Smith"
-					}.ToJObject(), 
-					Default.Settings
-			));
-		}
-
+		
 		[Fact]
 		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutRevision()
 		{
@@ -184,26 +182,6 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
-		public void ShouldThrowCouchResponseParseExceptionOnDocumentUnprefixedId()
-		{
-			Assert.Throws<CouchResponseParseException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntity", name = "John Smith" }.ToJObject(), 
-					Default.Settings
-			));
-		}
-
-		[Fact]
-		public void ShouldThrowCouchResponseParseExceptionOnDocumentIcorrectlyPrefixedId()
-		{
-			Assert.Throws<CouchResponseParseException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "abc.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntity", name = "John Smith" }.ToJObject(), 
-					Default.Settings
-			));
-		}
-
-		[Fact]
 		public void ShouldThrowEntityTypeMismatchExceptionOnWrongDocumentType()
 		{
 			var ex = Assert.Throws<EntityTypeMismatchException>(
@@ -214,22 +192,6 @@ namespace CouchDude.Tests.Unit.Impl
 
 			Assert.Contains("SimpleEntity", ex.Message);
 			Assert.Contains("anotherEntity", ex.Message);
-		}
-
-		[Fact]
-		public void ShouldReturnNullIfThrowOnTypeMismatchSetToFalseAndTypeIsDifferent()
-		{
-			var documentEntity = DocumentEntity.FromJson<SimpleEntity>(
-				new
-					{
-						_id = "simpleEntity.doc1", 
-						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7", 
-						type = "anotherEntity", 
-						name = "John Smith"
-					}.ToJObject(), 
-				Default.Settings
-			);
-			Assert.Null(documentEntity);
 		}
 
 		[Fact]

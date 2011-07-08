@@ -5,7 +5,7 @@ namespace CouchDude.Core
 {
 	/// <summary>Thrown in case of unregistred entity type.</summary>
 	[Serializable]
-	public class EntityTypeNotRegistredException : CouchDudeException
+	public class EntityTypeNotRegistredException : ConfigurationException
 	{
 		/// <summary>Initializes a new instance of the 
 		/// <see cref="EntityTypeMismatchException" /> class.</summary>

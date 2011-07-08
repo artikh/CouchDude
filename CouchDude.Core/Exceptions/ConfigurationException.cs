@@ -28,6 +28,7 @@ namespace CouchDude.Core
 		/// <summary>Initializes a new instance of the <see cref="ConfigurationException" /> class.</summary>
 		/// <param name="message">The message.</param>
 		/// <param name="messageParams">The message params.</param>
+		[JetBrains.Annotations.StringFormatMethod("message")]
 		public ConfigurationException(string message, params object[] messageParams)
 			: this(null, message, messageParams) { }
 
@@ -36,6 +37,7 @@ namespace CouchDude.Core
 		/// <param name="innerException">The inner exception.</param>
 		/// <param name="message">The message.</param>
 		/// <param name="messageParams">The message params.</param>
+		[JetBrains.Annotations.StringFormatMethod("message")]
 		public ConfigurationException(
 			Exception innerException,
 			string message,

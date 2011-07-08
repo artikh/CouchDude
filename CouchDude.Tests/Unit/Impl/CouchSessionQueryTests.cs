@@ -102,26 +102,27 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-				                    new ViewResult
-				                    	{
-				                    		TotalRows = 1,
-				                    		Query = q,
-				                    		Rows =
-				                    			{
-				                    				new ViewResultRow
-				                    					{
-				                    						Key = new object[] {"key1", 0}.ToJToken(),
-				                    						Value = new
-				                    						        	{
-				                    						        		Title = "Object title",
-				                    						        		Subject = "some"
-				                    						        	}.ToJToken(),
-				                    						Document = SimpleEntity.DocumentWithRevision,
-				                    						DocumentId = SimpleEntity.StandardDocId
-				                    					},
-				                    			}
-				                    	});
+				.Returns<ViewQuery>(
+					q =>
+					new ViewResult
+						{
+							TotalRows = 1,
+							Query = q,
+							Rows =
+								{
+									new ViewResultRow
+										{
+											Key = new object[] {"key1", 0}.ToJToken(),
+											Value = new
+											        	{
+											        		Title = "Object title",
+											        		Subject = "some"
+											        	}.ToJToken(),
+											Document = SimpleEntity.DocumentWithRevision,
+											DocumentId = SimpleEntity.StandardDocId
+										},
+								}
+						});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var queryResult = session.Query(new ViewQuery<SimpleEntity> {IncludeDocs = true});
 
@@ -141,22 +142,23 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-				                    new ViewResult
-				                    	{
-				                    		TotalRows = 1,
-				                    		Query = q,
-				                    		Rows =
-				                    			{
-				                    				new ViewResultRow
-				                    					{
-				                    						Key = new object[] {"key1", 0}.ToJToken(),
-				                    						Value = null,
-				                    						Document = SimpleEntity.DocumentWithRevision,
-				                    						DocumentId = SimpleEntity.StandardDocId
-				                    					},
-				                    			}
-				                    	});
+				.Returns<ViewQuery>(
+					q =>
+					new ViewResult
+						{
+							TotalRows = 1,
+							Query = q,
+							Rows =
+								{
+									new ViewResultRow
+										{
+											Key = new object[] {"key1", 0}.ToJToken(),
+											Value = null,
+											Document = SimpleEntity.DocumentWithRevision,
+											DocumentId = SimpleEntity.StandardDocId
+										},
+								}
+						});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
 			var queriedEntity = session.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true }).First();
@@ -170,22 +172,23 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-				                    new ViewResult
-				                    	{
-				                    		TotalRows = 1,
-				                    		Query = q,
-				                    		Rows =
-				                    			{
-				                    				new ViewResultRow
-				                    					{
-				                    						Key = new object[] {"key1", 0}.ToJToken(),
-				                    						Value = null,
-				                    						Document = null,
-				                    						DocumentId = null
-				                    					},
-				                    			}
-				                    	});
+				.Returns<ViewQuery>(
+					q =>
+					new ViewResult
+						{
+							TotalRows = 1,
+							Query = q,
+							Rows =
+								{
+									new ViewResultRow
+										{
+											Key = new object[] {"key1", 0}.ToJToken(),
+											Value = null,
+											Document = null,
+											DocumentId = null
+										},
+								}
+						});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var queryResult = session.Query(new ViewQuery<SimpleEntity> {IncludeDocs = true});
 
@@ -199,22 +202,23 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-				                    new ViewResult
-				                    	{
-				                    		TotalRows = 1,
-				                    		Query = q,
-				                    		Rows =
-				                    			{
-				                    				new ViewResultRow
-				                    					{
-				                    						Key = new object[] {"key1", 0}.ToJToken(),
-				                    						Value = null,
-				                    						Document = null,
-				                    						DocumentId = null
-				                    					},
-				                    			}
-				                    	});
+				.Returns<ViewQuery>(
+					q =>
+					new ViewResult
+						{
+							TotalRows = 1,
+							Query = q,
+							Rows =
+								{
+									new ViewResultRow
+										{
+											Key = new object[] {"key1", 0}.ToJToken(),
+											Value = null,
+											Document = null,
+											DocumentId = null
+										},
+								}
+						});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var queryResult = session.Query(new ViewQuery<SimpleViewData>());
 
@@ -228,26 +232,27 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-				                    new ViewResult
-				                    	{
-				                    		TotalRows = 1,
-				                    		Query = q,
-				                    		Rows =
-				                    			{
-				                    				new ViewResultRow
-				                    					{
-				                    						Key = new object[] {"key1", 0}.ToJToken(),
-				                    						Value = new
-				                    						        	{
-				                    						        		Title = "Object title",
-				                    						        		Subject = "some"
-				                    						        	}.ToJToken(),
-				                    						Document = SimpleEntity.DocumentWithRevision,
-				                    						DocumentId = SimpleEntity.StandardDocId
-				                    					},
-				                    			}
-				                    	});
+				.Returns<ViewQuery>(
+					q =>
+					new ViewResult
+						{
+							TotalRows = 1,
+							Query = q,
+							Rows =
+								{
+									new ViewResultRow
+										{
+											Key = new object[] {"key1", 0}.ToJToken(),
+											Value = new
+											        	{
+											        		Title = "Object title",
+											        		Subject = "some"
+											        	}.ToJToken(),
+											Document = SimpleEntity.DocumentWithRevision,
+											DocumentId = SimpleEntity.StandardDocId
+										},
+								}
+						});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var queryResult = session.Query(new ViewQuery<SimpleViewData>());
 

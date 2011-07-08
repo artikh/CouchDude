@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
-using CouchDude.Core;
 using CouchDude.Core.Configuration;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -53,8 +51,8 @@ namespace CouchDude.Tests.Unit.Configuration
 		{
 			var revision = Guid.NewGuid().ToString();
 			var entity = Activator.CreateInstance(entityType);
-			DefaultEntityConfigConventions.SetEntityRevisionIfPosssible(revision, entity, entityType);
-			var returnedRevision = DefaultEntityConfigConventions.GetEntityRevisionIfPossible(entity, entityType);
+			DefaultEntityConfigConventions.SetEntityRevision(revision, entity, entityType);
+			var returnedRevision = DefaultEntityConfigConventions.GetEntityRevision(entity, entityType);
 
 			Assert.Equal(revision, returnedRevision);
 		}
@@ -72,26 +70,24 @@ namespace CouchDude.Tests.Unit.Configuration
 		{
 			var revision = Guid.NewGuid().ToString();
 			var entity = Activator.CreateInstance(entityType);
-			var result = DefaultEntityConfigConventions.TrySetEntityId(revision, entity, entityType);
-			Assert.True(result);
+			DefaultEntityConfigConventions.SetEntityId(revision, entity, entityType);
 			
-			string returnedRevision;
-			result = DefaultEntityConfigConventions.TryGetEntityId(entity, entityType, out returnedRevision);
-			Assert.True(result);
-
+			string returnedRevision = DefaultEntityConfigConventions.GetEntityId(entity, entityType);
 			Assert.Equal(revision, returnedRevision);
 		}
 
 		[Fact]
 		public void ShouldReturnFalseIfNoIdProperty()
 		{
-			var setResult = DefaultEntityConfigConventions.TrySetEntityId("rev1", new RevisionPublicFieldEntity(), typeof(RevisionPublicFieldEntity));
-			Assert.False(setResult);
+			var isPresent =  DefaultEntityConfigConventions.IsEntityIdMemberPresent(typeof(RevisionPublicFieldEntity));
+			Assert.False(isPresent);
+		}
 
-			string entityType;
-			var getResult = DefaultEntityConfigConventions.TryGetEntityId(
-				new RevisionPublicFieldEntity(), typeof (RevisionPublicFieldEntity), out entityType);
-			Assert.False(getResult);
+		[Fact]
+		public void ShouldReturnFalseIfNoRevisionProperty()
+		{
+			var isPresent =  DefaultEntityConfigConventions.IsEntityRevisionMemberPresent(typeof(IdPrivatePropertyEntity));
+			Assert.False(isPresent);
 		}
 
 		[Fact]

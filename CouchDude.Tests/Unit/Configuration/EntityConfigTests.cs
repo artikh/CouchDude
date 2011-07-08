@@ -35,16 +35,15 @@ namespace CouchDude.Tests.Unit.Configuration
 			string setId = null;
 			object settingEntity = null;
 			Type entityType = null;
-			using (new Replacer<TrySetEntityIdConvention>(
-				() => EntityConfig.TrySetEntityId,
-				newValue: (id, e, t) => { setId = id; settingEntity = e; entityType = t; return true; }))
+			using (new Replacer<SetEntityIdConvention>(
+				() => EntityConfig.SetEntityId,
+				newValue: (id, e, t) => { setId = id; settingEntity = e; entityType = t; }))
 			{
 				var entityConfig = new EntityConfig(typeof(SimpleEntity)); 
 
 				object entity = SimpleEntity.CreateStd();
-				var result = entityConfig.TrySetId(entity, "doc1");
+				entityConfig.SetId(entity, "doc1");
 
-				Assert.True(result);
 				Assert.Equal("doc1", setId);
 				Assert.Equal(entity, settingEntity);
 				Assert.Equal(typeof(SimpleEntity), entityType);
@@ -56,9 +55,9 @@ namespace CouchDude.Tests.Unit.Configuration
 		{
 			var entityConfig = new EntityConfig(typeof(SimpleEntity));
 
-			Assert.Throws<ArgumentNullException>(() => entityConfig.TrySetId(null, "entity1"));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.TrySetId(SimpleEntity.CreateStd(), null));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.TrySetId(SimpleEntity.CreateStd(), string.Empty));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(null, "entity1"));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(SimpleEntity.CreateStd(), null));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(SimpleEntity.CreateStd(), string.Empty));
 		}
 
 		[Fact]
@@ -66,17 +65,15 @@ namespace CouchDude.Tests.Unit.Configuration
 		{
 			object gettingEntity = null;
 			Type entityType = null;
-			using (new Replacer<TryGetEntityIdConvention>(
-				() => EntityConfig.TryGetEntityId,
-				newValue: (object e, Type t, out string id) => { entityType = t; gettingEntity = e; id = "doc1"; return true; }))
+			using (new Replacer<GetEntityIdConvention>(
+				() => EntityConfig.GetEntityId,
+				newValue: (e, t) => { entityType = t; gettingEntity = e; return "doc1"; }))
 			{
 				var entityConfig = new EntityConfig(typeof(SimpleEntity));
 
 				object entity = SimpleEntity.CreateStd();
-				string id; 
-				var result = entityConfig.TryGetId(entity, out id);
+				string id = entityConfig.GetId(entity);
 
-				Assert.True(result);
 				Assert.Equal("doc1", id);
 				Assert.Equal(entity, gettingEntity);
 				Assert.Equal(typeof(SimpleEntity), entityType);
@@ -158,7 +155,7 @@ namespace CouchDude.Tests.Unit.Configuration
 			Assert.Throws<ArgumentException>(() => entityConfig.GetRevision(new SimpleEntityWithoutRevision()));
 			Assert.Throws<ArgumentException>(() => entityConfig.GetId(new SimpleEntityWithoutRevision()));
 			Assert.Throws<ArgumentException>(() => entityConfig.SetRevision(new SimpleEntityWithoutRevision(), "rev1"));
-			Assert.Throws<ArgumentException>(() => entityConfig.TrySetId(new SimpleEntityWithoutRevision(), "entity1"));
+			Assert.Throws<ArgumentException>(() => entityConfig.SetId(new SimpleEntityWithoutRevision(), "entity1"));
 		}
 
 		[Fact]

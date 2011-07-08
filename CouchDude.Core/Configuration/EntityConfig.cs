@@ -14,11 +14,17 @@ namespace CouchDude.Core.Configuration
 	/// <summary>Delegate type for <see cref="EntityConfig.DocumentIdToEntityId"/> convention.</summary>
 	public delegate string DocumentIdToEntityIdConvention(string documentId, string documentType, Type entityType);
 
-	/// <summary>Delegate type for <see cref="EntityConfig.TrySetEntityId"/> convention.</summary>
-	public delegate bool TrySetEntityIdConvention(string id, object entity, Type entityType);
+	/// <summary>Delegate type for <see cref="EntityConfig.IsEntityIdMemberPresent"/> convention.</summary>
+	public delegate bool IsEntityIdMemberPresentConvention(Type entityType);
 
-	/// <summary>Delegate type for <see cref="EntityConfig.TryGetEntityId"/> convention.</summary>
-	public delegate bool TryGetEntityIdConvention(object entity, Type entityType, out string entityId);
+	/// <summary>Delegate type for <see cref="EntityConfig.SetEntityId"/> convention.</summary>
+	public delegate void SetEntityIdConvention(string id, object entity, Type entityType);
+
+	/// <summary>Delegate type for <see cref="EntityConfig.GetEntityId"/> convention.</summary>
+	public delegate string GetEntityIdConvention(object entity, Type entityType);
+
+	/// <summary>Delegate type for <see cref="EntityConfig.IsEntityRevisionMemberPresent"/> convention.</summary>
+	public delegate bool IsEntityRevisionMemberPresentConvention(Type entityType);
 
 	/// <summary>Delegate type for <see cref="EntityConfig.SetEntityRevision"/> convention.</summary>
 	public delegate void SetEntityRevisionConvention(string revision, object entity, Type entityType);
@@ -41,17 +47,24 @@ namespace CouchDude.Core.Configuration
 		/// <summary>Converts document ID to entity ID. Supplied with and document type entity type.</summary>
 		public static DocumentIdToEntityIdConvention DocumentIdToEntityId = DefaultEntityConfigConventions.DocumentIdToEntityId;
 
+		/// <summary>Detects if ID is present property on entity.</summary>
+		public static IsEntityIdMemberPresentConvention IsEntityIdMemberPresent = DefaultEntityConfigConventions.IsEntityIdMemberPresent;
+
 		/// <summary>Set's ID property on entity.</summary>
-		public static TrySetEntityIdConvention TrySetEntityId = DefaultEntityConfigConventions.TrySetEntityId;
+		public static SetEntityIdConvention SetEntityId = DefaultEntityConfigConventions.SetEntityId;
 
 		/// <summary>Get's ID property of entity.</summary>
-		public static TryGetEntityIdConvention TryGetEntityId = DefaultEntityConfigConventions.TryGetEntityId;
+		public static GetEntityIdConvention GetEntityId = DefaultEntityConfigConventions.GetEntityId;
+
+		/// <summary>Detects if ID is present property on entity.</summary>
+		public static IsEntityRevisionMemberPresentConvention IsEntityRevisionMemberPresent = 
+			DefaultEntityConfigConventions.IsEntityRevisionMemberPresent;
 
 		/// <summary>Set's revision property on entity.</summary>
-		public static SetEntityRevisionConvention SetEntityRevision = DefaultEntityConfigConventions.SetEntityRevisionIfPosssible;
+		public static SetEntityRevisionConvention SetEntityRevision = DefaultEntityConfigConventions.SetEntityRevision;
 
 		/// <summary>Get's revision property of entity.</summary>
-		public static GetEntityRevisionConvention GetEntityRevision = DefaultEntityConfigConventions.GetEntityRevisionIfPossible;
+		public static GetEntityRevisionConvention GetEntityRevision = DefaultEntityConfigConventions.GetEntityRevision;
 
 		/// <summary>Get's revision property of entity.</summary>
 		public static GetIgnoredMembersConvention GetIgnoredMembers = DefaultEntityConfigConventions.GetIgnoredMembers;
@@ -68,13 +81,13 @@ namespace CouchDude.Core.Configuration
 		}
 
 		/// <inheritdoc/>
-		public Type EntityType { get; private set; }
+		public virtual Type EntityType { get; private set; }
 
 		/// <inheritdoc/>
-		public string DocumentType { get; private set; }
+		public virtual string DocumentType { get; private set; }
 
 		/// <inheritdoc/>
-		public string ConvertDocumentIdToEntityId(string documentId)
+		public virtual string ConvertDocumentIdToEntityId(string documentId)
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
 			Contract.EndContractBlock();
@@ -83,7 +96,7 @@ namespace CouchDude.Core.Configuration
 		}
 
 		/// <inheritdoc/>
-		public string ConvertEntityIdToDocumentId(string entityId)
+		public virtual string ConvertEntityIdToDocumentId(string entityId)
 		{
 			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
 			Contract.EndContractBlock();
@@ -92,7 +105,10 @@ namespace CouchDude.Core.Configuration
 		}
 
 		/// <inheritdoc/>
-		public bool TrySetId(object entity, string entityId)
+		public bool IsIdMemberPresent { get { return IsEntityIdMemberPresent(EntityType); } }
+
+		/// <inheritdoc/>
+		public virtual void SetId(object entity, string entityId)
 		{
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
@@ -100,22 +116,25 @@ namespace CouchDude.Core.Configuration
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
 			Contract.EndContractBlock();
 
-			return TrySetEntityId(entityId, entity, EntityType);
+			SetEntityId(entityId, entity, EntityType);
 		}
 
 		/// <inheritdoc/>
-		public bool TryGetId(object entity, out string entityId)
+		public virtual string GetId(object entity)
 		{
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
 			Contract.EndContractBlock();
 
-			return TryGetEntityId(entity, EntityType, out entityId);
+			return GetEntityId(entity, EntityType);
 		}
+		
+		/// <inheritdoc/>
+		public bool IsRevisionPresent { get { return IsEntityRevisionMemberPresent(EntityType); } }
 
 		/// <inheritdoc/>
-		public void SetRevision(object entity, string entityRevision)
+		public virtual void SetRevision(object entity, string entityRevision)
 		{
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (string.IsNullOrEmpty(entityRevision)) throw new ArgumentNullException("entityRevision");
@@ -127,7 +146,7 @@ namespace CouchDude.Core.Configuration
 		}
 
 		/// <inheritdoc/>
-		public string GetRevision(object entity)
+		public virtual string GetRevision(object entity)
 		{
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
@@ -138,6 +157,6 @@ namespace CouchDude.Core.Configuration
 		}
 
 		/// <inheritdoc/>
-		public IEnumerable<MemberInfo> IgnoredMembers { get; private set; }
+		public virtual IEnumerable<MemberInfo> IgnoredMembers { get; private set; }
 	}
 }

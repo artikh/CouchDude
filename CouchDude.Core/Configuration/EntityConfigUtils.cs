@@ -14,8 +14,8 @@ namespace CouchDude.Core.Configuration
 		/// <summary>Retrives entity identifier throwing execption it could not be retrived.</summary>
 		public static string GetId(this IEntityConfig entityConfig, object entity)
 		{
-			string id;
-			if (!entityConfig.TryGetId(entity, out id))
+			var id = entityConfig.GetId(entity);
+			if (id == null && !entityConfig.IsIdMemberPresent)
 				throw new ConfigurationException("Entity ID colud not be retrived using current configuration.");
 			return id;
 		}

@@ -76,6 +76,7 @@
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Configuration\DefaultEntityConfigConventionsTests.cs" />
     <Compile Include="Unit\Configuration\EntityConfigTests.cs" />
+    <Compile Include="Unit\Configuration\EntityRegistryTests.cs" />
     <Compile Include="Unit\Configuration\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentExtractorTest.cs" />

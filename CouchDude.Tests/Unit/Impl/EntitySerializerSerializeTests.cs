@@ -63,14 +63,42 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldSetIdAndTypePropertiesOnJObject()
 		{
-			var document = EntitySerializer.Serialize(entity, config);
-			Assert.Equal("sampleEntity.doc1", document.Value<string>("_id"));
+			dynamic document = EntitySerializer.Serialize(entity, config);
+			Assert.Equal("sampleEntity.doc1", (string)document._id);
+		}
+
+		[Fact]
+		public void ShouldSerializeSpecialPropertiesFirst()
+		{
+			var document = EntitySerializer.Serialize(SimpleEntity.CreateStd(), Default.Settings.GetConfig(typeof (SimpleEntity)));
+			TestUtils.AssertSameJson(document, SimpleEntity.DocumentWithRevision);
+		}
+		
+		[Fact]
+		public void ShouldSetPreviousRevisionValueIfNoRevisonPropertyFoundOnTheEntityClass()
+		{
+			var entityWithoutRevisionConfigMock = new Mock<IEntityConfig>();
+			entityWithoutRevisionConfigMock.Setup(ec => ec.GetId(It.IsAny<object>())).Returns("doc1");
+			entityWithoutRevisionConfigMock.Setup(ec => ec.DocumentType).Returns("simpleEntityWithoutRevision");
+			entityWithoutRevisionConfigMock.Setup(ec => ec.EntityType).Returns(typeof(SimpleEntityWithoutRevision));
+			entityWithoutRevisionConfigMock
+				.Setup(ec => ec.ConvertEntityIdToDocumentId(It.IsAny<string>()))
+				.Returns<string>(entityId => "simpleEntityWithoutRevision." + entityId);
+
+			var entityWithoutRevision = new SimpleEntityWithoutRevision();
+			dynamic document = EntitySerializer.Serialize(
+				entityWithoutRevision, entityWithoutRevisionConfigMock.Object, previousRevisionValue: "rev.42");
+			Assert.Equal("rev.42", (string)document._rev);
 		}
 
 		[Fact]
 		public void ShouldSetRevPropertyOnJObject()
 		{
-			config = MockEntityConfig(mock => mock.Setup(ec => ec.GetRevision(entity)).Returns("rev.1"));
+			config = MockEntityConfig(mock => {
+			  mock.Setup(
+			    ec => ec.GetRevision(entity)).Returns("rev.1");
+			  mock.Setup(ec => ec.IsRevisionPresent).Returns(true);
+			});
 			var document = EntitySerializer.Serialize(entity, config);
 			Assert.Equal("rev.1", document.Value<string>("_rev"));
 		}

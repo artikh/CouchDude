@@ -101,6 +101,7 @@
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
     <Compile Include="Configuration\EntityConfig.cs" />
     <Compile Include="Configuration\EntityConfigUtils.cs" />
+    <Compile Include="Configuration\EntityRegistry.cs" />
     <Compile Include="Configuration\IEntityConfig.cs" />
     <Compile Include="Configuration\GuidIdGenerator.cs" />
     <Compile Include="Configuration\IIdGenerator.cs" />
@@ -168,6 +169,7 @@
     <Compile Include="Impl\DocumentEntityCache.cs" />
     <Compile Include="Api\ICouchApi.cs" />
     <Compile Include="Impl\EntitySerializer.cs" />
+    <Compile Include="Utils\JetBrainsAnnotations.cs" />
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
     <Compile Include="Utils\JsonSerializer.cs" />
@@ -223,9 +225,7 @@
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Conventions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

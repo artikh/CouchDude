@@ -71,7 +71,8 @@ namespace CouchDude.Core.Impl
 		public void Remove(DocumentEntity documentEntity)
 		{
 			instanceSet.Remove(documentEntity.Entity);
-			idMap.Remove(documentEntity.DocumentId);
+			if(documentEntity.DocumentId != null)
+				idMap.Remove(documentEntity.DocumentId);
 		}
 
 		/// <summary>Determines if paticular instance is in the cache.</summary>

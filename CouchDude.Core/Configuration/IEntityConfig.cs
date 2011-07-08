@@ -20,11 +20,17 @@ namespace CouchDude.Core.Configuration
 		/// <summary>Converts entity ID to document ID.</summary>
 		string ConvertEntityIdToDocumentId(string entityId);
 
-		/// <summary>Sets entity ID property.</summary>
-		bool TrySetId(object entity, string entityId);
+		/// <summary>Detects if special ID member have been found on entity type.</summary>
+		bool IsIdMemberPresent { get; }
 
 		/// <summary>Sets entity ID property.</summary>
-		bool TryGetId(object entity, out string entityId);
+		void SetId(object entity, string entityId);
+
+		/// <summary>Sets entity ID property.</summary>
+		string GetId(object entity);
+
+		/// <summary>Detects if special revision member have been found on entity type.</summary>
+		bool IsRevisionPresent { get; }
 
 		/// <summary>Sets entity revision property.</summary>
 		void SetRevision(object entity, string entityRevision);

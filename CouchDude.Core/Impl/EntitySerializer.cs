@@ -27,8 +27,14 @@ namespace CouchDude.Core.Impl
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			string documentId, revision;
-			GetDocumentTypeAndRevision(document, out documentId, out revision);
+			document = (JObject)document.DeepClone();
+
+			string documentId, revision, documentType;
+			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
+
+			if (entityConfig.DocumentType != documentType)
+				throw new InvalidOperationException(string.Format(
+					"Deserializing document's type {0} does not match type {1} in configuration.", documentType, entityConfig.DocumentType));
 			
 			if(string.IsNullOrWhiteSpace(documentId))
 				throw new DocumentIdMissingException(document);
@@ -38,24 +44,43 @@ namespace CouchDude.Core.Impl
 				throw new InvalidOperationException(
 					"IEntityConfig.ConvertDocumentIdToEntityId() should not ever return null, empty or whitespace string.");
 
-			var entity = DeserializeFromJObject(document, entityConfig);
-			entityConfig.TrySetId(entity, entityId);
-			if(revision != null)
-				entityConfig.SetRevision(entity, revision);
-
-			return entity;
+			return DeserializeInternal(document, entityConfig, entityId, revision);
 		}
 
 		public static object TryDeserialize(JObject document, IEntityConfig entityConfig)
 		{
+			if (document == null)
+				throw new ArgumentNullException("document");
+			if (entityConfig == null)
+				throw new ArgumentNullException("entityConfig");
+
+			document = (JObject)document.DeepClone();
+
+			string documentId, revision, documentType;
+			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
+
+			if (entityConfig.DocumentType == documentType)
+			{
+				var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
+				if (!string.IsNullOrWhiteSpace(entityId))
+					return DeserializeInternal(document, entityConfig, entityId, revision);
+			}
 			return null;
 		}
 
-		public static JObject Serialize(object entity, IEntityConfig entityConfig)
+		private static object DeserializeInternal(JObject document, IEntityConfig entityConfig, string entityId, string revision)
+		{
+			var entity = DeserializeFromJObject(document, entityConfig);
+			entityConfig.SetId(entity, entityId);
+			if (revision != null)
+				entityConfig.SetRevision(entity, revision);
+			return entity;
+		}
+
+		public static JObject Serialize(object entity, IEntityConfig entityConfig, string previousRevisionValue = null)
 		{
 			if (entity == null)
 				throw new ArgumentNullException("entity");
-
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
@@ -72,7 +97,10 @@ namespace CouchDude.Core.Impl
 				throw new InvalidOperationException(
 					"IEntityConfig.ConvertEntityIdToDocumentId() should not ever return null, empty or whitespace string.");
 
-			var documentRevision = entityConfig.GetRevision(entity);
+			var documentRevision = 
+				entityConfig.IsRevisionPresent
+				? entityConfig.GetRevision(entity)
+				: previousRevisionValue;
 
 			var documentType = entityConfig.DocumentType;
 			if (string.IsNullOrWhiteSpace(documentType))
@@ -84,22 +112,26 @@ namespace CouchDude.Core.Impl
 			return document;
 		}
 
-		private static void GetDocumentTypeAndRevision(dynamic document, out string documentId, out string revision)
+		private static void GetDocumentTypeAndRevision(JObject document, out string documentId, out string revision, out string type)
 		{
-			documentId = document._id;
-			revision = document._rev;
+			documentId = document.Value<string>(IdPropertyName);
+			revision = document.Value<string>(RevisionPropertyName);
+
+			var typeProperty = document.Property(TypePropertyName);
+			type = typeProperty.Value.Value<string>();
+			typeProperty.Remove();
 		}
 
 		private static object DeserializeFromJObject(JObject document, IEntityConfig entityConfig)
 		{
-			var serializer = Serializers.GetOrAdd(entityConfig, CreateSerializer);
+			var serializer = GetSerializer(entityConfig);
 			using (var jTokenReader = new JTokenReader(document))
 				return serializer.Deserialize(jTokenReader, entityConfig.EntityType);
 		}
 
 		private static JObject SerializeToJObject(object entity, IEntityConfig entityConfig)
 		{
-			var serializer = Serializers.GetOrAdd(entityConfig, CreateSerializer);
+			var serializer = GetSerializer(entityConfig);
 			JObject document;
 			using (var jTokenWriter = new JTokenWriter())
 			{
@@ -109,14 +141,19 @@ namespace CouchDude.Core.Impl
 			return document;
 		}
 
-		private static void SetStandardPropertiesOnDocument(dynamic document, string revision, string type, string id)
+		private static void SetStandardPropertiesOnDocument(JObject document, string revision, string type, string id)
 		{
-			document._id = id;
+			document.AddFirst(new JProperty(TypePropertyName, JToken.FromObject(type)));
 			if (!string.IsNullOrWhiteSpace(revision))
-				document._rev = revision;
-			document.type = type;
+				document.AddFirst(new JProperty(RevisionPropertyName, JToken.FromObject(revision)));
+			document.AddFirst(new JProperty(IdPropertyName, JToken.FromObject(id)));
 		}
-		
+
+		private static JsonSerializer GetSerializer(IEntityConfig entityConfig)
+		{
+			return Serializers.GetOrAdd(entityConfig, CreateSerializer);
+		}
+
 		private static JsonSerializer CreateSerializer(IEntityConfig entityConfig)
 		{
 			var contractResolver = new ContractResolver(entityConfig.EntityType, entityConfig.IgnoredMembers);
@@ -149,12 +186,12 @@ namespace CouchDude.Core.Impl
 				if (jsonProperty.PropertyType == entityType)
 					throw new InvalidOperationException(
 						string.Format(
-							"Entity {0} references (including indirect ones) itself. This configuration is unsupported by CouchDude yet.",
+							"Entity {0} references itself (maybe indirectly). This configuration is unsupported by CouchDude yet.",
 							entityType.AssemblyQualifiedName));
 
 				if (ignoredMembers.Contains(member))
 					jsonProperty.Ignored = true;
-
+				
 				if (!jsonProperty.Writable)
 				{
 					var propertyInfo = member as PropertyInfo;

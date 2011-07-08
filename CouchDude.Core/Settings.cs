@@ -9,6 +9,7 @@ namespace CouchDude.Core
 	/// <summary>CouchDude settings.</summary>
 	public class Settings
 	{
+		private readonly EntityRegistry entityRegistry = new EntityRegistry();
 		private Uri serverUri;
 		private string databaseName;
 
@@ -86,21 +87,32 @@ namespace CouchDude.Core
 			var firstLetter = databaseName[0];
 			return Char.IsLetter(firstLetter)
 			       && Char.IsLower(firstLetter)
-			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
-			          	);
+			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]"));
 		}
 
-		/// <summary></summary>
-		public IEntityConfig GetConfig<TEntityType>(TEntityType entity)
+		/// <summary>Registers entity configuration.</summary>
+		public Settings Register(IEntityConfig entityConfig)
 		{
-			return null;
+			entityRegistry.Register(entityConfig);
+			return this;
 		}
 
-		/// <summary></summary>
-		public IEntityConfig GetConfigFromDocumentType(string documentType)
+		/// <summary>Retrives entity configuration by entity type.</summary>
+		public IEntityConfig GetConfig(Type entityType)
 		{
-			return null;
+			return entityRegistry[entityType];
 		}
 
+		/// <summary>Retrives entity configuration by entity type returning <c>null</c> if none found.</summary>
+		public IEntityConfig TryGetConfig(Type entityType)
+		{
+			return entityRegistry.Contains(entityType) ? entityRegistry[entityType] : null;
+		}
+
+		/// <summary>Retrives entity configuration by document type.</summary>
+		public IEntityConfig GetConfig(string documentType)
+		{
+			return entityRegistry[documentType];
+		}
 	}
 }

@@ -108,7 +108,12 @@ namespace CouchDude.Core.Configuration
 			return stringValue;
 		}
 
-		public static string GetEntityRevisionIfPossible(object entity, Type entityType)
+		public static bool IsEntityRevisionMemberPresent(Type entityType)
+		{
+			return GetRevisionMember(entityType) != null;
+		}
+
+		public static string GetEntityRevision(object entity, Type entityType)
 		{
 			Contract.Requires(entityType != null);
 			Contract.Requires(entity != null);
@@ -124,7 +129,7 @@ namespace CouchDude.Core.Configuration
 			return null;
 		}
 
-		public static void SetEntityRevisionIfPosssible(string revision, object entity, Type entityType)
+		public static void SetEntityRevision(string revision, object entity, Type entityType)
 		{
 			Contract.Requires(entityType != null);
 			Contract.Requires(entity != null);
@@ -138,27 +143,28 @@ namespace CouchDude.Core.Configuration
 			}
 		}
 
-		public static bool TryGetEntityId(object entity, Type entityType, out string entityId)
+		public static bool IsEntityIdMemberPresent(Type entityType)
+		{
+			return GetIdMember(entityType) != null;
+		}
+
+		public static string GetEntityId(object entity, Type entityType)
 		{
 			Contract.Requires(entityType != null);
 			Contract.Requires(entity != null);
 			Contract.Requires(entityType.IsAssignableFrom(entity.GetType()));
 
 			var idMember = GetIdMember(entityType);
-			if (idMember == null)
-			{
-				entityId = null;
-				return false;
-			}
-			else
+			if (idMember != null)
 			{
 				var idValue = GetValue(idMember, entity);
-				entityId = ConvertToString(idValue);
-				return true;
+				return ConvertToString(idValue);
 			}
+			
+			return null;
 		}
 
-		public static bool TrySetEntityId(string id, object entity, Type entityType)
+		public static void SetEntityId(string id, object entity, Type entityType)
 		{
 			Contract.Requires(entityType != null);
 			Contract.Requires(entity != null);
@@ -169,9 +175,7 @@ namespace CouchDude.Core.Configuration
 			{
 				var idValue = ConvertFromString(id);
 				SetValue(idMember, entity, idValue);
-				return true;
 			}
-			return false;
 		}
 
 		public static string EntityIdToDocumentId(string entityId, Type entityType, string documentType)

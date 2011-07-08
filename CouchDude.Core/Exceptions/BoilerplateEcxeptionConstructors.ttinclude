@@ -14,6 +14,7 @@
 		/// <summary>Initializes a new instance of the <#=this.ExceptionDocReference#> class.</summary>
 		/// <param name="message">The message.</param>
 		/// <param name="messageParams">The message params.</param>
+		[JetBrains.Annotations.StringFormatMethod("message")]
 		public <#=this.ExceptionCtorName#>(string message, params object[] messageParams)
 			: this(null, message, messageParams) { }
 
@@ -22,6 +23,7 @@
 		/// <param name="innerException">The inner exception.</param>
 		/// <param name="message">The message.</param>
 		/// <param name="messageParams">The message params.</param>
+		[JetBrains.Annotations.StringFormatMethod("message")]
 		public <#=this.ExceptionCtorName#>(
 			Exception innerException,
 			string message,

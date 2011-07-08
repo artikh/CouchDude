@@ -5,7 +5,7 @@ namespace CouchDude.Core
 {
 	/// <summary>Thrown in case of unregistred document type.</summary>
 	[Serializable]
-	public class DocumentTypeNotRegistredException : CouchDudeException
+	public class DocumentTypeNotRegistredException : ConfigurationException
 	{
 		/// <summary>Initializes a new instance of the 
 		/// <see cref="EntityTypeMismatchException" /> class.</summary>

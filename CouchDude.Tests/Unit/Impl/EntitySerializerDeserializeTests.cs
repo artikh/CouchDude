@@ -2,6 +2,7 @@
 using CouchDude.Core;
 using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
+using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -25,9 +26,10 @@ namespace CouchDude.Tests.Unit.Impl
 			public string Type { get; set; }
 			public Composite CompositeProperty { get; set; }
 			public string Field;
+			public ChildEntity Child;
 		}
 
-		private class ChildEntity: Entity { }
+		public class ChildEntity : Entity { }
 
 		private IEntityConfig config;
 		private string setId;
@@ -42,7 +44,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var configMock = new Mock<IEntityConfig>();
 			configMock
-				.Setup(ec => ec.TrySetId(It.IsAny<object>(), It.IsAny<string>()))
+				.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()))
 				.Callback<object, string>((e, id) => { setId = id; });
 			configMock
 				.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()))
@@ -62,7 +64,18 @@ namespace CouchDude.Tests.Unit.Impl
 			dynamic document = documentObject != null ? documentObject.ToJObject() : new JObject();
 			document._id = "doc1";
 			document.type = "entity";
+			document.child = new JObject();
+			document.child.type = "childType";
 			return document;
+		}
+
+		[Fact]
+		public void ShouldThrowOnIncompatibleDocumentType()
+		{
+			Assert.Throws<InvalidOperationException>(
+				() => EntitySerializer.Deserialize(
+					SimpleEntity.DocumentWithRevision,
+					new EntityConfig(typeof (SimpleEntityWithoutRevision))));
 		}
 
 		[Fact]
@@ -114,6 +127,7 @@ namespace CouchDude.Tests.Unit.Impl
 			dynamic document = new JObject();
 			if (id != null)
 				document._id = id;
+			document.type = "entity";
 
 			Assert.Throws<DocumentIdMissingException>(() => EntitySerializer.Deserialize((JObject)document, config));
 		}
@@ -131,6 +145,21 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
+		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutId()
+		{
+			Assert.Throws<CouchResponseParseException>(
+				() => EntitySerializer.Deserialize(
+					new
+					{
+						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+						type = "simpleEntity",
+						name = "John Smith"
+					}.ToJObject(),
+					Default.Settings.GetConfig(typeof(SimpleEntity))
+			));
+		}
+
+		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{
 			var document = CreateDoc();
@@ -143,7 +172,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var document = CreateDoc();
 			var entity = (Entity)EntitySerializer.Deserialize(document, config);
-			Assert.Null(entity.Type);
+			Assert.NotNull(entity.Child.Type);
 		}
 	}
 }

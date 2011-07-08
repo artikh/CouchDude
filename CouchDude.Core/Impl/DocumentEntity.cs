@@ -19,12 +19,29 @@ namespace CouchDude.Core.Impl
 		public string EntityId { get { return entityId ?? (entityId = entityConfiguration.GetId(Entity)); } }
 		
 		/// <summary>Document identitifier.</summary>
-		public string DocumentId { get { return Document == null ? null : Document.GetRequiredProperty(EntitySerializer.IdPropertyName); } }
+		public string DocumentId
+		{
+			get
+			{
+				return entityConfiguration.ConvertEntityIdToDocumentId(EntityId);
+			}
+		}
 
 		/// <summary>Currently loaded revision of the document/entity.</summary>
+		/// <remarks>First source of truth is always entity.</remarks>
 		public string Revision
 		{
-			get { return entityConfiguration.GetRevision(Entity); }
+			get
+			{
+				if (Entity != null && entityConfiguration.IsRevisionPresent)
+				{
+					var entityRevision = entityConfiguration.GetRevision(Entity);
+					if (entityRevision != null)
+						return entityRevision;
+				}
+
+				return Document != null ? Document.Value<string>(EntitySerializer.RevisionPropertyName) : null;
+			}
 			set
 			{
 				if (Revision == value) return;
@@ -50,7 +67,7 @@ namespace CouchDude.Core.Impl
 			return (TEntity) Entity;
 		}
 
-		/// <summary>Database document raw.</summary>
+		/// <summary>Database raw document.</summary>
 		public JObject Document { get; private set; }
 
 		/// <summary>Writes document to provided writer.</summary>
@@ -65,7 +82,7 @@ namespace CouchDude.Core.Impl
 		public static DocumentEntity FromEntity<TEntity>(TEntity entity, Settings settings)
 			where TEntity: class
 		{
-			var entityConfiguration = settings.GetConfig(entity);
+			var entityConfiguration = settings.GetConfig(typeof(TEntity));
 			if (entityConfiguration == null)
 				throw new ConfigurationException("Entity type {0} have not been registred.", typeof(TEntity));
 			GenerateIdIfNeeded(entity, entityConfiguration, settings.IdGenerator);
@@ -81,7 +98,7 @@ namespace CouchDude.Core.Impl
 			{
 				var generatedId = idGenerator.GenerateId();
 				Contract.Assert(!string.IsNullOrEmpty(generatedId));
-				entityConfiguration.TrySetId(entity, generatedId);
+				entityConfiguration.SetId(entity, generatedId);
 			}
 		}
 
@@ -93,7 +110,7 @@ namespace CouchDude.Core.Impl
 			var documentType = GetDocumnetType(document);
 			if (!string.IsNullOrWhiteSpace(documentType))
 			{
-				var entityConfiguration = settings.GetConfigFromDocumentType(documentType);
+				var entityConfiguration = settings.GetConfig(documentType);
 				if (entityConfiguration != null && entityConfiguration.IsCompatibleWith<TEntity>())
 				{
 					var entity = EntitySerializer.TryDeserialize(document, entityConfiguration);
@@ -114,7 +131,7 @@ namespace CouchDude.Core.Impl
 			if(string.IsNullOrWhiteSpace(documentType))
 				throw new DocumentTypeMissingException(document);
 
-			var entityConfiguration = settings.GetConfigFromDocumentType(documentType);
+			var entityConfiguration = settings.GetConfig(documentType);
 			if (entityConfiguration == null)
 				throw new DocumentTypeNotRegistredException(documentType);
 

@@ -56,7 +56,8 @@ namespace CouchDude.Core.Impl
 			if (documentEntity != null)
 			{
 				if (!typeof (TEntity).IsAssignableFrom(documentEntity.EntityType))
-					throw new EntityTypeMismatchException(documentEntity.EntityType, typeof (TEntity));
+					throw new EntityTypeMismatchException(documentEntity.EntityType, typeof(TEntity));
+				cache.Remove(documentEntity);
 			}
 			else
 				documentEntity = DocumentEntity.FromEntity(entity, settings);
@@ -66,9 +67,7 @@ namespace CouchDude.Core.Impl
 					"No revision property found on entity and no revision information" 
 						+ " found in first level cache.", 
 					"entity");
-
-			cache.Remove(documentEntity);
-
+			
 			var result = couchApi.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
 			var newRevision = result.GetRequiredProperty("rev");
 			return new DocumentInfo(documentEntity.EntityId, newRevision);
@@ -142,7 +141,7 @@ namespace CouchDude.Core.Impl
 		private bool CheckIfEntityType<T>(bool includeDocs) where T : class
 		// ReSharper restore UnusedParameter.Local
 		{
-			var isEntityType = settings.GetConfig(typeof (T)) != null;
+			var isEntityType = settings.TryGetConfig(typeof (T)) != null;
 			if (isEntityType && !includeDocs)
 				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
 			return isEntityType;
