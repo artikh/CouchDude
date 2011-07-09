@@ -1,5 +1,6 @@
 ﻿using System;
 using CouchDude.Core;
+using CouchDude.Core.Configuration;
 using CouchDude.Core.Initialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -20,7 +21,8 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnIncompleteInitialization()
 		{
-			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().ServerUri("http://example.com").CreateSettings());
+			Assert.Throws<ConfigurationException>(
+				() => ConfigureCouchDude.With().ServerUri("http://example.com").CreateSettings());
 			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().DatabaseName("db1").CreateSettings());
 		}
 	}

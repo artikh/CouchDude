@@ -42,7 +42,7 @@ namespace CouchDude.Core
 			Exception innerException,
 			string message,
 			params object[] messageParams)
-			: base(String.Format(message, messageParams), innerException) { }
+			: base(messageParams.Length > 0? String.Format(message, messageParams): message, innerException) { }
 	}
 }
 

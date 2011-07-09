@@ -117,6 +117,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Exceptions\DocumentIdMissingException.cs" />
+    <Compile Include="Exceptions\DocumentRevisionMissingException.cs" />
     <Compile Include="Exceptions\DocumentTypeMissingException.cs" />
     <Compile Include="Exceptions\DocumentTypeNotRegistredException.cs" />
     <Compile Include="Exceptions\EntityTypeNotRegistredException.cs" />
@@ -131,8 +132,8 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Exceptions\EntityTypeMismatchException.cs" />
-    <Compile Include="Exceptions\CouchResponseParseException.cs">
-      <DependentUpon>CouchResponseParseException.tt</DependentUpon>
+    <Compile Include="Exceptions\ParseException.cs">
+      <DependentUpon>ParseException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
@@ -208,9 +209,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>StaleObjectStateException.cs</LastGenOutput>
     </None>
-    <None Include="Exceptions\CouchResponseParseException.tt">
+    <None Include="Exceptions\ParseException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>CouchResponseParseException.cs</LastGenOutput>
+      <LastGenOutput>ParseException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\CouchCommunicationException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

@@ -10,7 +10,7 @@ namespace CouchDude.Core
 	/// <summary>Exception thrown in case of missing _id property on
 	/// CouchDB document.</summary>
 	[Serializable]
-	public class DocumentIdMissingException : CouchDudeException
+	public class DocumentIdMissingException : ParseException
 	{
 		/// <summary>Initializes a new instance of the 
 		/// <see cref="DocumentIdMissingException" /> class.</summary>
@@ -33,7 +33,7 @@ namespace CouchDude.Core
 			var message = new StringBuilder("Required field '")
 				.Append(EntitySerializer.IdPropertyName)
 				.Append("' have not found on document. ")
-				.Append("Type on documents is required by CouchDB.");
+				.Append("Documents id is required by CouchDB.");
 			if (document != null)
 				message.AppendLine().Append(document.ToString(Formatting.Indented));
 

@@ -52,7 +52,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(response);
 			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			Assert.Throws<CouchResponseParseException>(() => couchApi.GetLastestDocumentRevision("doc1"));
+			Assert.Throws<ParseException>(() => couchApi.GetLastestDocumentRevision("doc1"));
 		}
 
 		[Fact]

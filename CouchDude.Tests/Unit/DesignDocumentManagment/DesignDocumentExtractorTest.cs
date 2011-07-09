@@ -20,7 +20,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnUnknownStructure()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{ 
@@ -35,7 +35,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnKeylessRow()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{
@@ -52,7 +52,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnValuelessRow()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{
@@ -69,7 +69,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnRevisionlessRow()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{
@@ -87,7 +87,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnNoneDesignPrefexedKeyRow()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{
@@ -105,7 +105,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 		[Fact]
 		public void ShouldThrowOnDocumentlessRow()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<ParseException>(
 				() =>
 				designDocumentExtractor.Extract(CreateStream(@"
 					{

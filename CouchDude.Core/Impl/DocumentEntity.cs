@@ -181,7 +181,7 @@ namespace CouchDude.Core.Impl
 
 		private JObject SerializeToDocument()
 		{
-			return EntitySerializer.Serialize(Entity, entityConfiguration);
+			return EntitySerializer.Serialize(Entity, entityConfiguration, Revision);
 		}
 
 		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 

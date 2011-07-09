@@ -18,7 +18,7 @@ namespace CouchDude.Tests.Unit.Utils
 		public void ShouldThrowOnMissigProperty()
 		{
 			var obj = JObject.Parse(@"{  }");
-			Assert.Throws<CouchResponseParseException>(() =>
+            Assert.Throws<ParseException>(() =>
 				obj.GetRequiredProperty("some_prop")
 			);
 		}
@@ -27,7 +27,7 @@ namespace CouchDude.Tests.Unit.Utils
 		public void ShouldThrowOnEmptyProperty()
 		{
 			var obj = JObject.Parse(@"{  ""some_prop"": """"  }");
-			Assert.Throws<CouchResponseParseException>(() =>
+            Assert.Throws<ParseException>(() =>
 				obj.GetRequiredProperty("some_prop")
 			);
 		}
@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Utils
 		public void ShouldThrowOnWhitespaseProperty()
 		{
 			var obj = JObject.Parse(@"{  ""some_prop"": ""   ""  }");
-			Assert.Throws<CouchResponseParseException>(() =>
+            Assert.Throws<ParseException>(() =>
 				obj.GetRequiredProperty("some_prop")
 			);
 		}

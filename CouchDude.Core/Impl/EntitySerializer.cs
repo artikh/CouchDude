@@ -39,6 +39,9 @@ namespace CouchDude.Core.Impl
 			if(string.IsNullOrWhiteSpace(documentId))
 				throw new DocumentIdMissingException(document);
 
+			if(string.IsNullOrWhiteSpace(revision))
+                throw new DocumentRevisionMissingException(document);
+
 			var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
 			if(string.IsNullOrWhiteSpace(entityId))
 				throw new InvalidOperationException(

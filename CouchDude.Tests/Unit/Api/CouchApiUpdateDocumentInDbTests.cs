@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonUpdatingDocumentInDb()
 		{
-			Assert.Throws<CouchResponseParseException>(() =>
+            Assert.Throws<ParseException>(() =>
 				TestInMockEnvironment(
 					couchApi => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToJObject()),
 					response: "Some none-json [) content"
@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnEmptyResponseUpdatingDocumentInDb()
 		{
-			Assert.Throws<CouchResponseParseException>(() =>
+            Assert.Throws<ParseException>(() =>
 				TestInMockEnvironment(
 					couchApi => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToJObject()),
 					response: "    "

@@ -28,7 +28,7 @@
 			Exception innerException,
 			string message,
 			params object[] messageParams)
-			: base(String.Format(message, messageParams), innerException) { }<#+
+			: base(messageParams.Length > 0? String.Format(message, messageParams): message, innerException) { }<#+
 			
 string DocReferenceTemplate = "{0}Exception";
 string CtorNameTemplate = "{0}Exception";

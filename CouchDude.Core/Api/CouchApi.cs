@@ -99,7 +99,7 @@ namespace CouchDude.Core.Api
 			ThrowIfNotOk(response);
 			var etag = response.Headers.ETag;
 			if (etag == null || etag.Tag == null)
-				throw new CouchResponseParseException("Etag header expected but was not found.");
+                throw new ParseException("Etag header expected but was not found.");
 			return etag.Tag.Trim('"');
 		}
 
@@ -152,12 +152,12 @@ namespace CouchDude.Core.Api
 			}
 			catch (Exception e)
 			{
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					e, "Error reading JSON recived from CouchDB: ", e.Message);
 			}
 
 			if (response == null)
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					"CouchDB was expected to return JSON object.");
 
 			return response;

@@ -162,19 +162,9 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 		
 		[Fact]
-		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutRevision()
-		{
-			Assert.Throws<CouchResponseParseException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith" }.ToJObject(), 
-					Default.Settings
-			));
-		}
-
-		[Fact]
 		public void ShouldThrowCouchResponseParseExceptionOnDocumentWithoutType()
 		{
-			Assert.Throws<CouchResponseParseException>(
+            Assert.Throws<DocumentTypeMissingException>(
 				() => DocumentEntity.FromJson<SimpleEntity>(
 					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToJObject(), 
 					Default.Settings
@@ -186,12 +176,12 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var ex = Assert.Throws<EntityTypeMismatchException>(
 				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "anotherEntity", name = "John Smith" }.ToJObject(), 
+					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntityWithoutRevision", name = "John Smith" }.ToJObject(), 
 					Default.Settings
 			));
 
 			Assert.Contains("SimpleEntity", ex.Message);
-			Assert.Contains("anotherEntity", ex.Message);
+            Assert.Contains("simpleEntityWithoutRevision", ex.Message);
 		}
 
 		[Fact]

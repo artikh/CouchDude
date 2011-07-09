@@ -10,7 +10,7 @@ namespace CouchDude.Core
 	/// <summary>Exception thrown in case of missing type property on
 	/// CouchDB document.</summary>
 	[Serializable]
-	public class DocumentTypeMissingException : CouchDudeException
+    public class DocumentTypeMissingException : ParseException
 	{
 		/// <summary>Initializes a new instance of the 
 		/// <see cref="DocumentTypeMissingException" /> class.</summary>

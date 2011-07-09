@@ -3,6 +3,7 @@ using CouchDude.Core;
 using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
+using JetBrains.Annotations;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -20,7 +21,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 		public class Entity
 		{
-			public string Name { get; private set; }
+			public string Name { get; [UsedImplicitly] private set; }
 			public DateTime Birthday { get; set; }
 			public int Age { get; set; }
 			public string Type { get; set; }
@@ -32,8 +33,6 @@ namespace CouchDude.Tests.Unit.Impl
 		public class ChildEntity : Entity { }
 
 		private IEntityConfig config;
-		private string setId;
-		private string setRevision;
 
 		public EntitySerializerDeserializeTests()
 		{
@@ -44,11 +43,9 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var configMock = new Mock<IEntityConfig>();
 			configMock
-				.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()))
-				.Callback<object, string>((e, id) => { setId = id; });
+				.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()));
 			configMock
-				.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()))
-				.Callback<object, string>((e, rev) => { setRevision = rev; });
+				.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()));
 			configMock
 				.Setup(ec => ec.ConvertDocumentIdToEntityId(It.IsAny<string>()))
 				.Returns<string>(docId => "E" + docId);
@@ -63,6 +60,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			dynamic document = documentObject != null ? documentObject.ToJObject() : new JObject();
 			document._id = "doc1";
+			document._rev = "1-42";
 			document.type = "entity";
 			document.child = new JObject();
 			document.child.type = "childType";
@@ -88,32 +86,32 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldDeserializeStringProperty()
 		{
-			var document = CreateDoc(new { name = "John" });
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var document = CreateDoc(new {name = "John"});
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.Equal("John", entity.Name);
 		}
 
 		[Fact]
 		public void ShouldDeserializeIntProperty()
 		{
-			var document =  CreateDoc(new { age = 18 });
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var document = CreateDoc(new {age = 18});
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.Equal(18, entity.Age);
 		}
 
 		[Fact]
 		public void ShouldDeserializeDateTimeProperty()
 		{
-			var document =  CreateDoc(new { birthday = "2011-06-01T12:04:34.444Z" });
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var document = CreateDoc(new {birthday = "2011-06-01T12:04:34.444Z"});
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.Equal(new DateTime(2011, 06, 01, 12, 04, 34, 444, DateTimeKind.Utc), entity.Birthday);
 		}
 
 		[Fact]
 		public void ShouldDeserializeFields()
 		{
-			var document =  CreateDoc(new { field = "quantum mechanics" });
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var document = CreateDoc(new {field = "quantum mechanics"});
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.Equal("quantum mechanics", entity.Field);
 		}
 
@@ -129,9 +127,9 @@ namespace CouchDude.Tests.Unit.Impl
 				document._id = id;
 			document.type = "entity";
 
-			Assert.Throws<DocumentIdMissingException>(() => EntitySerializer.Deserialize((JObject)document, config));
+			Assert.Throws<DocumentIdMissingException>(() => EntitySerializer.Deserialize((JObject) document, config));
 		}
-		
+
 		[Theory]
 		[InlineData(null)]
 		[InlineData("")]
@@ -147,23 +145,37 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutId()
 		{
-			Assert.Throws<CouchResponseParseException>(
+			Assert.Throws<DocumentIdMissingException>(
 				() => EntitySerializer.Deserialize(
 					new
-					{
-						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						type = "simpleEntity",
-						name = "John Smith"
-					}.ToJObject(),
-					Default.Settings.GetConfig(typeof(SimpleEntity))
-			));
+						{
+							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+							type = "simpleEntity",
+							name = "John Smith"
+						}.ToJObject(),
+					Default.Settings.GetConfig(typeof (SimpleEntity))
+				)
+			);
 		}
+
+
+		[Fact]
+		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutRevision()
+		{
+			Assert.Throws<DocumentRevisionMissingException>(
+				() => EntitySerializer.Deserialize(
+					new {_id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith"}.ToJObject(),
+					Default.Settings.GetConfig(typeof (SimpleEntity))
+				)
+			);
+		}
+
 
 		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{
 			var document = CreateDoc();
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.Null(entity.Type);
 		}
 
@@ -171,7 +183,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldSetTypePropertyOnSubobjects()
 		{
 			var document = CreateDoc();
-			var entity = (Entity)EntitySerializer.Deserialize(document, config);
+			var entity = (Entity) EntitySerializer.Deserialize(document, config);
 			Assert.NotNull(entity.Child.Type);
 		}
 	}

@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using CouchDude.Core;
 using CouchDude.Core.Api;
-using CouchDude.Core.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -72,7 +71,8 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonGettingDocumentById()
 		{
-			Assert.Throws<CouchResponseParseException>(() => {
+            Assert.Throws<ParseException>(() =>
+            {
 				var httpMock = new HttpClientMock("Some none-json [) content");
 				var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 			  couchApi.GetDocumentFromDbById("doc1");
@@ -91,7 +91,8 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnEmptyResponseGettingDocumentById()
 		{
-			Assert.Throws<CouchResponseParseException>(() => {
+            Assert.Throws<ParseException>(() =>
+            {
 				var httpMock = new HttpClientMock("    ");
 				var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 			  couchApi.GetDocumentFromDbById("doc1");
