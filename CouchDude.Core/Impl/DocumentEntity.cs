@@ -105,7 +105,6 @@ namespace CouchDude.Core.Impl
 		/// <summary>Creates instance from JSON document reading it form 
 		/// provided text reader. If any error does occur returns <c>null</c>.</summary>
 		public static DocumentEntity TryFromJson<TEntity>(JObject document, Settings settings)
-			where TEntity : class
 		{
 			var documentType = GetDocumnetType(document);
 			if (!string.IsNullOrWhiteSpace(documentType))

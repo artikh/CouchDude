@@ -138,7 +138,7 @@ namespace CouchDude.Core.Impl
 
 		// ReSharper disable UnusedParameter.Local
 		[Pure]
-		private bool CheckIfEntityType<T>(bool includeDocs) where T : class
+		private bool CheckIfEntityType<T>(bool includeDocs)
 		// ReSharper restore UnusedParameter.Local
 		{
 			var isEntityType = settings.TryGetConfig(typeof (T)) != null;
