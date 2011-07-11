@@ -105,6 +105,9 @@
     <Compile Include="Configuration\IEntityConfig.cs" />
     <Compile Include="Configuration\GuidIdGenerator.cs" />
     <Compile Include="Configuration\IIdGenerator.cs" />
+    <Compile Include="Configuration\ISpecialMember.cs" />
+    <Compile Include="Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMember.cs" />
+    <Compile Include="Configuration\PropertyOrPubilcFieldSpecialMember.cs" />
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
@@ -170,6 +173,11 @@
     <Compile Include="Impl\DocumentEntityCache.cs" />
     <Compile Include="Api\ICouchApi.cs" />
     <Compile Include="Impl\EntitySerializer.cs" />
+    <Compile Include="Configuration\Builders\EntityConfigBuilder.cs" />
+    <Compile Include="Configuration\Builders\EntityListConfigBuilder.cs" />
+    <Compile Include="Configuration\Builders\ScanDescriptor.cs" />
+    <Compile Include="Configuration\Builders\SettingsBuilderDetour.cs" />
+    <Compile Include="Configuration\Builders\SingleEntityConfigBuilder.cs" />
     <Compile Include="Utils\JetBrainsAnnotations.cs" />
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
@@ -179,7 +187,7 @@
     <Compile Include="Impl\PagedList.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
-    <Compile Include="Initialization\SettingsBuilder.cs" />
+    <Compile Include="Configuration\Builders\SettingsBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />

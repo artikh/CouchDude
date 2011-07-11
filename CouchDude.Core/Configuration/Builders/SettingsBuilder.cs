@@ -1,0 +1,116 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+
+namespace CouchDude.Core.Configuration.Builders
+{
+	/// <summary>Fluent interface for building of Settings instance.</summary>
+	public class SettingsBuilder
+	{
+		private readonly Settings settings = new Settings();
+		private readonly IDictionary<Assembly, ICollection<ScanDescriptor>> scanTasks = 
+			new Dictionary<Assembly,ICollection<ScanDescriptor>>();
+
+		private readonly Predicate<Type> globalEntityPredicate;
+		
+		/// <constructor />
+		public SettingsBuilder() : this(null) { }
+		
+		/// <constructor />
+		public SettingsBuilder(Predicate<Type> globalEntityPredicate)
+		{
+			this.globalEntityPredicate = globalEntityPredicate ?? DefaultGlobalEntityPredicate;
+		}
+
+		private static bool DefaultGlobalEntityPredicate(Type t)
+		{
+			return t.IsClass && !t.IsAbstract && !t.IsNotPublic && !t.IsNested;
+		}
+
+		/// <summary>Sets CouchDB server URI.</summary>
+		public SettingsBuilder ServerUri(Uri serverUri)
+		{
+			settings.ServerUri = serverUri;
+			return this;
+		}
+
+		/// <summary>Sets CouchDB server URI.</summary>
+		public SettingsBuilder ServerUri(string serverUriString)
+		{
+			return ServerUri(new Uri(serverUriString, UriKind.Absolute));
+		}
+
+		/// <summary>Sets CouchDB database name.</summary>
+		public SettingsBuilder DatabaseName(string dbName)
+		{
+			settings.DatabaseName = dbName;
+			return this;
+		}
+
+		/// <summary>Forces CouchDude to request services (in particular conventions) it needs from
+		/// given <param name="serviceProvider"/> instance.</summary>
+		public SettingsBuilder ConsumingServicesFrom(IServiceProvider serviceProvider)
+		{
+			settings.IdGenerator = serviceProvider.GetService<IIdGenerator>() ?? settings.IdGenerator;
+			return this;
+		}
+
+		/// <summary>Starts process of mapping group of similar entites.</summary>
+		public EntityListConfigBuilder MappingEntities()
+		{
+			return new EntityListConfigBuilder(this);
+		}
+
+		/// <summary>Starts process of mapping single entity.</summary>
+		public SingleEntityConfigBuilder MappingEntitiy<T>()
+		{
+			return MappingEntitiy(typeof(T));
+		}
+
+		/// <summary>Starts process of mapping single entity.</summary>
+		public SingleEntityConfigBuilder MappingEntitiy(Type entityType)
+		{
+			return new SingleEntityConfigBuilder(entityType, this);
+		}
+
+		internal void RegisterScanDescriptor(Assembly assembly, ScanDescriptor scanDescriptor)
+		{
+			ICollection<ScanDescriptor> scanDescriptors;
+			if(!scanTasks.TryGetValue(assembly, out scanDescriptors))
+				scanTasks.Add(assembly, scanDescriptors = new List<ScanDescriptor>());
+
+			scanDescriptors.Add(scanDescriptor);
+		}
+		
+		/// <summary>Geterates settings object.</summary>
+		public Settings CreateSettings()
+		{
+			var entitySettingsToRegister =
+				from pair in scanTasks
+				let assembly = pair.Key
+				let descriptors = pair.Value
+				from type in assembly.GetTypes()
+				where globalEntityPredicate(type)
+				from descriptor in descriptors
+				where descriptor.Predicate(type)
+				let config = descriptor.ConfigFactory(type)
+				where config != null
+				group config by type;
+
+			foreach (var entityConfigGroup in entitySettingsToRegister)
+			{
+				var groupSize = entityConfigGroup.Count();
+				if (groupSize > 1)
+					throw new ConfigurationException("Entity {0} config was registred several ({1}) times.", groupSize);
+
+				settings.Register(entityConfigGroup.First());
+			}
+
+			if (settings.Incomplete)
+				throw new ConfigurationException("You shoud provide database name and server URL before creating settings.");
+
+			return settings;
+		}
+	}
+}

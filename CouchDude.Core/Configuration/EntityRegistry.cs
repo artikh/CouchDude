@@ -19,6 +19,9 @@ namespace CouchDude.Core.Configuration
 			{
 				var documentType = config.DocumentType;
 				var entityType = config.EntityType;
+				if (entityTypeMap.ContainsKey(entityType))
+					throw new ConfigurationException(
+						"Duplicate registration of entity type {0}. You should revise your configuration code.", entityType);
 				if(documentTypeMap.ContainsKey(documentType))
 					throw new ConfigurationException(
 						"Duplicate registration of document type '{0}' (was for {1} and now for {2}). " +
@@ -26,9 +29,6 @@ namespace CouchDude.Core.Configuration
 						documentType,
 						documentTypeMap[documentType].EntityType,
 						entityType);
-				if (entityTypeMap.ContainsKey(entityType))
-					throw new ConfigurationException(
-						"Duplicate registration of entity type {0}. You should revise your configuration code.", entityType);
 
 				documentTypeMap[documentType] = config;
 				entityTypeMap[entityType] = config;

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using CouchDude.Core.Configuration;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -51,8 +50,9 @@ namespace CouchDude.Tests.Unit.Configuration
 		{
 			var revision = Guid.NewGuid().ToString();
 			var entity = Activator.CreateInstance(entityType);
-			DefaultEntityConfigConventions.SetEntityRevision(revision, entity, entityType);
-			var returnedRevision = DefaultEntityConfigConventions.GetEntityRevision(entity, entityType);
+			var descriptor = DefaultEntityConfigConventions.GetRevisionMember(entityType);
+			descriptor.SetValue(entity, revision);
+			var returnedRevision = descriptor.GetValue(entity);
 
 			Assert.Equal(revision, returnedRevision);
 		}
@@ -68,25 +68,26 @@ namespace CouchDude.Tests.Unit.Configuration
 		[InlineData(typeof(IDPublicPropertyPlusIdPrivatePropertyEntity))]
 		public void ShouldSetAndGetId(Type entityType)
 		{
-			var revision = Guid.NewGuid().ToString();
+			var id = Guid.NewGuid().ToString();
 			var entity = Activator.CreateInstance(entityType);
-			DefaultEntityConfigConventions.SetEntityId(revision, entity, entityType);
-			
-			string returnedRevision = DefaultEntityConfigConventions.GetEntityId(entity, entityType);
-			Assert.Equal(revision, returnedRevision);
+			var descriptor = DefaultEntityConfigConventions.GetIdMember(entityType);
+			descriptor.SetValue(entity, id);
+
+			string returnedRevision = descriptor.GetValue(entity);
+			Assert.Equal(id, returnedRevision);
 		}
 
 		[Fact]
 		public void ShouldReturnFalseIfNoIdProperty()
 		{
-			var isPresent =  DefaultEntityConfigConventions.IsEntityIdMemberPresent(typeof(RevisionPublicFieldEntity));
+			var isPresent = DefaultEntityConfigConventions.GetIdMember(typeof(RevisionPublicFieldEntity)).IsDefined;
 			Assert.False(isPresent);
 		}
 
 		[Fact]
 		public void ShouldReturnFalseIfNoRevisionProperty()
 		{
-			var isPresent =  DefaultEntityConfigConventions.IsEntityRevisionMemberPresent(typeof(IdPrivatePropertyEntity));
+			var isPresent = DefaultEntityConfigConventions.GetRevisionMember(typeof(IdPrivatePropertyEntity)).IsDefined;
 			Assert.False(isPresent);
 		}
 
@@ -94,30 +95,6 @@ namespace CouchDude.Tests.Unit.Configuration
 		public void ShouldConvertEntityTypeShortNameToCamelCaseWhenTransformingItToDocumnetType()
 		{
 			Assert.Equal("simpleEntity", DefaultEntityConfigConventions.EntityTypeToDocumentType(typeof(SimpleEntity)));
-		}
-
-		[Theory]
-		[InlineData(typeof(IdPrivatePropertyEntity)				             , new[]{ "Id" })]
-		[InlineData(typeof(IDPrivatePropertyEntity)				             , new[]{ "ID" })]
-		[InlineData(typeof(IdPublicPropertyEntity)				             , new[]{ "Id" })]
-		[InlineData(typeof(IDPublicPropertyEntity)				             , new[]{ "ID" })]
-		[InlineData(typeof(IdPublicFieldEntity)						             , new[]{ "Id" })]
-		[InlineData(typeof(IDPublicFieldEntity)						             , new[]{ "ID" })]
-		[InlineData(typeof(RevPrivatePropertyEntity)			             , new[]{ "Rev" })]
-		[InlineData(typeof(RevisionPrivatePropertyEntity)	             , new[]{ "Revision" })]
-		[InlineData(typeof(RevisionPublicPropertyEntity)	             , new[]{ "Revision" })]
-		[InlineData(typeof(RevPublicPropertyEntity)				             , new[]{ "Rev" })]
-		[InlineData(typeof(RevPublicFieldEntity)					             , new[]{ "Rev" })]
-		[InlineData(typeof(RevisionPublicFieldEntity)                  , new[]{ "Revision" })]
-		[InlineData(typeof(NormalIdAndRevEntity)                       , new[]{ "Id", "Revision" })]
-		[InlineData(typeof(IDPublicPropertyPlusIdPrivatePropertyEntity), new[]{ "Id" })]
-		public void ShouldReturnFoundIDAndRevisionMembersAsIgnored(Type entityType, string[] expectedIgnoredMemberNames)
-		{
-			var ignoredMembers = DefaultEntityConfigConventions.GetIgnoredMembers(entityType).ToList();
-			Assert.Equal(expectedIgnoredMemberNames.Length, ignoredMembers.Count);
-			
-			foreach (var ignoredMember in ignoredMembers)
-				Assert.Contains(ignoredMember.Name, expectedIgnoredMemberNames);
 		}
 	}
 }

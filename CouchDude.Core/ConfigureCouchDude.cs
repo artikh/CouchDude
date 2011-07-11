@@ -1,6 +1,6 @@
 using System;
 using CouchDude.Core.Impl;
-using CouchDude.Core.Initialization;
+using CouchDude.Core.Configuration.Builders;
 
 namespace CouchDude.Core
 {

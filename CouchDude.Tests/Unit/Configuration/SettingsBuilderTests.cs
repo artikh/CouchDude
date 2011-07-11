@@ -3,14 +3,13 @@ using System.Linq;
 using System.Reflection;
 using CouchDude.Core;
 using CouchDude.Core.Configuration;
-using CouchDude.Core.Initialization;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Initialization
+namespace CouchDude.Tests.Unit.Configuration
 {
-	public class FluentConfigurationTests
+	public class SettingsBuilderTests
 	{
 		[Fact]
 		public void ShouldSetServerUriAndDatabaseName()
@@ -72,6 +71,7 @@ namespace CouchDude.Tests.Unit.Initialization
 				.CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
 			
 			Assert.NotNull(simpleEntityConfig);
 			Assert.Null(simpleEntityWithoutRevisionConfig);
@@ -101,7 +101,7 @@ namespace CouchDude.Tests.Unit.Initialization
 				.ServerUri("http://example.com").DatabaseName("db1")
 				.MappingEntities()
 					.FromAssembly("CouchDude.Tests")
-					.Where((Type t) => t.GetInterfaces().Any(i => i.Name == "IEntity"))
+					.Where(t => t.GetInterfaces().Any(i => i.Name == "IEntity"))
 				.CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
@@ -121,7 +121,7 @@ namespace CouchDude.Tests.Unit.Initialization
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
+					 .InheritedFrom<SimpleEntity>()
 					 .WithCustomConfig(t => customConfig)
 				 .CreateSettings();
 
@@ -133,69 +133,57 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldSetDocumentTypePolicy()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
+					 .Implementing<IEntity>()
 					 .WhenDocumentType(t => "_" + Char.ToLower(t.Name[0]) + t.Name.Substring(1))
 				 .CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			Assert.Same("_simpleEntity", simpleEntityConfig.DocumentType);
+			Assert.Equal("_simpleEntity", simpleEntityConfig.DocumentType);
 		}
 
 		[Fact]
 		public void ShouldSetEntityIdToDocumentIdConversion()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
-					 .TranslatingDocumentIdToEntityIdAs(entityId => "Document#" + entityId)
+					 .Implementing<IEntity>()
+					 .TranslatingEntityIdToDocumentIdAs((entityId, entityType, documentType) => "Entity#" + entityId)
 				 .CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			Assert.Same("Document#42", simpleEntityConfig.ConvertEntityIdToDocumentId("42"));
+			Assert.Equal("Entity#42", simpleEntityConfig.ConvertEntityIdToDocumentId("42"));
 		}
 
 		[Fact]
 		public void ShouldSetDocumentIdToEntityIdConversion()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
-					 .TranslatingEntityIdToDocumentIdAs(docId => "Entity#" + docId)
+					 .Implementing<IEntity>()
+					 .TranslatingDocumentIdToEntityIdAs((documentId, documentType, entityType) => "Document#" + documentId)
 				 .CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			Assert.Same("Entity#42", simpleEntityConfig.ConvertDocumentIdToEntityId("42"));
+			Assert.Equal("Document#42", simpleEntityConfig.ConvertDocumentIdToEntityId("42"));
 		}
 
 		[Fact]
 		public void ShouldSetIdMemberPolicy()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
-					 .WhenIdMember((Type entityType) => (MemberInfo)entityType.GetProperty("Name"))
+					 .Implementing<IEntity>()
+					 .WhenIdMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
@@ -210,16 +198,13 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnNoneInstanceIdMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenIdMember((Type entityType) => (MemberInfo)entityType.GetField("OkResponse"))
+						.Implementing<IEntity>()
+						.WhenIdMember(entityType => (MemberInfo)entityType.GetField("OkResponse"))
 					.CreateSettings()
 			);
 		}
@@ -227,47 +212,38 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnNonePropertyOrFieldIdMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenIdMember((Type entityType) => (MemberInfo)entityType.GetMethod("DoStuff"))
+						.Implementing<IEntity>()
+						.WhenIdMember(entityType => (MemberInfo)entityType.GetMethod("DoStuff"))
 					.CreateSettings());
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullIdMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.Throws<ConfigurationException>(() => 
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 						.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenIdMember((Type entityType) => null)
+						.Implementing<IEntity>()
+						.WhenIdMember(entityType => null)
 					.CreateSettings());
 		}
 
 		[Fact]
 		public void ShouldSetRevisionMemberPolicy()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<IEntity>()
-					 .WhenRevisionMember((Type entityType) => (MemberInfo)entityType.GetProperty("Name"))
+					 .Implementing<IEntity>()
+					 .WhenRevisionMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
 			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
@@ -282,16 +258,13 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnNoneInstanceRevisionMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenRevisionMember((Type entityType) => (MemberInfo)entityType.GetField("OkResponse"))
+						.Implementing<IEntity>()
+						.WhenRevisionMember(entityType => (MemberInfo)entityType.GetField("OkResponse"))
 					.CreateSettings()
 			);
 		}
@@ -299,32 +272,26 @@ namespace CouchDude.Tests.Unit.Initialization
 		[Fact]
 		public void ShouldThrowOnNonePropertyOrFieldRevisionMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenRevisionMember((Type entityType) => (MemberInfo)entityType.GetMethod("DoStuff"))
+						.Implementing<IEntity>()
+						.WhenRevisionMember(entityType => (MemberInfo)entityType.GetMethod("DoStuff"))
 					.CreateSettings());
 		}
 
 		[Fact]
 		public void ShouldNotThrowOnNullRevMember()
 		{
-			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
-
 			Assert.DoesNotThrow(() =>
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 						.MappingEntities()
 						.FromAssemblyOf<SimpleEntity>()
-						.InheritedFrom<IEntity>()
-						.WhenRevisionMember((Type entityType) => null)
+						.Implementing<IEntity>()
+						.WhenRevisionMember(entityType => null)
 					.CreateSettings());
 		}
 	}
