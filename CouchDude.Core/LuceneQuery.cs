@@ -100,7 +100,7 @@ namespace CouchDude.Core
 				var oneItemInList = true;
 				foreach (var luceneSort in Sort)
 				{
-					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/" + luceneSort.FieldName);
+					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/") + luceneSort.FieldName;
 					uriBuilder.Append(sortLuceneString);
 					oneItemInList = false;
 				}	
