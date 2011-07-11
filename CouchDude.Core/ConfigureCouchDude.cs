@@ -8,9 +8,9 @@ namespace CouchDude.Core
 	public static class ConfigureCouchDude
 	{
 		/// <summary>Starts CouchDude configuration.</summary>
-		public static SessionFactoryBuilder With()
+		public static SettingsBuilder With()
 		{
-			return new SessionFactoryBuilder();
+			return new SettingsBuilder();
 		}
 
 		/// <summary>Creates session factory from provided setting.</summary>

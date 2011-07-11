@@ -179,7 +179,7 @@
     <Compile Include="Impl\PagedList.cs" />
     <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
-    <Compile Include="Initialization\SessionFactoryBuilder.cs" />
+    <Compile Include="Initialization\SettingsBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
