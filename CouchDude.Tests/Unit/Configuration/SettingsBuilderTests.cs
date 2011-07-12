@@ -294,5 +294,29 @@ namespace CouchDude.Tests.Unit.Configuration
 						.WhenRevisionMember(entityType => null)
 					.CreateSettings());
 		}
+
+		[Fact]
+		public void ShouldPickLastEntityConfigIfMultiplyHaveRegistred()
+		{
+			var customConfigA = Mock.Of<IEntityConfig>(
+				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
+			var customConfigB = Mock.Of<IEntityConfig>(
+				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
+
+			var settings = ConfigureCouchDude.With()
+				.ServerUri("http://example.com").DatabaseName("db1")
+				.MappingEntities()
+					.FromAssemblyOf<SimpleEntity>()
+					.Where(t => t.Name == "SimpleEntity")
+					.WithCustomConfig(t => customConfigA)
+				.MappingEntities()
+					.FromAssembly("CouchDude.Tests")
+					.InheritedFrom<SimpleEntity>()
+					.WithCustomConfig(t => customConfigB)
+				.CreateSettings();
+
+			var simpleEntityConfig = settings.GetConfig(typeof (SimpleEntity));
+			Assert.Same(customConfigB, simpleEntityConfig);
+		}
 	}
 }

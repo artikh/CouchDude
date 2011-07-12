@@ -99,13 +99,7 @@ namespace CouchDude.Core.Configuration.Builders
 				group config by type;
 
 			foreach (var entityConfigGroup in entitySettingsToRegister)
-			{
-				var groupSize = entityConfigGroup.Count();
-				if (groupSize > 1)
-					throw new ConfigurationException("Entity {0} config was registred several ({1}) times.", groupSize);
-
-				settings.Register(entityConfigGroup.First());
-			}
+				settings.Register(entityConfigGroup.Last());
 
 			if (settings.Incomplete)
 				throw new ConfigurationException("You shoud provide database name and server URL before creating settings.");
