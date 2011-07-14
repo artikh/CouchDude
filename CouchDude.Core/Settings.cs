@@ -1,21 +1,15 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text.RegularExpressions;
-using CouchDude.Core.Conventions;
+using CouchDude.Core.Configuration;
 
 namespace CouchDude.Core
 {
 	/// <summary>CouchDude settings.</summary>
 	public class Settings
 	{
-		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
-			idPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-
-		private readonly ConcurrentDictionary<Type, SpecialPropertyDescriptor>
-			revPropertyDescriptorMap = new ConcurrentDictionary<Type, SpecialPropertyDescriptor>();
-
+		private readonly EntityRegistry entityRegistry = new EntityRegistry();
 		private Uri serverUri;
 		private string databaseName;
 
@@ -55,16 +49,6 @@ namespace CouchDude.Core
 				databaseName = value;
 			}
 		}
-
-		/// <summary>Document id property convension.</summary>
-		public IIdPropertyConvention IdPropertyConvention =
-			new PropertyByNameConvention("Id", "ID");
-
-		/// <summary>Document revision property convension.</summary>
-		public IRevisionPropertyConvention RevisionPropertyConvention = new PropertyByNameConvention("Revision", "Rev");
-
-		/// <summary>Document type detector convension.</summary>
-		public ITypeConvention TypeConvension = new EmptyTypeConvention();
 
 		/// <summary>Document ID generator.</summary>
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
@@ -108,37 +92,32 @@ namespace CouchDude.Core
 			var firstLetter = databaseName[0];
 			return Char.IsLetter(firstLetter)
 			       && Char.IsLower(firstLetter)
-			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]")
-			          	);
+			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]"));
 		}
 
-		/// <summary>Returns ID property descriptor.</summary>
-		public SpecialPropertyDescriptor GetIdPropertyDescriptor<TEntity>()
+		/// <summary>Registers entity configuration.</summary>
+		public Settings Register(IEntityConfig entityConfig)
 		{
-			return idPropertyDescriptorMap.GetOrAdd(
-				typeof (TEntity),
-				t =>
-					{
-						var idPropertyDescriptor = IdPropertyConvention.Get(t);
-						if (idPropertyDescriptor == null || !idPropertyDescriptor.CanRead)
-							throw new ConventionException(
-								"Convention have not found any readable ID property on {0} entity.",
-								typeof (TEntity).FullName);
-						return idPropertyDescriptor;
-					});
+			entityRegistry.Register(entityConfig);
+			return this;
+		}
+		
+		/// <summary>Retrives entity configuration by entity type.</summary>
+		public IEntityConfig GetConfig(Type entityType)
+		{
+			return entityRegistry[entityType];
 		}
 
-		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor<TEntity>()
+		/// <summary>Retrives entity configuration by entity type returning <c>null</c> if none found.</summary>
+		public IEntityConfig TryGetConfig(Type entityType)
 		{
-			return GetRevPropertyDescriptor(typeof (TEntity));
+			return entityRegistry.Contains(entityType) ? entityRegistry[entityType] : null;
 		}
 
-		/// <summary>Returns revision property descriptor for given entity type.</summary>
-		public SpecialPropertyDescriptor GetRevPropertyDescriptor(Type type)
+		/// <summary>Retrives entity configuration by document type.</summary>
+		public IEntityConfig GetConfig(string documentType)
 		{
-			return revPropertyDescriptorMap.GetOrAdd(
-				type, t => RevisionPropertyConvention.Get(t) ?? SpecialPropertyDescriptor.Noop);
+			return entityRegistry[documentType];
 		}
 	}
 } ;

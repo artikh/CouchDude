@@ -31,27 +31,27 @@ namespace CouchDude.Core.DesignDocumentManagment
 		{
 			var keyProperty = rowObject["key"] as JValue;
 			if (keyProperty == null)
-				throw new CouchResponseParseException(
+				throw new ParseException(
 					"Document list row object should contain 'key' property.");
 
 			var id = keyProperty.Value<string>();
 			if (!id.StartsWith(DesignDocument.IdPrefix))
-				throw new CouchResponseParseException(
+				throw new ParseException(
 					"Document list row object's 'key' property should start with " + DesignDocument.IdPrefix + "'.");
 			
 			var valueProperty = rowObject["value"] as JObject;
 			if (valueProperty == null)
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					"Document list row object should contain 'value' property.");
 
 			var revProperty = valueProperty["rev"] as JValue;
 			if (revProperty == null)
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					"Document list row's value property object should contain 'rev' property.");
 
 			var documentProperty = rowObject["doc"] as JObject;
 			if (documentProperty == null)
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					"Document list row object should contain 'doc' property.");
 
 			return new DesignDocument(documentProperty, id, revProperty.Value<string>());
@@ -61,7 +61,7 @@ namespace CouchDude.Core.DesignDocumentManagment
 		{
 			var rowsArray = documentList["rows"] as JArray;
 			if (rowsArray == null)
-				throw new CouchResponseParseException(
+                throw new ParseException(
 					"Document list object should contain 'rows' property.");
 			return rowsArray;
 		}
@@ -76,7 +76,7 @@ namespace CouchDude.Core.DesignDocumentManagment
 				}
 				catch (Exception e)
 				{
-					throw new CouchResponseParseException(e, "Error parsing document list object");
+                    throw new ParseException(e, "Error parsing document list object");
 				}
 			return documentList;
 		}

@@ -4,15 +4,28 @@ using System.Web;
 namespace CouchDude.Core
 {
 	/// <summary>Класс типизирован так как могут возвращаться в том числе объекты из бд</summary>
-	public class LuceneQuery<T>:LuceneQuery
+	public class LuceneQuery<T>:LuceneQuery { }
+
+	/// <summary>Сортировка поля объекта</summary>
+	public struct LuceneSort
 	{
-		
+		/// <summary>Name of feild to sort on</summary>
+		public string FieldName;
+
+		/// <summary>Sort order</summary>
+		public bool SortDescending;
+
+		/// <contructor/>
+		public LuceneSort(string fieldName, bool sortDescending = false)
+		{
+			FieldName = fieldName;
+			SortDescending = sortDescending;
+		}
 	}
 
 	/// <summary>Fulltext query to couchdb-lucene</summary>
 	public class LuceneQuery
 	{
-
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName;
 
@@ -28,6 +41,15 @@ namespace CouchDude.Core
 		/// <summary>Name of analizer which is used for this query</summary>
 		public string Analyzer;
 
+		/// <summary>Array of objects to sort on</summary>
+		public LuceneSort[] Sort;
+
+		/// <summary>How many documents will be returned</summary>
+		public int Limit;
+
+		/// <summary>How many documents need to be skipped</summary>
+		public int Skip;
+
 		/*
 		 * UNIMPLEMENTED
 		/// <summary></summary>
@@ -39,34 +61,23 @@ namespace CouchDude.Core
 		public string DefaultOperator;
 
 		/// <summary></summary>
-		public bool ForceJson;
-
-		 * /// <summary></summary>
-		public string Sort;
-
-		/// <summary></summary>
 		public bool Stale;
 		*/
-
-		/// <summary>How many documents will be returned</summary>
-		public int Limit;
-
-		/// <summary>How many documents need to be skipped</summary>
-		public int Skip;
 
 		/// <constructor/>
 		public LuceneQuery()
 		{
-			IncludeDocs = false;
 			DesignDocumentName = "lucene";
+			IncludeDocs = false;			
 			Limit = 100;
 			Skip = 0;
 			Analyzer = null;
 		}
 
 		/// <constructor/>
-		public LuceneQuery(string indexName, string query):this()
+		public LuceneQuery(string designDocumentName, string indexName, string query): this()
 		{
+			DesignDocumentName = designDocumentName;
 			Query = query;
 			IndexName = indexName;
 		}		
@@ -83,6 +94,17 @@ namespace CouchDude.Core
 				uriBuilder.Append("&include_docs=true");
 			if (Analyzer != null)
 				uriBuilder.Append("&analyzer=" + HttpUtility.UrlEncode(Analyzer));
+			if (Sort != null)
+			{
+				uriBuilder.Append("&sort=");
+				var oneItemInList = true;
+				foreach (var luceneSort in Sort)
+				{
+					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/") + luceneSort.FieldName;
+					uriBuilder.Append(sortLuceneString);
+					oneItemInList = false;
+				}	
+			}
 			return uriBuilder.ToString();
 		}
 	}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using CouchDude.Core;
-using CouchDude.Core.Implementation;
+using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 

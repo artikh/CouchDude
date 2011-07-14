@@ -25,13 +25,13 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 							d1.EnumerateFiles() == EmptyFileArray &&
 							d1.EnumerateDirectories() == EmptyDirectoryArray &&
 							d1.Name == "first_doc"
-				  ), 
+					), 
 					Mock.Of<IDirectory>(
-				    d1 =>
+						d1 =>
 							d1.EnumerateFiles() == EmptyFileArray &&
 							d1.EnumerateDirectories() == EmptyDirectoryArray &&
 							d1.Name == "second_doc"
-				  )
+					)
 				}
 			);
 
@@ -225,7 +225,7 @@ namespace CouchDude.Tests.Unit.DesignDocumentManagment
 													}
 											)
 										}
- 								)
+								)
 							} 
 						)
 				}

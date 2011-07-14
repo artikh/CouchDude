@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Text;
 using System.Web;
 using Newtonsoft.Json;
+using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 namespace CouchDude.Core
 {
@@ -46,6 +47,9 @@ namespace CouchDude.Core
 		/// <summary>Flag that indicates that query should run multiple reduce</summary>
 		public bool Group;
 
+		/// <summary>Indicates level of grouping which used when query executed</summary>
+		public int? GroupLevel;
+
 		/// <summary>Limit the number of view rows in the output.</summary>
 		public int? Limit;
 
@@ -77,25 +81,26 @@ namespace CouchDude.Core
 		{
 			// http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options
 			var uriBuilder = new ViewUriBuilder(DesignDocumentName, ViewName);
-			uriBuilder.AddIfNotNull	(Key,                "key"                  );
-			uriBuilder.AddIfNotNull	(StartKey,           "startkey"             );
-			uriBuilder.AddIfNotNull	(StartDocumentId,    "startkey_docid"       );
-			uriBuilder.AddIfNotNull	(EndKey,             "endkey"               );
-			uriBuilder.AddIfNotNull	(EndDocumentId,      "endkey_docid"         );
-			uriBuilder.AddIfHasValue(Limit,	             "limit"                );
-			uriBuilder.AddIfHasValue(Skip,               "skip"                 );
-			uriBuilder.AddIfTrue    (StaleViewIsOk,      "stale",         "ok"	 );
-			uriBuilder.AddIfTrue    (FetchDescending,    "descending",    "true" );
-			uriBuilder.AddIfTrue    (SuppressReduce,     "reduce",	      "false");
-			uriBuilder.AddIfTrue    (IncludeDocs,	     "include_docs",  "true" );
-			uriBuilder.AddIfTrue    (DoNotIncludeEndKey, "inclusive_end", "false");
-			uriBuilder.AddIfTrue    (Group,               "group",        "true" );
+			uriBuilder.AddIfNotNull    (Key,                "key"                    );
+			uriBuilder.AddIfNotNull    (StartKey,           "startkey"               );
+			uriBuilder.AddIfNotNull    (StartDocumentId,    "startkey_docid"         );
+			uriBuilder.AddIfNotNull    (EndKey,             "endkey"                 );
+			uriBuilder.AddIfNotNull    (EndDocumentId,      "endkey_docid"           );
+			uriBuilder.AddIfHasValue   (Limit,              "limit"                  );
+			uriBuilder.AddIfHasValue   (Skip,               "skip"                   );
+			uriBuilder.AddIfTrue       (StaleViewIsOk,      "stale",         "ok"    );
+			uriBuilder.AddIfTrue       (FetchDescending,    "descending",    "true"  );
+			uriBuilder.AddIfTrue       (SuppressReduce,     "reduce",        "false" );
+			uriBuilder.AddIfTrue       (IncludeDocs,        "include_docs",  "true"  );
+			uriBuilder.AddIfTrue       (DoNotIncludeEndKey, "inclusive_end", "false" );
+			uriBuilder.AddIfTrue       (Group,              "group",         "true"  );
+			uriBuilder.AddIfHasValue   (GroupLevel,         "group_level"            );
 			return uriBuilder.ToUri();
 		}
 
 		private class ViewUriBuilder
 		{
-			public static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
+			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
 
 			private readonly NameValueCollection querySring = new NameValueCollection();
 			private readonly string designDocumentName;
@@ -124,7 +129,7 @@ namespace CouchDude.Core
 				if (value != null)
 					using (var writer = new StringWriter())
 					{
-						Implementation.JsonSerializer.Instance.Serialize(writer, value);
+						JsonSerializer.Instance.Serialize(writer, value);
 						querySring[key] = writer.ToString();
 					}
 			}
