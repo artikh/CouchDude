@@ -12,9 +12,11 @@ namespace CouchDude.Tests.SampleData
 					.ServerUri("http://127.0.0.1:5984")
 					.DatabaseName("test")
 					.MappingEntities()
-					.FromAssemblyOf<IEntity>()
-					.Implementing<IEntity>()
-					.ToDocumentTypeCamelCase()
+						.FromAssemblyOf<IEntity>()
+						.Implementing<IEntity>()
+						.TranslatingEntityIdToDocumentIdAs(
+							(id, type, documentType) => string.Concat(documentType, ".", id))
+						.TranslatingDocumentIdToEntityIdAs((id, type, entityType) => id.Split('.')[1])
 					.CreateSettings(); 
 			}
 		}

@@ -3,11 +3,11 @@ old
 obj
 bin
 _ReSharper.*
-_ReSharper.CouchDude
 *.user
 *.suo
 *.cache
-~$*
 *.orig
 *.swp
-.sass-cache
+*.log
+*.tmp
+*.eprj

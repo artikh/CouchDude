@@ -68,7 +68,7 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Integration\Lucene\SaveEntitiesAndSearchByKeyword.cs" />
+    <Compile Include="Integration\SaveEntitiesAndSearchByKeyword.cs" />
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
     <Compile Include="HttpClientMock.cs" />
@@ -77,51 +77,53 @@
     <Compile Include="SampleData\SimpleViewData.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
-    <Compile Include="Unit\Conventions\CamelCaseTypeNameToConventionTests.cs" />
-    <Compile Include="Unit\Conventions\CustomTypeConventionTests.cs" />
-    <Compile Include="Unit\Conventions\TypeConventionBaseTests.cs" />
-    <Compile Include="Unit\Conventions\PropertyByNameConventionTests.cs" />
-    <Compile Include="Unit\Conventions\SequentialUuidIdGeneratorTests.cs" />
-    <Compile Include="Unit\Conventions\TypeNameAsIsTypeConventionTests.cs" />
+    <Compile Include="Unit\Configuration\DefaultEntityConfigConventionsTests.cs" />
+    <Compile Include="Unit\Configuration\EntityConfigTests.cs" />
+    <Compile Include="Unit\Configuration\EntityRegistryTests.cs" />
+    <Compile Include="Unit\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
+    <Compile Include="Unit\Configuration\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentExtractorTest.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DesignDocumentTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\DirectoryTests.cs" />
     <Compile Include="Unit\DesignDocumentManagment\EngineTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiDeleteDocumentFromDbTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiGetLastestDocumentRevisionTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiQueryTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiUpdateDocumentInDbTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiSaveDocumentToDbTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiParseErrorResponseBodyTests.cs" />
-    <Compile Include="Unit\Implementation\CouchApiGetDocumentFromDbByIdTests.cs">
+    <Compile Include="Unit\Api\CouchApiDeleteDocumentFromDbTests.cs" />
+    <Compile Include="Unit\Api\CouchApiGetLastestDocumentRevisionTests.cs" />
+    <Compile Include="Unit\Api\CouchApiQueryTests.cs" />
+    <Compile Include="Unit\Api\CouchApiUpdateDocumentInDbTests.cs" />
+    <Compile Include="Unit\Api\CouchApiSaveDocumentToDbTests.cs" />
+    <Compile Include="Unit\Api\CouchApiParseErrorResponseBodyTests.cs" />
+    <Compile Include="Unit\Api\CouchApiGetDocumentFromDbByIdTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Implementation\CouchSessionConstuctorTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionDeleteTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionQueryTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionFlushTests.cs" />
-    <Compile Include="Unit\Implementation\CouchSessionLoadTests.cs">
+    <Compile Include="Unit\DocumentTests.cs" />
+    <Compile Include="Unit\Impl\EntitySerializerDeserializeTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionConstuctorTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionDeleteTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionQueryTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionFlushTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionLoadTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Implementation\CouchSessionSaveTests.cs">
+    <Compile Include="Unit\Impl\CouchSessionSaveTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Implementation\DocumentEntityTests.cs">
+    <Compile Include="Unit\Impl\DocumentEntityTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Implementation\UtilsTests.cs">
+    <Compile Include="Unit\Impl\EntitySerializerSerializeTests.cs" />
+    <Compile Include="Unit\Utils\JsonUtilsTests.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Integration\SaveLoadAndDelete.cs" />
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Unit\Implementation\ViewQueryTests.cs" />
-    <Compile Include="Unit\Initialization\FluentConfigurationTests.cs" />
+    <Compile Include="Unit\Api\ViewQueryTests.cs" />
+    <Compile Include="Unit\Configuration\SettingsBuilderTests.cs" />
     <Compile Include="Unit\SettingsTests.cs" />
     <Compile Include="TestBase.cs" />
-    <Compile Include="Utils.cs" />
+    <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

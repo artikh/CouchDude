@@ -1,6 +1,0 @@
-﻿<#@ template language="C#" #>
-<#
-    this.ExceptionName = "CouchResponseParse";
-		this.BaseExceptionName = "CouchDude";
-#>
-<#@ include file="BoilerplateExeption.ttinclude" #>

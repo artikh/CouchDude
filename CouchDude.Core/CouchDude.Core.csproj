@@ -99,17 +99,18 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Conventions\CustomTypeConvention.cs" />
-    <Compile Include="Conventions\IIdPropertyConvention.cs" />
-    <Compile Include="Conventions\IRevisionPropertyConvention.cs" />
-    <Compile Include="Conventions\TypeNameAsIsTypeConvention.cs" />
-    <Compile Include="Conventions\EmptyTypeConvention.cs" />
-    <Compile Include="Conventions\TypeConventionBase.cs" />
-    <Compile Include="Conventions\GuidIdGenerator.cs" />
-    <Compile Include="Conventions\ITypeConvention.cs" />
-    <Compile Include="Conventions\IIdGenerator.cs" />
-    <Compile Include="Conventions\SequentialUuidIdGenerator.cs" />
-    <Compile Include="Conventions\CamelCaseTypeNameToConvention.cs" />
+    <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
+    <Compile Include="Configuration\EntityConfig.cs" />
+    <Compile Include="Configuration\EntityConfigUtils.cs" />
+    <Compile Include="Configuration\EntityRegistry.cs" />
+    <Compile Include="Configuration\IEntityConfig.cs" />
+    <Compile Include="Configuration\GuidIdGenerator.cs" />
+    <Compile Include="Configuration\IIdGenerator.cs" />
+    <Compile Include="Configuration\ISpecialMember.cs" />
+    <Compile Include="Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMember.cs" />
+    <Compile Include="Configuration\PropertyOrPubilcFieldSpecialMember.cs" />
+    <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
+    <Compile Include="Document.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -120,6 +121,11 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Exceptions\DocumentIdMissingException.cs" />
+    <Compile Include="Exceptions\DocumentRevisionMissingException.cs" />
+    <Compile Include="Exceptions\DocumentTypeMissingException.cs" />
+    <Compile Include="Exceptions\DocumentTypeNotRegistredException.cs" />
+    <Compile Include="Exceptions\EntityTypeNotRegistredException.cs" />
     <Compile Include="Exceptions\QueryException.cs">
       <DependentUpon>QueryException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -130,23 +136,18 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Exceptions\EntityTypeMismatchException.Types.cs" />
-    <Compile Include="Exceptions\EntityTypeMismatchException.cs">
-      <DependentUpon>EntityTypeMismatchException.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Exceptions\CouchResponseParseException.cs">
-      <DependentUpon>CouchResponseParseException.tt</DependentUpon>
+    <Compile Include="Exceptions\EntityTypeMismatchException.cs" />
+    <Compile Include="Exceptions\ParseException.cs">
+      <DependentUpon>ParseException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Http\HttpClientHelpers.cs" />
     <Compile Include="Http\HttpClientImpl.cs" />
     <Compile Include="Http\IHttpClient.cs" />
-    <Compile Include="Implementation\CouchApi.cs" />
-    <Compile Include="Implementation\CouchSessionFactory.cs" />
-    <Compile Include="Implementation\CouchSession.cs" />
+    <Compile Include="Api\CouchApi.cs" />
+    <Compile Include="Impl\CouchSessionFactory.cs" />
+    <Compile Include="Impl\CouchSession.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocument.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocumentExtractor.cs" />
     <Compile Include="DesignDocumentManagment\Engine.cs" />
@@ -170,29 +171,34 @@
     <Compile Include="DesignDocumentManagment\IDesignDocumentExtractor.cs" />
     <Compile Include="DesignDocumentManagment\IDirectory.cs" />
     <Compile Include="DesignDocumentManagment\IFile.cs" />
-    <Compile Include="Conventions\PropertyByNameConvention.cs" />
-    <Compile Include="Conventions\ISpecialPropertyConvention.cs" />
-    <Compile Include="Implementation\DocumentEntity.cs" />
-    <Compile Include="Implementation\DocumentEntityCache.cs" />
-    <Compile Include="Implementation\ICouchApi.cs" />
-    <Compile Include="Implementation\JsonSerializer.cs" />
-    <Compile Include="Implementation\Lucene\LuceneResultRow.cs" />
-    <Compile Include="Implementation\Lucene\LuceneResult.cs" />
-    <Compile Include="Implementation\PagedList.cs" />
-    <Compile Include="Implementation\Utils.cs" />
+    <Compile Include="Impl\DocumentEntity.cs" />
+    <Compile Include="Impl\DocumentEntityCache.cs" />
+    <Compile Include="Api\ICouchApi.cs" />
+    <Compile Include="Impl\EntitySerializer.cs" />
+    <Compile Include="Configuration\Builders\EntityConfigBuilder.cs" />
+    <Compile Include="Configuration\Builders\EntityListConfigBuilder.cs" />
+    <Compile Include="Configuration\Builders\ScanDescriptor.cs" />
+    <Compile Include="Configuration\Builders\SettingsBuilderDetour.cs" />
+    <Compile Include="Configuration\Builders\SingleEntityConfigBuilder.cs" />
+    <Compile Include="Utils\JetBrainsAnnotations.cs" />
+    <Compile Include="Utils\StringUtils.cs" />
+    <Compile Include="Utils\UriUtils.cs" />
+    <Compile Include="Utils\JsonSerializer.cs" />
+    <Compile Include="Api\LuceneResultRow.cs" />
+    <Compile Include="Api\LuceneResult.cs" />
+    <Compile Include="Impl\PagedList.cs" />
+    <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
-    <Compile Include="Initialization\SessionFactoryBuilder.cs" />
-    <Compile Include="Initialization\TypeNameConventionBuilder.cs" />
+    <Compile Include="Configuration\Builders\SettingsBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
-    <Compile Include="Implementation\ViewResult.cs" />
-    <Compile Include="Implementation\ViewResultRow.cs" />
+    <Compile Include="Api\ViewResult.cs" />
+    <Compile Include="Api\ViewResultRow.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Conventions\SpecialPropertyDescriptor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Exceptions\BoilerplateEcxeptionConstructors.ttinclude" />
@@ -213,13 +219,9 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>StaleObjectStateException.cs</LastGenOutput>
     </None>
-    <None Include="Exceptions\EntityTypeMismatchException.tt">
+    <None Include="Exceptions\ParseException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>EntityTypeMismatchException.cs</LastGenOutput>
-    </None>
-    <None Include="Exceptions\CouchResponseParseException.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>CouchResponseParseException.cs</LastGenOutput>
+      <LastGenOutput>ParseException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\CouchCommunicationException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

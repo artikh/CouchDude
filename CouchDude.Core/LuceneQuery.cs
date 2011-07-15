@@ -4,10 +4,7 @@ using System.Web;
 namespace CouchDude.Core
 {
 	/// <summary>Класс типизирован так как могут возвращаться в том числе объекты из бд</summary>
-	public class LuceneQuery<T>:LuceneQuery
-	{
-		
-	}
+	public class LuceneQuery<T>:LuceneQuery { }
 
 	/// <summary>Сортировка поля объекта</summary>
 	public struct LuceneSort
@@ -29,7 +26,6 @@ namespace CouchDude.Core
 	/// <summary>Fulltext query to couchdb-lucene</summary>
 	public class LuceneQuery
 	{
-
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName;
 
@@ -104,7 +100,7 @@ namespace CouchDude.Core
 				var oneItemInList = true;
 				foreach (var luceneSort in Sort)
 				{
-					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/" + luceneSort.FieldName);
+					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/") + luceneSort.FieldName;
 					uriBuilder.Append(sortLuceneString);
 					oneItemInList = false;
 				}	

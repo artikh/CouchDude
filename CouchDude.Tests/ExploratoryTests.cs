@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
-using JsonSerializer = CouchDude.Core.Implementation.JsonSerializer;
+using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 
 // ReSharper disable UnusedMember.Local
@@ -95,7 +95,7 @@ namespace CouchDude.Tests
 
 			Assert.Equal("some ID", entity.Id);
 			Assert.Equal(2, entity.SubObject.Count);
-			Utils.AssertSameJson(
+			TestUtils.AssertSameJson(
 				new {
 					prop1 = "prop 1 value",
 					prop2 = "prop 2 value"

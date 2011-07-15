@@ -1,5 +1,5 @@
 ﻿using System;
-using CouchDude.Core.Implementation;
+using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 
