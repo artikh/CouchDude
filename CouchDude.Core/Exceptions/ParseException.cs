@@ -27,22 +27,34 @@ namespace CouchDude.Core
 
 		/// <summary>Initializes a new instance of the <see cref="ParseException" /> class.</summary>
 		/// <param name="message">The message.</param>
+		public ParseException(string message): base(message) { }
+
+		/// <summary>Initializes a new instance of the <see cref="ParseException" /> class.</summary>
+		/// <param name="messageTemplate">The message template.</param>
 		/// <param name="messageParams">The message params.</param>
-		[JetBrains.Annotations.StringFormatMethod("message")]
-		public ParseException(string message, params object[] messageParams)
-			: this(null, message, messageParams) { }
+		[JetBrains.Annotations.StringFormatMethod("messageTemplate")]
+		public ParseException(string messageTemplate, params object[] messageParams)
+			: base(String.Format(messageTemplate, messageParams)) { }
+
+		/// <summary>Initializes a new instance of the 
+		/// <see cref="ParseException" /> class.</summary>
+		/// <param name="innerException">The inner exception.</param>
+		/// <param name="messageTemplate">The message template.</param>
+		/// <param name="messageParams">The message params.</param>
+		[JetBrains.Annotations.StringFormatMethod("messageTemplate")]
+		public ParseException(
+			Exception innerException,
+			string messageTemplate,
+			params object[] messageParams)
+			: base(String.Format(messageTemplate, messageParams), innerException) { }
 
 		/// <summary>Initializes a new instance of the 
 		/// <see cref="ParseException" /> class.</summary>
 		/// <param name="innerException">The inner exception.</param>
 		/// <param name="message">The message.</param>
-		/// <param name="messageParams">The message params.</param>
 		[JetBrains.Annotations.StringFormatMethod("message")]
-		public ParseException(
-			Exception innerException,
-			string message,
-			params object[] messageParams)
-			: base(messageParams.Length > 0? String.Format(message, messageParams): message, innerException) { }
+		public ParseException(Exception innerException, string message)
+			: base(message, innerException) { }
 	}
 }
 

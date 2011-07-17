@@ -97,6 +97,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unit\DocumentTests.cs" />
+    <Compile Include="Unit\DocumentTests.Deserialize.cs" />
+    <Compile Include="Unit\DocumentTests.Serialize.cs" />
     <Compile Include="Unit\Impl\EntitySerializerDeserializeTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionDeleteTests.cs" />
@@ -112,6 +114,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unit\Impl\EntitySerializerSerializeTests.cs" />
+    <Compile Include="Unit\JsonFragmentTests.cs" />
     <Compile Include="Unit\Utils\JsonUtilsTests.cs">
       <SubType>Code</SubType>
     </Compile>

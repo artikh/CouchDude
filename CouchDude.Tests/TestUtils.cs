@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using CouchDude.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -32,6 +33,16 @@ namespace CouchDude.Tests
 		public static JObject ToJObject(this object self)
 		{
 			return JObject.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
+		}
+
+		public static Document ToDocument(this object self)
+		{
+			return new Document(self.ToJson());
+		}
+
+		public static JsonFragment ToJsonFragment(this object self)
+		{
+			return new JsonFragment(self.ToJson());
 		}
 
 		public static TextReader ToJsonTextReader(this object self)
