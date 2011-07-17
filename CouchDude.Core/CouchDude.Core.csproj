@@ -204,6 +204,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CouchDude.licenseheader">
+      <Link>CouchDude.licenseheader</Link>
+    </None>
     <None Include="Exceptions\BoilerplateEcxeptionConstructors.ttinclude" />
     <None Include="Exceptions\BoilerplateExeption.ttinclude" />
     <None Include="Exceptions\ConventionException.tt">

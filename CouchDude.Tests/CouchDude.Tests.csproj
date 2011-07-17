@@ -129,6 +129,9 @@
     <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\CouchDude.licenseheader">
+      <Link>CouchDude.licenseheader</Link>
+    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
