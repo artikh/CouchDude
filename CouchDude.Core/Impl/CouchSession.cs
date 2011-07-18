@@ -167,27 +167,21 @@ namespace CouchDude.Core.Impl
 
 		private static IPagedList<T> GetLuceneViewDataList<T>(LuceneResult queryResult) where T : class
 		{
-			var viewDataList = (
-				from row in queryResult
-				where row.Fields != null				
-				let viewDataItem = (T)row.Fields.Deserialize(typeof(T))
-				select viewDataItem
-			).ToArray();
-			return new PagedList<T>(queryResult.TotalRowCount, viewDataList.Length, viewDataList);
+			var viewDataList = queryResult
+				.Select(row => row.Fields == null ? Activator.CreateInstance<T>() : (T) row.Fields.Deserialize(typeof (T)))
+				.ToArray();
+			return new PagedList<T>(queryResult.TotalRowCount, queryResult.RowCount, queryResult.Offset, viewDataList);
 		}
-
-
+		
 		private IPagedList<T> GetEntityList<T>(ViewResult queryResult)
 		{
 			var entities = (
 				from row in queryResult
-				where row.Document != null
-				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document, settings)
-				where documentEntity != null
+				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document ?? new Document(), settings)
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();
 
-			return new PagedList<T>(queryResult.TotalRowCount, entities.Length, entities.Select(de => (T)de.Entity));
+			return new PagedList<T>(queryResult.TotalRowCount, queryResult.RowCount, queryResult.Offset, entities.Select(de => (T)de.Entity));
 		}
 
 		private IPagedList<T> GetEntityList<T>(LuceneResult queryResult) where T : class

@@ -132,7 +132,7 @@ namespace CouchDude.Core.Api
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
 			*/
-			return new ViewResult(rows: new ViewResultRow[0], totalRows: 0, query: query);
+			return ViewResult.Empty;
 		}
 
 		/// <inheritdoc/>
@@ -148,7 +148,7 @@ namespace CouchDude.Core.Api
 			var response = MakeRequest(request);
 			*/
 
-			return new LuceneResult(rows: new LuceneResultRow[0], totalRows: 0, query: query);
+			return LuceneResult.Empty;
 		}
 
 		private static Document ReadDocument(TextReader responseTextReader)

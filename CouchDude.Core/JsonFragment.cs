@@ -40,8 +40,8 @@ namespace CouchDude.Core
 
 		private static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
 
-		/// <summary>Underlying Newtonsoft Json.NET object.</summary>
-		internal readonly JObject JsonObject;
+		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
+		protected readonly JToken JsonToken;
 
 		/// <constructor />
 		public JsonFragment(): this(new JObject()) { }
@@ -59,55 +59,55 @@ namespace CouchDude.Core
 		public JsonFragment(TextReader textReader) : this(Load(textReader)) { }
 
 		/// <constructor />
-		internal JsonFragment(JObject jsonObject)
+		internal JsonFragment(JToken jsonObject)
 		{
-			JsonObject = jsonObject;
+			JsonToken = jsonObject;
 		}
 
-		private static JObject Parse(string json)
+		private static JToken Parse(string json)
 		{
 			if (string.IsNullOrWhiteSpace(json)) throw new ArgumentNullException("json");
 
-			JObject jsonObject;
+			JToken jsonToken;
 			try
 			{
-				jsonObject = JObject.Parse(json);
+				jsonToken = JToken.Parse(json);
 			}
 			catch (Exception e)
 			{
 				throw new ParseException(e, e.Message);
 			}
-			return jsonObject;
+			return jsonToken;
 		}
 
-		private static JObject Load(TextReader textReader)
+		private static JToken Load(TextReader textReader)
 		{
 			if (textReader == null)
 				throw new ArgumentNullException("textReader");
 			Contract.EndContractBlock();
 
-			JObject jsonDocument;
+			JToken jsonToken;
 			try
 			{
 				using (var jsonReader = new JsonTextReader(textReader) { CloseInput = false})
-					jsonDocument = JToken.ReadFrom(jsonReader) as JObject;
+					jsonToken = JToken.ReadFrom(jsonReader);
 			}
 			catch (Exception e)
 			{
 				throw new ParseException(e, "Error reading JSON recived from CouchDB: ", e.Message);
 			}
 
-			if (jsonDocument == null)
+			if (jsonToken == null)
 				throw new ParseException("CouchDB was expected to return JSON object.");
 
-			return jsonDocument;
+			return jsonToken;
 		}
 
 		/// <summary>Grabs required property value throwing
 		/// <see cref="ParseException"/> if not found or empty.</summary>
 		public string GetRequiredProperty(string name, string additionalMessage = null)
 		{
-			var propertyValue = JsonObject[name] as JValue;
+			var propertyValue = JsonToken[name] as JValue;
 			if (propertyValue == null)
 				throw new ParseException(
 					"Required field '{0}' have not found on document{1}:\n {2}",
@@ -125,7 +125,7 @@ namespace CouchDude.Core
 		/// <summary>Converts document to JSON string.</summary>
 		public override string ToString()
 		{
-			return JsonObject.ToString(Formatting.None, Converters);
+			return JsonToken.ToString(Formatting.None, Converters);
 		}
 
 		/// <summary>Produces <see cref="TextReader"/> over content of the JSON fragmet.</summary>
@@ -143,7 +143,7 @@ namespace CouchDude.Core
 				throw new ArgumentNullException("type");
 			Contract.EndContractBlock();
 
-			using (var jTokenReader = new JTokenReader(JsonObject))
+			using (var jTokenReader = new JTokenReader(JsonToken))
 				return Serializer.Deserialize(jTokenReader, type);
 		}
 
@@ -154,13 +154,13 @@ namespace CouchDude.Core
 				throw new ArgumentNullException("obj");
 			Contract.EndContractBlock();
 
-			JObject jsonObject;
+			JObject jsonToken;
 			using (var jTokenWriter = new JTokenWriter())
 			{
 				Serializer.Serialize(jTokenWriter, obj);
-				jsonObject = (JObject)jTokenWriter.Token;
+				jsonToken = (JObject)jTokenWriter.Token;
 			}
-			return new JsonFragment(jsonObject);
+			return new JsonFragment(jsonToken);
 		}
 
 		/// <summary>Creates standard serializen properties.</summary>
@@ -202,8 +202,8 @@ namespace CouchDude.Core
 			return new ForwardingMetaObject(
 				parameter, 
 				BindingRestrictions.Empty, 
-				this, 
-				JsonObject,
+				this,
+				JsonToken,
 			  // JObject's meta-object needs to know where to find the instance of JObject it is operating on.
 			  // Assuming that an instance of Document is passed to the 'parameter' expression
 			  // we get the corresponding instance of JObject by reading the "jsonObject" field.
@@ -216,7 +216,7 @@ namespace CouchDude.Core
 		{
 			if (ReferenceEquals(null, other)) return false;
 			if (ReferenceEquals(this, other)) return true;
-			return JToken.DeepEquals(other.JsonObject, JsonObject);
+			return JToken.DeepEquals(other.JsonToken, JsonToken);
 		}
 
 		/// <inheritdoc />
@@ -231,7 +231,7 @@ namespace CouchDude.Core
 		/// <inheritdoc />
 		public override int GetHashCode()
 		{
-			return JsonObject.GetHashCode();
+			return JsonToken.GetHashCode();
 		}
 
 		/// <summary>Compares JSON fragments for equality.</summary>
@@ -303,7 +303,7 @@ namespace CouchDude.Core
 		public void WriteTo(TextWriter writer)
 		{
 			using(var jTokenWriter = new JsonTextWriter(writer) { CloseOutput = false})
-				JsonObject.WriteTo(jTokenWriter, Converters);
+				JsonToken.WriteTo(jTokenWriter, Converters);
 		}
 	}
 }

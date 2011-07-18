@@ -26,16 +26,17 @@ namespace CouchDude.Core.Impl
 	{	
 		// ReSharper disable StaticFieldInGenericType
 		/// <summary>Empty paged list of given type.</summary>
-		public static PagedList<T> Empty = new PagedList<T>(0, 0, new T[0]);
+		public static PagedList<T> Empty = new PagedList<T>(0, 0, 0, new T[0]);
 		// ReSharper restore StaticFieldInGenericType
 
 		private readonly IEnumerable<T> data;
 		
 		/// <constructor />
-		public PagedList(int totalRowCount, int rowCount, IEnumerable<T> data)
+		public PagedList(int totalRowCount, int rowCount, int offset, IEnumerable<T> data)
 		{
 			TotalRowCount = totalRowCount;
 			RowCount = rowCount;
+			Offset = offset;
 			this.data = data;
 		}
 
@@ -44,7 +45,10 @@ namespace CouchDude.Core.Impl
 
 		/// <inheritdoc/>
 		public int RowCount { get; private set; }
-		
+
+		/// <inheritdoc/>
+		public int Offset { get; private set; }
+
 		/// <inheritdoc/>
 		public IEnumerator<T> GetEnumerator()
 		{

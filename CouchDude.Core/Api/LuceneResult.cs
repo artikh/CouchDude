@@ -24,27 +24,31 @@ namespace CouchDude.Core.Api
 	/// <summary>Result of CouchDB view query.</summary>
 	public class LuceneResult: IPagedList<LuceneResultRow>
 	{
+		/// <summary>Empty view result list.</summary>
+		public static readonly LuceneResult Empty = new LuceneResult(new List<LuceneResultRow>(), 0, 0, null);
+
 		private readonly ICollection<LuceneResultRow> rows;
-
+		
 		/// <constructor />
-		public LuceneResult() : this(new List<LuceneResultRow>(), 0, null) { }
-
-		/// <constructor />
-		public LuceneResult(ICollection<LuceneResultRow> rows, int totalRows, LuceneQuery query)
+		public LuceneResult(ICollection<LuceneResultRow> rows, int totalRows, int offset, LuceneQuery query)
 		{
 			this.rows = rows;
+			Offset = offset;
 			TotalRowCount = totalRows;
 			Query = query;
 		}
 
-		/// <summary>Query used to produce result.</summary>
+		/// <inheritdoc/>
 		public LuceneQuery Query { get; private set; }
 
-		/// <summary>Total rows in requested range.</summary>
+		/// <inheritdoc/>
 		public int TotalRowCount { get; private set; }
 
-		/// <summary>Rows selected.</summary>
+		/// <inheritdoc/>
 		public int RowCount { get { return rows.Count; } }
+
+		/// <inheritdoc/>
+		public int Offset { get; private set; }
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator()

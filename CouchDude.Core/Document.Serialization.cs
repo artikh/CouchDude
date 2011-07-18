@@ -42,7 +42,7 @@ namespace CouchDude.Core
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			return CheckAndDeserialize(entityConfig, JsonObject);
+			return CheckAndDeserialize(entityConfig, jsonObject);
 		}
 
 		/// <summary>Deserializes document to new entity object returning <c>null</c> insted of exception if
@@ -53,7 +53,7 @@ namespace CouchDude.Core
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			return CheckAndDeserializeIfPossible(entityConfig, (JObject)JsonObject.DeepClone());
+			return CheckAndDeserializeIfPossible(entityConfig, (JObject)jsonObject.DeepClone());
 		}
 
 		/// <summary>Serializes entity using provided <paramref name="entityConfig"/> producing

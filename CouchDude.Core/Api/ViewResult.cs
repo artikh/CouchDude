@@ -24,28 +24,31 @@ namespace CouchDude.Core.Api
 	/// <summary>Result of CouchDB view query.</summary>
 	public class ViewResult : IPagedList<ViewResultRow>
 	{
+		/// <summary>Empty view result list.</summary>
+		public static readonly ViewResult Empty = new ViewResult(new List<ViewResultRow>(), 0, 0, null);
 
 		private readonly ICollection<ViewResultRow> rows;
-
+		
 		/// <constructor />
-		public ViewResult() : this(new List<ViewResultRow>(), 0, null) { }
-
-		/// <constructor />
-		public ViewResult(ICollection<ViewResultRow> rows, int totalRows, ViewQuery query)
+		public ViewResult(ICollection<ViewResultRow> rows, int totalRows, int offset, ViewQuery query)
 		{
 			this.rows = rows;
+			Offset = offset;
 			TotalRowCount = totalRows;
 			Query = query;
 		}
 
-		/// <summary>Query used to produce result.</summary>
+		/// <inheritdoc/>
 		public ViewQuery Query { get; private set; }
 
-		/// <summary>Total rows in requested range.</summary>
+		/// <inheritdoc/>
 		public int TotalRowCount { get; private set; }
 
-		/// <summary>Rows selected.</summary>
+		/// <inheritdoc/>
 		public int RowCount { get { return rows.Count; } }
+
+		/// <inheritdoc/>
+		public int Offset { get; private set; }
 
 		/// <inheritdoc/>
 		IEnumerator IEnumerable.GetEnumerator()
