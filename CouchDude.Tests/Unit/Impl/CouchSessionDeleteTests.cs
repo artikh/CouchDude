@@ -1,22 +1,23 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
 using System;
+using CouchDude.Core;
 using CouchDude.Core.Api;
 using Moq;
 using Xunit;
@@ -42,7 +43,7 @@ namespace CouchDude.Tests.Unit.Impl
 					(string id, string revision) => {
 						deletedId = id;
 						deletedRevision = revision;
-						return new {ok = true, id, rev = "2-1a517022a0c2d4814d51abfedf9bfee7"}.ToJObject();
+						return new {ok = true, id, rev = "2-1a517022a0c2d4814d51abfedf9bfee7"}.ToJsonFragment();
 					});
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var docInfo = session.Delete(entity);
@@ -78,13 +79,13 @@ namespace CouchDude.Tests.Unit.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
-				.Returns(SimpleEntityWithoutRevision.DocumentWithRevision);
+				.Returns(SimpleEntityWithoutRevision.DocWithRevision);
 			couchApi
 				.Setup(ca => ca.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns((string id, string rev) => {
 					deletedId = id;
 					deletedRev = rev;
-					return SimpleEntityWithoutRevision.OkResponse;
+					return SimpleEntityWithoutRevision.OkResponseJson;
 				});
 
 			var session = new CouchSession(Default.Settings, couchApi.Object);

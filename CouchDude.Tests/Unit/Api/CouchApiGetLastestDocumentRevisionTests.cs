@@ -1,18 +1,18 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -43,7 +43,7 @@ namespace CouchDude.Tests.Unit.Api
 			var response = ConstructOkResponse("1-1a517022a0c2d4814d51abfedf9bfee7");
 
 			var httpMock = new HttpClientMock(response);
-			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 			var revision = couchApi.GetLastestDocumentRevision("doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
@@ -57,7 +57,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var response = ConstructOkResponse();
 			var httpMock = new HttpClientMock(response);
-			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			Assert.Throws<ArgumentNullException>(() => couchApi.GetLastestDocumentRevision(""));
 			Assert.Throws<ArgumentNullException>(() => couchApi.GetLastestDocumentRevision(null));
@@ -68,7 +68,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var response = ConstructOkResponse();
 			var httpMock = new HttpClientMock(response);
-			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			Assert.Throws<ParseException>(() => couchApi.GetLastestDocumentRevision("doc1"));
 		}
@@ -77,7 +77,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldReturnNullIfNoDocumentFound()
 		{
 			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "not found"));
-			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var version = couchApi.GetLastestDocumentRevision("doc1");
 			Assert.Null(version);
@@ -89,7 +89,7 @@ namespace CouchDude.Tests.Unit.Api
 			var webExeption = new WebException("Something wrong detected");
 			var httpMock = new HttpClientMock(webExeption);
 
-			var couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(

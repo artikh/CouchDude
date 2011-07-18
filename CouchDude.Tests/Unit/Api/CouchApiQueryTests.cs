@@ -1,22 +1,23 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
 using System;
+using System.Linq;
 using System.Net.Http;
 using CouchDude.Core;
 using CouchDude.Core.Api;
@@ -42,9 +43,9 @@ namespace CouchDude.Tests.Unit.Api
 						doc = new { _id = "doc1" }
 					}	
 				}
-			}.ToJson());
+			}.ToJsonString());
 
-			var couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 			var result = couchApi.Query(new ViewQuery {
 				ViewName = "_all_docs",
 				Key = new object[] { "key", 0 },
@@ -53,12 +54,13 @@ namespace CouchDude.Tests.Unit.Api
 			});
 
 			Assert.NotNull(result);
-			Assert.Equal(2, result.TotalRows);
-			Assert.Equal(1, result.Rows.Count);
-			Assert.Equal(new object[] { "key", 0 }.ToJToken(),	result.Rows[0].Key,					new JTokenEqualityComparer());
-			Assert.Equal(JValue.CreateString("some string"),		result.Rows[0].Value,				new JTokenEqualityComparer());
-			Assert.Equal("doc1",																result.Rows[0].DocumentId);
-			Assert.Equal(new { _id = "doc1" }.ToJObject(),			result.Rows[0].Document,		new JTokenEqualityComparer());
+			Assert.Equal(2, result.TotalRowCount);
+			Assert.Equal(1, result.RowCount);
+			var firstRow = result.First();
+			Assert.Equal(new object[] { "key", 0 }.ToJsonFragment(),	firstRow.Key);
+			Assert.Equal("\"some string\"",														firstRow.Value.ToString());
+			Assert.Equal("doc1",																			firstRow.DocumentId);
+			Assert.Equal(new { _id = "doc1" }.ToDocument(),						firstRow.Document);
 		}
 
 		[Fact]
@@ -69,9 +71,9 @@ namespace CouchDude.Tests.Unit.Api
 				offset = 1,
 				rows = new object [0]	
 				}
-			.ToJson());
+			.ToJsonString());
 
-			var couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 			couchApi.Query(new ViewQuery {
 				DesignDocumentName = "dd",
 				ViewName = "v1",
@@ -89,14 +91,14 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullQuery()
 		{
-			var couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
 			Assert.Throws<ArgumentNullException>(() => couchApi.Query(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnSkipMoreThen9()
 		{
-			var couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
 			Assert.Throws<ArgumentException>(() => couchApi.Query(new ViewQuery{ Skip = 10 }));
 		}
 	}

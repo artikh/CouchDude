@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using CouchDude.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -35,6 +36,13 @@ namespace CouchDude.Tests.SampleData
 			rev = StandardRevision
 		}.ToJObject();
 
+		public static JsonFragment OkResponseJson = new
+		{
+			ok = true,
+			id = StandardDocId,
+			rev = StandardRevision
+		}.ToJsonFragment();
+
 		public static JObject DocumentWithRevision = new
 		{
 			_id = StandardDocId,
@@ -44,6 +52,16 @@ namespace CouchDude.Tests.SampleData
 			age = 42,
 			date = "1959-04-10T00:00:00"
 		}.ToJObject();
+
+		public static Document DocWithRevision = new
+		{
+			_id = StandardDocId,
+			_rev = StandardRevision,
+			type = "simpleEntityWithoutRevision",
+			name = "John Smith",
+			age = 42,
+			date = "1959-04-10T00:00:00"
+		}.ToDocument();
 
 		public static SimpleEntityWithoutRevision CreateStd()
 		{

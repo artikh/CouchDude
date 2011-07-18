@@ -1,28 +1,26 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
 using System;
 using CouchDude.Core;
-using CouchDude.Core.Api;
 using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Impl
@@ -84,7 +82,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = Mock.Of<ICouchApi>(
 				ca => ca.GetDocumentFromDbById(It.IsAny<string>()) ==
-					SimpleEntityWithoutRevision.DocumentWithRevision
+					SimpleEntityWithoutRevision.DocWithRevision
 				);
 
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Load<SimpleEntityWithoutRevision>("simpleEntityWithoutRevision");
@@ -110,7 +108,7 @@ namespace CouchDude.Tests.Unit.Impl
 				.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
 				.Returns<string>(docId => { 
 					requestedId = docId;
-				  return SimpleEntity.DocumentWithRevision;
+					return SimpleEntity.DocWithRevision;
 				});
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Load<SimpleEntity>("doc1");
@@ -119,7 +117,7 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		private SimpleEntity DoTest(
-			Func<string, JObject> apiResponse = null,
+			Func<string, Document> apiResponse = null,
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1")
@@ -128,20 +126,20 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		private T DoTest<T>(
-			Func<string, JObject> apiResponse = null,
+			Func<string, Document> apiResponse = null,
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1",
 			string documentType = "simpleEntity") where T : class
 		{
 			if (apiResponse == null)
-				apiResponse = requestedUrl => new
-				                              	{
-				                              		_id = documentType + ".doc1",
-				                              		_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-				                              		type = documentType,
-				                              		name = "John Smith"
-				                              	}.ToJObject();
+				apiResponse = requestedUrl => 
+					new {
+						_id = documentType + ".doc1",
+						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+						type = documentType,
+						name = "John Smith"
+					}.ToDocument();
 
 			if (couchApiMock == null)
 			{
@@ -150,8 +148,8 @@ namespace CouchDude.Tests.Unit.Impl
 					.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
 					.Returns(apiResponse);
 				couchApiMock
-					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<JObject>()))
-					.Returns(new {id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7"}.ToJObject());
+					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<Document>()))
+					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToDocument());
 			}
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);

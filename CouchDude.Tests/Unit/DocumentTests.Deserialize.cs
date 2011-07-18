@@ -105,7 +105,7 @@ namespace CouchDude.Tests.Unit
 		[InlineData("\t")]
 		public void ShouldThrowOnEmptyNullOrWightspaceId(string id)
 		{
-			var doc = new Document(id == null ? new { type = "entity" }.ToJson() : new { _id = id, type = "entity" }.ToJson());
+			var doc = new Document(id == null ? new { type = "entity" }.ToJsonString() : new { _id = id, type = "entity" }.ToJsonString());
 
 			Assert.Throws<DocumentIdMissingException>(() => doc.Deserialize(config));
 		}

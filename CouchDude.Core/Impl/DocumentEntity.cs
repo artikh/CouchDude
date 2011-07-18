@@ -1,18 +1,18 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+	    http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -20,9 +20,6 @@ using System;
 using System.Diagnostics.Contracts;
 using System.IO;
 using CouchDude.Core.Configuration;
-using CouchDude.Core.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Impl
 {
@@ -39,10 +36,7 @@ namespace CouchDude.Core.Impl
 		/// <summary>Document identitifier.</summary>
 		public string DocumentId
 		{
-			get
-			{
-				return entityConfiguration.ConvertEntityIdToDocumentId(EntityId);
-			}
+			get { return entityConfiguration.ConvertEntityIdToDocumentId(EntityId); }
 		}
 
 		/// <summary>Currently loaded revision of the document/entity.</summary>
@@ -58,7 +52,7 @@ namespace CouchDude.Core.Impl
 						return entityRevision;
 				}
 
-				return Document != null ? Document.Value<string>(EntitySerializer.RevisionPropertyName) : null;
+				return Document != null ? Document.Revision : null;
 			}
 			set
 			{
@@ -66,7 +60,7 @@ namespace CouchDude.Core.Impl
 
 				entityConfiguration.SetRevision(Entity, value);
 				if (Document != null)
-					SetRevisionPropertyOnDocument(value, Document);
+					Document.Revision = value;
 			}
 		}
 
@@ -86,14 +80,14 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Database raw document.</summary>
-		public JObject Document { get; private set; }
+		public Document Document { get; private set; }
 
-		/// <summary>Writes document to provided writer.</summary>
+		/// <summary>Writes document to provided text writer.</summary>
+		/// <remarks>Caller is responsible for disposing <paramref name="writer"/>.</remarks>
 		public void WriteTo(TextWriter writer)
 		{
 			var document = SerializeToDocument();
-			using (var jsonWriter = new JsonTextWriter(writer))
-				document.WriteTo(jsonWriter);
+			document.WriteTo(writer);
 		}
 
 		/// <summary>Creates instance from entity.</summary>
@@ -120,17 +114,15 @@ namespace CouchDude.Core.Impl
 			}
 		}
 
-		/// <summary>Creates instance from JSON document reading it form 
-		/// provided text reader. If any error does occur returns <c>null</c>.</summary>
-		public static DocumentEntity TryFromJson<TEntity>(JObject document, Settings settings)
+		/// <summary>Creates entity/document pair from CouchDB document. If any error does occur returns <c>null</c>.</summary>
+		public static DocumentEntity TryFromDocument<TEntity>(Document document, Settings settings)
 		{
-			var documentType = GetDocumnetType(document);
-			if (!string.IsNullOrWhiteSpace(documentType))
+			if (!string.IsNullOrWhiteSpace(document.Type))
 			{
-				var entityConfiguration = settings.GetConfig(documentType);
+				var entityConfiguration = settings.GetConfig(document.Type);
 				if (entityConfiguration != null && entityConfiguration.IsCompatibleWith<TEntity>())
 				{
-					var entity = EntitySerializer.TryDeserialize(document, entityConfiguration);
+					var entity = document.TryDeserialize(entityConfiguration);
 					if (entity != null)
 						return new DocumentEntity(entityConfiguration, entity, document);
 				}
@@ -139,37 +131,23 @@ namespace CouchDude.Core.Impl
 			return null;
 		}
 
-		/// <summary>Creates instance from JSON document reading it form 
-		/// provided text reader.</summary>
-		public static DocumentEntity FromJson<TEntity>(JObject document, Settings settings) 
+		/// <summary>Creates entity/document pair from CouchDB document.</summary>
+		public static DocumentEntity FromDocument<TEntity>(Document document, Settings settings) 
 			where TEntity : class
 		{
-			var documentType = GetDocumnetType(document);
-			if(string.IsNullOrWhiteSpace(documentType))
+			if(string.IsNullOrWhiteSpace(document.Type))
 				throw new DocumentTypeMissingException(document);
 
-			var entityConfiguration = settings.GetConfig(documentType);
+			var entityConfiguration = settings.GetConfig(document.Type);
 			if (entityConfiguration == null)
-				throw new DocumentTypeNotRegistredException(documentType);
+				throw new DocumentTypeNotRegistredException(document.Type);
 
 			if (!entityConfiguration.IsCompatibleWith<TEntity>())
-				throw new EntityTypeMismatchException(documentType, typeof(TEntity));
+				throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
 
-			var entity = EntitySerializer.Deserialize(document, entityConfiguration);
-			return new DocumentEntity(entityConfiguration, entity, document);}
-
-		private static string GetDocumnetType(JObject document)
-		{
-			var propertyValue = document[EntitySerializer.TypePropertyName] as JValue;
-			if (propertyValue != null)
-			{
-				var value = propertyValue.Value<string>();
-				if (!string.IsNullOrWhiteSpace(value))
-					return value;
-			}
-			return null;
+			var entity = document.Deserialize(entityConfiguration);
+			return new DocumentEntity(entityConfiguration, entity, document); 
 		}
-
 		/// <summary>Maps entity to the JSON document.</summary>
 		public void DoMap()
 		{
@@ -179,13 +157,13 @@ namespace CouchDude.Core.Impl
 		/// <summary>Activly checks if entity is differ then JSON document.</summary>
 		public bool CheckIfChanged()
 		{
-			return Document != null && !new JTokenEqualityComparer().Equals(Document, SerializeToDocument());
+			return Document != null &&  Document != SerializeToDocument();
 		}
 		
 		private DocumentEntity(
 			IEntityConfig entityConfiguration,
 			object entity, 
-			JObject document = null)
+			Document document = null)
 		{
 			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
@@ -196,26 +174,15 @@ namespace CouchDude.Core.Impl
 			this.entityConfiguration = entityConfiguration;
 		}
 
-		private JObject SerializeToDocument()
+		private Document SerializeToDocument()
 		{
-			return EntitySerializer.Serialize(Entity, entityConfiguration, Revision);
-		}
+			var document = Document.Serialize(Entity, entityConfiguration);
 
-		private static void SetRevisionPropertyOnDocument(string revision, JObject document) 
-		{
-			var newRevisionValue = JToken.FromObject(revision);
-			var revisionProperty = document.Property(EntitySerializer.RevisionPropertyName);
-			if (revisionProperty != null)
-				revisionProperty.Value = newRevisionValue;
-			else
-			{
-				revisionProperty = new JProperty(EntitySerializer.RevisionPropertyName, newRevisionValue);
-				var idProperty = document.Property(EntitySerializer.IdPropertyName);
-				if (idProperty != null)
-					idProperty.AddAfterSelf(revisionProperty);
-				else
-					document.Add(revisionProperty);
-			}
+			// if revision info is not stored in entity it should be copied from current document (if present)
+			if (!entityConfiguration.IsRevisionPresent && Document != null)
+				document.Revision = Document.Revision;
+
+			return document;
 		}
 	}
 }

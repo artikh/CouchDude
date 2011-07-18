@@ -16,26 +16,33 @@
 */
 #endregion
 
-using System.IO;
-
-namespace CouchDude.Core.DesignDocumentManagment
+namespace CouchDude.Core
 {
-	/// <summary>Wraps <see cref="FileInfo"/> with <see cref="IFile"/> 
-	/// interface.</summary>
-	public class File: IFile
+	/// <summary>CouchDB query result row.</summary>
+	public class ViewResultRow
 	{
-		private readonly FileInfo fileInfo;
+		/// <constructor />
+		public ViewResultRow() { }
 
 		/// <constructor />
-		public File(FileInfo fileInfo)
+		public ViewResultRow(JsonFragment key, JsonFragment value, string documentId, Document document)
 		{
-			this.fileInfo = fileInfo;
+			Key = key;
+			Value = value;
+			DocumentId = documentId;
+			Document = document;
 		}
 
-		/// <inheritdoc/>
-		public Stream OpenRead() { return fileInfo.OpenRead(); }
+		/// <summary>View key.</summary>
+		public JsonFragment Key { get; private set; }
 
-		/// <inheritdoc/>
-		public string Name { get { return fileInfo.Name; } }
+		/// <summary>View value.</summary>
+		public JsonFragment Value { get; private set; }
+
+		/// <summary>Document ID associated with view row.</summary>
+		public string DocumentId { get; private set; }
+
+		/// <summary>Document associated with the row.</summary>
+		public Document Document { get; private set; }
 	}
 }

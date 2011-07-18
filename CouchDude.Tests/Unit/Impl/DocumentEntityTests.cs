@@ -1,18 +1,18 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -55,16 +55,14 @@ namespace CouchDude.Tests.Unit.Impl
 			documentEntity.DoMap();
 			documentEntity.Revision = "42-1a517022a0c2d4814d51abfedf9bfee7";
 
-			Assert.Equal(
-				"42-1a517022a0c2d4814d51abfedf9bfee7", 
-				documentEntity.Document.Value<string>("_rev"));
+			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", documentEntity.Document.Revision);
 		}
 
 		[Fact]
 		public void ShouldReturnDocumentRevisionIfThereIsNoRevisionPropertyOnDocument()
 		{
-			var documentEntity = DocumentEntity.FromJson<SimpleEntityWithoutRevision>(
-				SimpleEntityWithoutRevision.DocumentWithRevision, Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument<SimpleEntityWithoutRevision>(
+				SimpleEntityWithoutRevision.DocWithRevision, Default.Settings);
 			documentEntity.DoMap();
 
 			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
@@ -73,8 +71,8 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldReturnDocumentRevisionIfThereIsNoEntityCreatedYet()
 		{
-			var documentEntity = DocumentEntity.FromJson<SimpleEntityWithoutRevision>(
-				SimpleEntityWithoutRevision.DocumentWithRevision, Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument<SimpleEntityWithoutRevision>(
+				SimpleEntityWithoutRevision.DocWithRevision, Default.Settings);
 
 			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
 		}
@@ -105,7 +103,7 @@ namespace CouchDude.Tests.Unit.Impl
 			}
 
 			Assert.Equal(
-				new { _id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00" }.ToJson(), 
+				new { _id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00" }.ToJsonString(), 
 				writtenString,
 				new JTokenStringCompairer());
 		}
@@ -134,13 +132,13 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldAutodeserializeEntityWhenCreatingFromJson()
 		{
-			var documentEntity = DocumentEntity.FromJson<SimpleEntity>(new {
+			var documentEntity = DocumentEntity.FromDocument<SimpleEntity>(new {
 				_id = "simpleEntity.doc1",
 				_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 				type = "simpleEntity",
 				name = "John Smith",
 				age = 42
-			}.ToJObject(),
+			}.ToDocument(),
 			Default.Settings);
 
 			Assert.NotNull(documentEntity);
@@ -157,34 +155,34 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldSetDocumentWhenCreatingFromJson()
 		{
-			var documentEntity = DocumentEntity.FromJson<SimpleEntity>(new {
+			var documentEntity = DocumentEntity.FromDocument<SimpleEntity>(new {
 				_id = "simpleEntity.doc1",
 				_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 				type = "simpleEntity",
 				name = "John Smith",
 				age = 42
-			}.ToJObject(),
+			}.ToDocument(),
 			Default.Settings);
 
 			Assert.NotNull(documentEntity);
 			Assert.NotNull(documentEntity.Document);
-			TestUtils.AssertSameJson(
+			Assert.Equal(
 				new {
 					_id = "simpleEntity.doc1",
 					_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 					type = "simpleEntity",
 					name = "John Smith",
 					age = 42
-				},
+				}.ToDocument(),
 				documentEntity.Document);
 		}
 		
 		[Fact]
 		public void ShouldThrowCouchResponseParseExceptionOnDocumentWithoutType()
 		{
-            Assert.Throws<DocumentTypeMissingException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToJObject(), 
+			Assert.Throws<DocumentTypeMissingException>(
+				() => DocumentEntity.FromDocument<SimpleEntity>(
+					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), 
 					Default.Settings
 			));
 		}
@@ -193,13 +191,13 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldThrowEntityTypeMismatchExceptionOnWrongDocumentType()
 		{
 			var ex = Assert.Throws<EntityTypeMismatchException>(
-				() => DocumentEntity.FromJson<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntityWithoutRevision", name = "John Smith" }.ToJObject(), 
+				() => DocumentEntity.FromDocument<SimpleEntity>(
+					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntityWithoutRevision", name = "John Smith" }.ToDocument(), 
 					Default.Settings
 			));
 
 			Assert.Contains("SimpleEntity", ex.Message);
-            Assert.Contains("simpleEntityWithoutRevision", ex.Message);
+						Assert.Contains("simpleEntityWithoutRevision", ex.Message);
 		}
 
 		[Fact]

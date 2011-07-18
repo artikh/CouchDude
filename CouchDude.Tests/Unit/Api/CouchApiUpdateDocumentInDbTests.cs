@@ -1,28 +1,27 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
 using System;
 using System.Net;
+using System.Net.Http;
 using CouchDude.Core.Api;
 using CouchDude.Core.Http;
 using CouchDude.Core;
-using CouchDude.Core.Impl;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -32,65 +31,52 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldUpdateDocumentInDbCorrectly()
 		{
-			var r = TestInMockEnvironment(
-				couchApi => couchApi.UpdateDocumentInDb(
-					"doc1", new { _id = "doc1", name = "John Smith" }.ToJObject()
-				),
+			HttpClientMock httpClientMock;
+			ICouchApi couchApi = CreateCouchApi(
+				out httpClientMock,
 				response: new {
-					ok = true,
-					id = "doc1", 
-					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJson()
-			);
+						ok = true,
+						id = "doc1",
+						rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
+					}.ToJsonString());
 
-			Assert.Equal("http://example.com:5984/testdb/doc1", r.RequestedUri);
-			Assert.Equal("PUT", r.RequestedMethod);
-			TestUtils.AssertSameJson(
-				new { _id = "doc1", name = "John Smith" }.ToJToken(), r.RequestBody);
-			TestUtils.AssertSameJson(
+			var result = couchApi.UpdateDocumentInDb("doc1", new { _id = "doc1", name = "John Smith" }.ToDocument());
+
+			Assert.Equal("http://example.com:5984/testdb/doc1", httpClientMock.Request.RequestUri.ToString());
+			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
+			Assert.Equal(
+				new { _id = "doc1", name = "John Smith" }.ToJsonString(), httpClientMock.Request.Content.GetTextReader().ReadToEnd());
+			Assert.Equal(
 				new {
 					ok = true,
 					id = "doc1",
 					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				},
-				r.Result
+				}.ToJsonFragment(),
+				result
 			);
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullParametersUpdatingDocumentInDb()
 		{
-			Assert.Throws<ArgumentNullException>(() => TestInMockEnvironment(
-					couchApi => couchApi.SaveDocumentToDb(null, new { _id = "doc1" }.ToJObject())
-			));
-			Assert.Throws<ArgumentNullException>(() => TestInMockEnvironment(
-					couchApi => couchApi.SaveDocumentToDb("", new { _id = "doc1" }.ToJObject())
-			));
-			Assert.Throws<ArgumentNullException>(() => TestInMockEnvironment(
-					couchApi => couchApi.SaveDocumentToDb("doc1", null)
-			));
+			ICouchApi couchApi = CreateCouchApi();
+			Assert.Throws<ArgumentNullException>(() =>  couchApi.SaveDocumentToDb(null, new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb("", new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb("doc1", null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonUpdatingDocumentInDb()
 		{
-            Assert.Throws<ParseException>(() =>
-				TestInMockEnvironment(
-					couchApi => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToJObject()),
-					response: "Some none-json [) content"
-				)
-			);
+			ICouchApi couchApi = CreateCouchApi(response: "Some none-json [) content");
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
 		public void ShouldThrowOnEmptyResponseUpdatingDocumentInDb()
 		{
-            Assert.Throws<ParseException>(() =>
-				TestInMockEnvironment(
-					couchApi => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToJObject()),
-					response: "    "
-				)
-			);
+			ICouchApi couchApi = CreateCouchApi(response: "    ");
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
@@ -103,38 +89,22 @@ namespace CouchDude.Tests.Unit.Api
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
-				() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToJObject()));
+				() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToDocument()));
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
-
-
-
-		private static TestResult TestInMockEnvironment(
-			Func<ICouchApi, JObject> doTest, string response = "")
+		
+		private static ICouchApi CreateCouchApi(string response = "")
 		{
-			var httpMock = new HttpClientMock(response);
-			var result = doTest(
-				new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb")
-			);
-
-			var recivedRequest = httpMock.Request;
-			return new TestResult
-			{
-				RequestedUri = recivedRequest.RequestUri == null ? null : recivedRequest.RequestUri.ToString(),
-				RequestedMethod = recivedRequest.Method.ToString(),
-				RequestBody = recivedRequest.Content.GetTextReader() == null ? null : recivedRequest.Content.GetTextReader().ReadToEnd(),
-				Result = result
-			};
+			HttpClientMock httpClientMock;
+			return CreateCouchApi(out httpClientMock, response);
 		}
 
-		private class TestResult
+		private static ICouchApi CreateCouchApi(out HttpClientMock httpClientMock, string response = "")
 		{
-			public string RequestedUri;
-			public string RequestedMethod;
-			public string RequestBody;
-			public JObject Result;
+			httpClientMock = new HttpClientMock(response);
+			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

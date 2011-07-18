@@ -144,6 +144,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="JsonFragment.cs" />
+    <Compile Include="LuceneResultRow.cs" />
     <Compile Include="Utils\ForwardingMetaObject.cs" />
     <Compile Include="Http\HttpClientHelpers.cs" />
     <Compile Include="Http\HttpClientImpl.cs" />
@@ -176,7 +177,7 @@
     <Compile Include="DesignDocumentManagment\IFile.cs" />
     <Compile Include="Impl\DocumentEntity.cs" />
     <Compile Include="Impl\DocumentEntityCache.cs" />
-    <Compile Include="Api\ICouchApi.cs" />
+    <Compile Include="ICouchApi.cs" />
     <Compile Include="Impl\EntitySerializer.cs" />
     <Compile Include="Configuration\Builders\EntityConfigBuilder.cs" />
     <Compile Include="Configuration\Builders\EntityListConfigBuilder.cs" />
@@ -187,21 +188,19 @@
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
     <Compile Include="Utils\JsonSerializer.cs" />
-    <Compile Include="Api\LuceneResultRow.cs" />
     <Compile Include="Api\LuceneResult.cs" />
     <Compile Include="Impl\PagedList.cs" />
-    <Compile Include="Utils\JsonUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Configuration\Builders\SettingsBuilder.cs" />
     <Compile Include="IPagedList.cs" />
     <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
     <Compile Include="Api\ViewResult.cs" />
-    <Compile Include="Api\ViewResultRow.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewResultRow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\CouchDude.licenseheader">

@@ -1,18 +1,18 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+	    http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -48,7 +48,7 @@ namespace CouchDude.Core.Api
 			databaseUri = new Uri(serverUri, databaseName + "/");
 		}
 
-		public JObject GetDocumentFromDbById(string docId)
+		public Document GetDocumentFromDbById(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			Contract.EndContractBlock();
@@ -59,10 +59,10 @@ namespace CouchDude.Core.Api
 			if (response.StatusCode == HttpStatusCode.NotFound)
 				return null;
 			ThrowIfNotOk(response);
-			return ReadJObject(response.GetContentTextReader());
+			return ReadDocument(response.GetContentTextReader());
 		}
 
-		public JObject DeleteDocument(string docId, string revision)
+		public JsonFragment DeleteDocument(string docId, string revision)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
@@ -72,10 +72,10 @@ namespace CouchDude.Core.Api
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.GetContentTextReader());
+			return ReadJson(response.GetContentTextReader());
 		}
 
-		public JObject SaveDocumentToDb(string docId, JObject document)
+		public JsonFragment SaveDocumentToDb(string docId, Document document)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
@@ -83,13 +83,13 @@ namespace CouchDude.Core.Api
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
-			request.WriteContentText(document.ToString(Formatting.None));
+			request.SetStringContent(document.ToString());
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.GetContentTextReader());
+			return ReadJson(response.GetContentTextReader());
 		}
 
-		public JObject UpdateDocumentInDb(string docId, JObject document)
+		public JsonFragment UpdateDocumentInDb(string docId, Document document)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
@@ -97,10 +97,10 @@ namespace CouchDude.Core.Api
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
-			request.WriteContentText(document.ToString(Formatting.None));
+			request.SetStringContent(document.ToString());
 			var response = MakeRequest(request);
 			ThrowIfNotOk(response);
-			return ReadJObject(response.GetContentTextReader());
+			return ReadJson(response.GetContentTextReader());
 		}
 
 		public string GetLastestDocumentRevision(string docId)
@@ -127,16 +127,12 @@ namespace CouchDude.Core.Api
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 			Contract.EndContractBlock();
-
+			/*
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
-			ViewResult viewResult;
-			using (var responseBodyReader = response.GetContentTextReader())
-			using (var jsonReader = new JsonTextReader(responseBodyReader))
-				viewResult = JsonSerializer.Instance.Deserialize<ViewResult>(jsonReader);
-			viewResult.Query = query;
-			return viewResult;
+			*/
+			return new ViewResult(rows: new ViewResultRow[0], totalRows: 0, query: query);
 		}
 
 		/// <inheritdoc/>
@@ -146,39 +142,23 @@ namespace CouchDude.Core.Api
 			if (query == null) 
 				throw new ArgumentNullException("query");
 			Contract.EndContractBlock();
-
+			/*
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
-			LuceneResult viewResult;
-			using (var responseBodyReader = response.GetContentTextReader())
-			using (var jsonReader = new JsonTextReader(responseBodyReader))
-				viewResult = JsonSerializer.Instance.Deserialize<LuceneResult>(jsonReader);
-			viewResult.Query = query;
-			return viewResult;
+			*/
+
+			return new LuceneResult(rows: new LuceneResultRow[0], totalRows: 0, query: query);
 		}
 
-		private static JObject ReadJObject(TextReader responseTextReader)
+		private static Document ReadDocument(TextReader responseTextReader)
 		{
-			JObject response = null;
-			try
-			{
-				if (responseTextReader != null)
-					using (responseTextReader)
-					using (var jsonReader = new JsonTextReader(responseTextReader))
-						response = JToken.ReadFrom(jsonReader) as JObject;
-			}
-			catch (Exception e)
-			{
-                throw new ParseException(
-					e, "Error reading JSON recived from CouchDB: ", e.Message);
-			}
+			return new Document(responseTextReader);
+		}
 
-			if (response == null)
-                throw new ParseException(
-					"CouchDB was expected to return JSON object.");
-
-			return response;
+		private static JsonFragment ReadJson(TextReader responseTextReader)
+		{
+			return new JsonFragment(responseTextReader);
 		}
 
 		private Uri GetDocumentUri(string docId, string revision = null)

@@ -1,18 +1,18 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+	    http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -114,7 +114,7 @@ namespace CouchDude.Core.Impl
 			var document = couchApi.GetDocumentFromDbById(docId);
 			if (document == null)
 				return null;
-			var documentEntity = DocumentEntity.FromJson<TEntity>(document, settings);
+			var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
 			cache.Put(documentEntity);
 
 			return (TEntity) documentEntity.Entity;
@@ -168,59 +168,52 @@ namespace CouchDude.Core.Impl
 		private static IPagedList<T> GetLuceneViewDataList<T>(LuceneResult queryResult) where T : class
 		{
 			var viewDataList = (
-				from row in queryResult.Rows.AsParallel()
+				from row in queryResult
 				where row.Fields != null				
-				let viewDataItem = DeserializeViewData<T>(row.Fields) 
+				let viewDataItem = (T)row.Fields.Deserialize(typeof(T))
 				select viewDataItem
 			).ToArray();
-			return new PagedList<T>(queryResult.TotalRows, viewDataList.Length, viewDataList);
+			return new PagedList<T>(queryResult.TotalRowCount, viewDataList.Length, viewDataList);
 		}
 
 
 		private IPagedList<T> GetEntityList<T>(ViewResult queryResult)
 		{
 			var entities = (
-				from row in queryResult.Rows
+				from row in queryResult
 				where row.Document != null
-				let documentEntity = DocumentEntity.TryFromJson<T>(row.Document, settings)
+				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document, settings)
 				where documentEntity != null
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();
 
-			return new PagedList<T>(queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
+			return new PagedList<T>(queryResult.TotalRowCount, entities.Length, entities.Select(de => (T)de.Entity));
 		}
 
 		private IPagedList<T> GetEntityList<T>(LuceneResult queryResult) where T : class
 		{
 			var entities = (
-				from row in queryResult.Rows
+				from row in queryResult
 				where row.Document != null
-				let documentEntity = DocumentEntity.TryFromJson<T>(row.Document, settings)
+				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document, settings)
 				where documentEntity != null
 				select cache.PutOrReplace(documentEntity)
 			).ToArray();
 
-			return new PagedList<T>(queryResult.TotalRows, entities.Length, entities.Select(de => (T)de.Entity));
+			return new PagedList<T>(queryResult.TotalRowCount, entities.Length, entities.Select(de => (T)de.Entity));
 		}
 
 		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult)
 		{
 			var viewDataList = (
-				from row in queryResult.Rows.AsParallel()
+				from row in queryResult
 				where row.Value != null
-				let viewDataItem = DeserializeViewData<T>(row.Value)
+				let viewDataItem = (T)row.Value.Deserialize(typeof(T))
 				select viewDataItem
 			).ToArray();
-			return new PagedList<T>(queryResult.TotalRows, viewDataList.Length, viewDataList);
+			return new PagedList<T>(queryResult.TotalRowCount, viewDataList.Length, viewDataList);
 		}
-
-		private static T DeserializeViewData<T>(JToken value)
-		{
-			using (var reader = new JTokenReader(value))
-				return JsonSerializer.Instance.Deserialize<T>(reader);
-		}
-
-
+		
 		/// <summary>Backup plan finalizer - use Dispose() method!</summary>
 		~CouchSession()
 		{

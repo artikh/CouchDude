@@ -22,9 +22,7 @@ using CouchDude.Core;
 using CouchDude.Core.Api;
 using CouchDude.Core.Http;
 using CouchDude.Core.Impl;
-using CouchDude.Core.Utils;
 using CouchDude.Tests.SampleData;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
@@ -51,13 +49,12 @@ namespace CouchDude.Tests.Integration
 						return null;
 					}"
 				}
-			}.ToJObject();
+			}.ToDocument();
 
-			var existingLucineDesignDoc = couchApi.GetDocumentFromDbById("_design/lucene");
-			string revision = existingLucineDesignDoc.GetRequiredProperty("_rev");
-			if (existingLucineDesignDoc != null)
+			var existingLucineDesignDocRevision = couchApi.GetLastestDocumentRevision("_design/lucene");
+			if (existingLucineDesignDocRevision != null)
 			{
-				luceneDoc["_rev"] = JToken.FromObject(revision);
+				luceneDoc.Revision = existingLucineDesignDocRevision;
 				couchApi.UpdateDocumentInDb("_design/lucene", luceneDoc);
 			}
 			else

@@ -115,9 +115,6 @@
     </Compile>
     <Compile Include="Unit\Impl\EntitySerializerSerializeTests.cs" />
     <Compile Include="Unit\JsonFragmentTests.cs" />
-    <Compile Include="Unit\Utils\JsonUtilsTests.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Integration\SaveLoadAndDelete.cs" />
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />

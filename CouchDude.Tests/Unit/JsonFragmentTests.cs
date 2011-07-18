@@ -1,24 +1,25 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+			http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
 using System;
 using System.IO;
 using CouchDude.Core;
+using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
@@ -218,11 +219,40 @@ namespace CouchDude.Tests.Unit
 			Assert.NotNull((string)fragment.name);
 		}
 
+		[Fact]
 		public void ShouldSerializePublicFields()
 		{
 			var entity = new User { Field = "quantum mechanics" };
 			dynamic fragment = JsonFragment.Serialize(entity);
 			Assert.Equal("quantum mechanics", (string)fragment.field);
+		}
+
+		[Fact]
+		public void ShouldParseDocumentInfo()
+		{
+			var obj = new JsonFragment(@"{ ""some_prop"": ""some value"" }");
+			Assert.Equal("some value", obj.GetRequiredProperty("some_prop"));
+		}
+
+		[Fact]
+		public void ShouldThrowOnMissigProperty()
+		{
+			var obj = new JsonFragment(@"{  }");
+			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
+		}
+
+		[Fact]
+		public void ShouldThrowOnEmptyProperty()
+		{
+			var obj = new JsonFragment(@"{  ""some_prop"": """"  }");
+			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
+		}
+
+		[Fact]
+		public void ShouldThrowOnWhitespaseProperty()
+		{
+			var obj = new JsonFragment(@"{  ""some_prop"": ""   ""  }");
+			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
 		}
 	}
 }
