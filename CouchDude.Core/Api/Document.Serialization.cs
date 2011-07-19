@@ -19,16 +19,14 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
 using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace CouchDude.Core
+namespace CouchDude.Core.Api
 {
 	public partial class Document
 	{
@@ -42,7 +40,7 @@ namespace CouchDude.Core
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			return CheckAndDeserialize(entityConfig, jsonObject);
+			return CheckAndDeserialize(entityConfig, jsonObject, this);
 		}
 
 		/// <summary>Deserializes document to new entity object returning <c>null</c> insted of exception if
@@ -66,15 +64,15 @@ namespace CouchDude.Core
 				throw new ArgumentNullException("entityConfig");
 
 			if (entityConfig.EntityType != entity.GetType())
-				throw new InvalidOperationException(string.Format(
+				throw new InvalidOperationException(String.Format(
 					"Serializing type {0} does not match type {1} in configuration.", entity.GetType(), entityConfig.EntityType));
 
 			var entityId = entityConfig.GetId(entity);
-			if (string.IsNullOrWhiteSpace(entityId))
+			if (String.IsNullOrWhiteSpace(entityId))
 				throw new ArgumentException("Document ID should be set prior calling deserializer.", "entity");
 
 			var documentId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			if (string.IsNullOrWhiteSpace(documentId))
+			if (String.IsNullOrWhiteSpace(documentId))
 				throw new InvalidOperationException(
 					"IEntityConfig.ConvertEntityIdToDocumentId() should not ever return null, empty or whitespace string.");
 
@@ -84,7 +82,7 @@ namespace CouchDude.Core
 					: null;
 
 			var documentType = entityConfig.DocumentType;
-			if (string.IsNullOrWhiteSpace(documentType))
+			if (String.IsNullOrWhiteSpace(documentType))
 				throw new InvalidOperationException(
 					"IEntityConfig.DocumentType should not ever be null, empty or whitespace string.");
 
@@ -95,30 +93,30 @@ namespace CouchDude.Core
 			return new Document(jsonDocument);
 		}
 
-		private static object CheckAndDeserialize(IEntityConfig entityConfig, JObject jsonObject)
+		private static object CheckAndDeserialize(IEntityConfig entityConfig, JObject jsonObject, Document document)
 		{
-			var document = (JObject) jsonObject.DeepClone();
+			var clonedJObject = (JObject) jsonObject.DeepClone();
 
 			string documentId, revision, documentType;
-			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
+			GetDocumentTypeAndRevision(clonedJObject, out documentId, out revision, out documentType);
 
 			if (entityConfig.DocumentType != documentType)
-				throw new InvalidOperationException(string.Format(
+				throw new InvalidOperationException(String.Format(
 					"Deserializing document's type {0} does not match type {1} in configuration.", documentType,
 					entityConfig.DocumentType));
 
-			if (string.IsNullOrWhiteSpace(documentId))
+			if (String.IsNullOrWhiteSpace(documentId))
 				throw new DocumentIdMissingException(document);
 
-			if (string.IsNullOrWhiteSpace(revision))
+			if (String.IsNullOrWhiteSpace(revision))
 				throw new DocumentRevisionMissingException(document);
 
 			var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
-			if (string.IsNullOrWhiteSpace(entityId))
+			if (String.IsNullOrWhiteSpace(entityId))
 				throw new InvalidOperationException(
 					"IEntityConfig.ConvertDocumentIdToEntityId() should not ever return null, empty or whitespace string.");
 
-			return DeserializeInternal(document, entityConfig, entityId, revision);
+			return DeserializeInternal(clonedJObject, entityConfig, entityId, revision);
 		}
 
 		private static object CheckAndDeserializeIfPossible(IEntityConfig entityConfig, JObject document)
@@ -129,7 +127,7 @@ namespace CouchDude.Core
 			if (entityConfig.DocumentType == documentType)
 			{
 				var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
-				if (!string.IsNullOrWhiteSpace(entityId))
+				if (!String.IsNullOrWhiteSpace(entityId))
 					return DeserializeInternal(document, entityConfig, entityId, revision);
 			}
 			return null;
@@ -146,10 +144,10 @@ namespace CouchDude.Core
 
 		private static void GetDocumentTypeAndRevision(JObject document, out string documentId, out string revision, out string type)
 		{
-			documentId = document.Value<string>(EntitySerializer.IdPropertyName);
-			revision = document.Value<string>(EntitySerializer.RevisionPropertyName);
+			documentId = document.Value<string>(IdPropertyName);
+			revision = document.Value<string>(RevisionPropertyName);
 
-			var typeProperty = document.Property(EntitySerializer.TypePropertyName);
+			var typeProperty = document.Property(TypePropertyName);
 			type = typeProperty.Value.Value<string>();
 			typeProperty.Remove();
 		}
@@ -173,12 +171,12 @@ namespace CouchDude.Core
 			return document;
 		}
 
-		private static void SetStandardPropertiesOnDocument(JObject document, string revision, string type, string id)
+		private static void SetStandardPropertiesOnDocument(JContainer document, string revision, string type, string id)
 		{
-			document.AddFirst(new JProperty(EntitySerializer.TypePropertyName, JToken.FromObject(type)));
-			if (!string.IsNullOrWhiteSpace(revision))
-				document.AddFirst(new JProperty(EntitySerializer.RevisionPropertyName, JToken.FromObject(revision)));
-			document.AddFirst(new JProperty(EntitySerializer.IdPropertyName, JToken.FromObject(id)));
+			document.AddFirst(new JProperty(TypePropertyName, JToken.FromObject(type)));
+			if (!String.IsNullOrWhiteSpace(revision))
+				document.AddFirst(new JProperty(RevisionPropertyName, JToken.FromObject(revision)));
+			document.AddFirst(new JProperty(IdPropertyName, JToken.FromObject(id)));
 		}
 
 		private static JsonSerializer GetSerializer(IEntityConfig entityConfig)
@@ -210,7 +208,7 @@ namespace CouchDude.Core
 
 				if (jsonProperty.PropertyType == entityType)
 					throw new InvalidOperationException(
-						string.Format(
+						String.Format(
 							"Entity {0} references itself (maybe indirectly). This configuration is unsupported by CouchDude yet.",
 							entityType.AssemblyQualifiedName));
 

@@ -19,9 +19,6 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using CouchDude.Core.Api;
-using CouchDude.Core.Utils;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Impl
 {
@@ -121,7 +118,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <inheritdoc/>
-		public void Flush()
+		public void SaveChanges()
 		{
 			foreach (var documentEntity in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
@@ -151,7 +148,8 @@ namespace CouchDude.Core.Impl
 			Contract.EndContractBlock();
 
 			var queryResult = couchApi.FulltextQuery(query);
-			return isEntityType ? GetEntityList<T>(queryResult) : GetLuceneViewDataList<T>(queryResult);
+			
+			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
 		}
 
 		// ReSharper disable UnusedParameter.Local
@@ -164,48 +162,27 @@ namespace CouchDude.Core.Impl
 				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
 			return isEntityType;
 		}
-
-		private static IPagedList<T> GetLuceneViewDataList<T>(LuceneResult queryResult) where T : class
-		{
-			var viewDataList = queryResult
-				.Select(row => row.Fields == null ? Activator.CreateInstance<T>() : (T) row.Fields.Deserialize(typeof (T)))
-				.ToArray();
-			return new PagedList<T>(queryResult.TotalRowCount, queryResult.RowCount, queryResult.Offset, viewDataList);
-		}
 		
-		private IPagedList<T> GetEntityList<T>(ViewResult queryResult)
+		private IPagedList<T> GetEntityList<T>(IPagedList<ViewResultRow> queryResult)
 		{
-			var entities = (
+			var entities = 
 				from row in queryResult
-				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document ?? new Document(), settings)
-				select cache.PutOrReplace(documentEntity)
-			).ToArray();
-
-			return new PagedList<T>(queryResult.TotalRowCount, queryResult.RowCount, queryResult.Offset, entities.Select(de => (T)de.Entity));
-		}
-
-		private IPagedList<T> GetEntityList<T>(LuceneResult queryResult) where T : class
-		{
-			var entities = (
-				from row in queryResult
-				where row.Document != null
-				let documentEntity = DocumentEntity.TryFromDocument<T>(row.Document, settings)
+				select DocumentEntity.TryFromDocument<T>(row.Document, settings) into documentEntity
 				where documentEntity != null
-				select cache.PutOrReplace(documentEntity)
-			).ToArray();
+				select (T)cache.PutOrReplace(documentEntity).Entity;
 
-			return new PagedList<T>(queryResult.TotalRowCount, entities.Length, entities.Select(de => (T)de.Entity));
+			return new PagedList<T>(entities, queryResult.TotalRowCount, queryResult.Offset);
 		}
 
-		private static IPagedList<T> GetViewDataList<T>(ViewResult queryResult)
+		private static IPagedList<T> GetViewDataList<T>(IPagedList<ViewResultRow> queryResult)
 		{
-			var viewDataList = (
+			var viewDataList =
 				from row in queryResult
 				where row.Value != null
-				let viewDataItem = (T)row.Value.Deserialize(typeof(T))
-				select viewDataItem
-			).ToArray();
-			return new PagedList<T>(queryResult.TotalRowCount, viewDataList.Length, viewDataList);
+				let viewDataItem = (T) row.Value.Deserialize(typeof (T))
+				select viewDataItem;
+
+			return new PagedList<T>(viewDataList, queryResult.TotalRowCount, queryResult.Offset);
 		}
 		
 		/// <summary>Backup plan finalizer - use Dispose() method!</summary>

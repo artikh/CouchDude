@@ -1,6 +1,6 @@
-﻿#region Licence Info 
+#region Licence Info 
 /*
-	Copyright 2011 · Artem Tikhomirov																					
+	Copyright 2011 � Artem Tikhomirov																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -16,11 +16,8 @@
 */
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using CouchDude.Core;
 using CouchDude.Core.Api;
 using Xunit;
@@ -28,14 +25,13 @@ using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit.Api
 {
-	public class ViewResultParserTests
+	public class LuceneResultsParserTests
 	{
 		private static readonly string TestData =
-			new
-			{
+			new {
 				total_rows = 42,
 				offset = 1,
-				rows = new[] {
+				rows = new object[] {
 					new {
 						doc = new {
 							_id = "c615149e5ac83b40b9ad20914d000117",
@@ -45,8 +41,8 @@ namespace CouchDude.Tests.Unit.Api
 							viewersCount = 2
 						},
 						id = "c615149e5ac83b40b9ad20914d000117",
-						key = "c615149e5ac83b40b9ad20914d000117-42",
-						value = new { rev = "1-7af2e64f5b106d5b6c5563fc380bde87" }
+						fields = new {one = 1, two = "two"},
+						score = 0.42
 					},
 					new {
 						doc = new {
@@ -57,8 +53,8 @@ namespace CouchDude.Tests.Unit.Api
 							viewersCount = 1
 						},
 						id = "c615149e5ac83b40b9ad20914d00011d",
-						key = "c615149e5ac83b40b9ad20914d00011d-42",
-						value = new { rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489" }
+						fields = new {three = 3, four = "four"},
+						score = 0.1
 					},
 					new {
 						doc = new {
@@ -70,7 +66,8 @@ namespace CouchDude.Tests.Unit.Api
 						},
 						id = "c615149e5ac83b40b9ad20914d000128",
 						key = "c615149e5ac83b40b9ad20914d000128-42",
-						value = new { rev = "1-f1a9cf30e6279485a204911219fd7322" }
+						fields = new {five = 5, six = "six"},
+						score = 0.1
 					}
 				}
 			}.ToJsonString();
@@ -78,9 +75,9 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldParseViewResultInfoProperties()
 		{
-			ViewResult viewResult;
+			LuceneResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = ViewResultParser.Parse(stringReader, new ViewQuery());
+				viewResult = LuceneResultParser.Parse(stringReader, new LuceneQuery());
 
 			Assert.Equal(42, viewResult.TotalRowCount);
 			Assert.Equal(3, viewResult.RowCount);
@@ -95,7 +92,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowParseExceptionOnInvalidJson(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() =>ViewResultParser.Parse(stringReader, new ViewQuery()));
+				Assert.Throws<ParseException>(() => LuceneResultParser.Parse(stringReader, new LuceneQuery()));
 		}
 
 		[Theory]
@@ -106,31 +103,31 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowParseExceptionOnInvalidResponse(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() =>ViewResultParser.Parse(stringReader, new ViewQuery()));
+				Assert.Throws<ParseException>(() => LuceneResultParser.Parse(stringReader, new LuceneQuery()));
 		}
 
 		[Fact]
 		public void ShouldParseViewResultInfoRows()
 		{
-			ViewResult viewResult;
+			LuceneResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = ViewResultParser.Parse(stringReader, new ViewQuery());
+				viewResult = LuceneResultParser.Parse(stringReader, new LuceneQuery());
 
-			ViewResultRow secondRow = viewResult.Skip(1).First();
+			LuceneResultRow secondRow = viewResult.Skip(1).First();
 
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
-			Assert.Equal("c615149e5ac83b40b9ad20914d00011d-42".ToJsonFragment(), secondRow.Key);
-			Assert.Equal(new { rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489" }.ToJsonFragment(), secondRow.Value);
+			Assert.Equal(0.1m, secondRow.Score);
+			Assert.Equal(new { three = 3, four = "four" }.ToJsonFragment(), secondRow.Fields);
 			Assert.Equal(
-				new {
-					_id = "c615149e5ac83b40b9ad20914d00011d",
-					_rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489",
-					eventType = "ViewerDisconnected",
-					type = "liveVideoEvent",
-					viewersCount = 1
-				}.ToDocument(),
+				new
+					{
+						_id = "c615149e5ac83b40b9ad20914d00011d",
+						_rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489",
+						eventType = "ViewerDisconnected",
+						type = "liveVideoEvent",
+						viewersCount = 1
+					}.ToDocument(),
 				secondRow.Document);
 		}
 	}
-
 }

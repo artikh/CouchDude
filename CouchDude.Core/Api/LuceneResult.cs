@@ -16,50 +16,15 @@
 */
 #endregion
 
-using System.Collections;
 using System.Collections.Generic;
 
 namespace CouchDude.Core.Api
 {
-	/// <summary>Result of CouchDB view query.</summary>
-	public class LuceneResult: IPagedList<LuceneResultRow>
+	/// <summary>Result of CouchDB-lucene query.</summary>
+	public class LuceneResult: RequestResultBase<LuceneResultRow, LuceneQuery, LuceneResult>
 	{
-		/// <summary>Empty view result list.</summary>
-		public static readonly LuceneResult Empty = new LuceneResult(new List<LuceneResultRow>(), 0, 0, null);
-
-		private readonly ICollection<LuceneResultRow> rows;
-		
 		/// <constructor />
-		public LuceneResult(ICollection<LuceneResultRow> rows, int totalRows, int offset, LuceneQuery query)
-		{
-			this.rows = rows;
-			Offset = offset;
-			TotalRowCount = totalRows;
-			Query = query;
-		}
-
-		/// <inheritdoc/>
-		public LuceneQuery Query { get; private set; }
-
-		/// <inheritdoc/>
-		public int TotalRowCount { get; private set; }
-
-		/// <inheritdoc/>
-		public int RowCount { get { return rows.Count; } }
-
-		/// <inheritdoc/>
-		public int Offset { get; private set; }
-
-		/// <inheritdoc/>
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
-		/// <inheritdoc/>
-		public IEnumerator<LuceneResultRow> GetEnumerator()
-		{
-			return rows.GetEnumerator();
-		}
+		public LuceneResult(IEnumerable<LuceneResultRow> rows, int totalRowCount, int offset, LuceneQuery query) 
+			: base(rows, totalRowCount, offset, query) { }
 	}
 }

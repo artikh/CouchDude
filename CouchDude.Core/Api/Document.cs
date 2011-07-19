@@ -17,16 +17,20 @@
 #endregion
 
 using System;
+using System.Diagnostics.Contracts;
 using System.IO;
-using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
 using Newtonsoft.Json.Linq;
 
-namespace CouchDude.Core
+namespace CouchDude.Core.Api
 {
-	/// <summary>Describes CouchDB document.</summary>
-	public partial class Document : JsonFragment, IEquatable<Document>
+	/// <summary>CouchDB document implementing wrapping <see cref="JObject"/>.</summary>
+	public partial class Document : JsonFragment, IDocument
 	{
+		internal const string RevisionPropertyName = "_rev";
+		internal const string TypePropertyName = "type";
+		internal const string IdPropertyName = "_id";
+
 		/// <summary>Underlying Newtonsoft Json.NET object.</summary>
 		private readonly JObject jsonObject;
 
@@ -41,6 +45,7 @@ namespace CouchDude.Core
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
 		public Document(string jsonString): base(jsonString)
 		{
+			Contract.Requires(!String.IsNullOrWhiteSpace(jsonString));
 			jsonObject = (JObject)JsonToken;
 		}
 
@@ -51,25 +56,29 @@ namespace CouchDude.Core
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
 		public Document(TextReader textReader): base(textReader)
 		{
+			Contract.Requires(textReader != null);
 			jsonObject = (JObject)JsonToken;
 		}
 		
 		/// <constructor />
-		internal Document(JObject jsonObject): base(jsonObject)
+		internal Document(JObject jsonToken): base(jsonToken)
 		{
-			this.jsonObject = (JObject)JsonToken;
+			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
+			Contract.EndContractBlock();
+
+			jsonObject = (JObject)JsonToken;
 		}
 
 		/// <summary>Document identifier or <c>null</c> if no _id property 
 		/// found or it's empty.</summary>
 		public string Id
 		{
-			get { return jsonObject.Value<string>(EntitySerializer.IdPropertyName); }
+			get { return jsonObject.Value<string>(IdPropertyName); }
 			set
 			{
 				if (Id != value)
 					SetOrCreateAndInsertSpecialProperty(
-						EntitySerializer.IdPropertyName,
+						IdPropertyName,
 						value,
 						jsonObject,
 						GetIdProperty,
@@ -82,12 +91,12 @@ namespace CouchDude.Core
 		/// found or it's empty.</summary>
 		public string Revision
 		{
-			get { return jsonObject.Value<string>(EntitySerializer.RevisionPropertyName); }
+			get { return jsonObject.Value<string>(RevisionPropertyName); }
 			set
 			{
 				if (Revision != value)
 					SetOrCreateAndInsertSpecialProperty(
-						EntitySerializer.RevisionPropertyName,
+						RevisionPropertyName,
 						value,
 						jsonObject,
 						GetRevisionProperty,
@@ -100,12 +109,12 @@ namespace CouchDude.Core
 		/// found or it's empty.</summary>
 		public string Type
 		{
-			get { return jsonObject.Value<string>(EntitySerializer.TypePropertyName); }
+			get { return jsonObject.Value<string>(TypePropertyName); }
 			set
 			{
 				if (Type != value)
 					SetOrCreateAndInsertSpecialProperty(
-						EntitySerializer.TypePropertyName,
+						TypePropertyName,
 						value,
 						jsonObject,
 						GetTypeProperty,
@@ -113,13 +122,7 @@ namespace CouchDude.Core
 						propertyGettersInOrder: new Func<JProperty>[] {GetIdProperty, GetRevisionProperty, GetTypeProperty});
 			}
 		}
-
-		/// <inheritdoc />
-		public bool Equals(Document other)
-		{
-			return base.Equals(other);
-		}
-
+		
 		/// <inheritdoc />
 		public override bool Equals(object obj)
 		{
@@ -186,17 +189,17 @@ namespace CouchDude.Core
 
 		private JProperty GetRevisionProperty()
 		{
-			return jsonObject.Property(EntitySerializer.RevisionPropertyName);
+			return jsonObject.Property(RevisionPropertyName);
 		}
 
 		private JProperty GetIdProperty()
 		{
-			return jsonObject.Property(EntitySerializer.IdPropertyName);
+			return jsonObject.Property(IdPropertyName);
 		}
 
 		private JProperty GetTypeProperty()
 		{
-			return jsonObject.Property(EntitySerializer.TypePropertyName);
+			return jsonObject.Property(TypePropertyName);
 		}
 	}
 }

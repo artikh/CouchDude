@@ -19,6 +19,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
+using CouchDude.Core.Api;
 using CouchDude.Core.Configuration;
 
 namespace CouchDude.Core.Impl
@@ -80,7 +81,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Database raw document.</summary>
-		public Document Document { get; private set; }
+		public IDocument Document { get; private set; }
 
 		/// <summary>Writes document to provided text writer.</summary>
 		/// <remarks>Caller is responsible for disposing <paramref name="writer"/>.</remarks>
@@ -115,7 +116,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document. If any error does occur returns <c>null</c>.</summary>
-		public static DocumentEntity TryFromDocument<TEntity>(Document document, Settings settings)
+		public static DocumentEntity TryFromDocument<TEntity>(IDocument document, Settings settings)
 		{
 			if (!string.IsNullOrWhiteSpace(document.Type))
 			{
@@ -132,7 +133,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document.</summary>
-		public static DocumentEntity FromDocument<TEntity>(Document document, Settings settings) 
+		public static DocumentEntity FromDocument<TEntity>(IDocument document, Settings settings) 
 			where TEntity : class
 		{
 			if(string.IsNullOrWhiteSpace(document.Type))
@@ -157,13 +158,13 @@ namespace CouchDude.Core.Impl
 		/// <summary>Activly checks if entity is differ then JSON document.</summary>
 		public bool CheckIfChanged()
 		{
-			return Document != null &&  Document != SerializeToDocument();
+			return Document != null &&  !Document.Equals(SerializeToDocument());
 		}
 		
 		private DocumentEntity(
 			IEntityConfig entityConfiguration,
 			object entity, 
-			Document document = null)
+			IDocument document = null)
 		{
 			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
@@ -176,7 +177,7 @@ namespace CouchDude.Core.Impl
 
 		private Document SerializeToDocument()
 		{
-			var document = Document.Serialize(Entity, entityConfiguration);
+			var document = Api.Document.Serialize(Entity, entityConfiguration);
 
 			// if revision info is not stored in entity it should be copied from current document (if present)
 			if (!entityConfiguration.IsRevisionPresent && Document != null)

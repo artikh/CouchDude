@@ -16,50 +16,52 @@
 */
 #endregion
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CouchDude.Core.Impl
+namespace CouchDude.Core.Api
 {
-	/// <summary>Simple paged list implementation.</summary>
-	public class PagedList<T>: IPagedList<T>
-	{	
+	/// <summary>Base class for <see cref="ViewQuery"/> and <see cref="LuceneResult"/>.</summary>
+	public class RequestResultBase<TRow, TQuery, TSelf> : IPagedList<TRow> 
+		where TSelf: RequestResultBase<TRow, TQuery, TSelf>
+		where TQuery: class
+	{
+		
+		/// <summary>Empty view result list.</summary>
 		// ReSharper disable StaticFieldInGenericType
-		/// <summary>Empty paged list of given type.</summary>
-		public static PagedList<T> Empty = new PagedList<T>(new T[0], 0, 0);
+		public static readonly TSelf Empty = (TSelf)new RequestResultBase<TRow, TQuery, TSelf>(new List<TRow>(), 0, 0, null);
 		// ReSharper restore StaticFieldInGenericType
 
-		private readonly IEnumerable<T> data;
+		private readonly IEnumerable<TRow> rows;
 		private int? rowCount;
 		
 		/// <constructor />
-		public PagedList(IEnumerable<T> data, int totalRowCount, int offset)
+		public RequestResultBase(IEnumerable<TRow> rows, int totalRowCount, int offset, TQuery query)
 		{
-			TotalRowCount = totalRowCount;
+			this.rows = rows;
 			Offset = offset;
-			this.data = data;
+			TotalRowCount = totalRowCount;
+			Query = query;
 		}
+
+		/// <inheritdoc/>
+		public TQuery Query { get; private set; }
 
 		/// <inheritdoc/>
 		public int TotalRowCount { get; private set; }
 
 		/// <inheritdoc/>
-		public int RowCount { get { return rowCount ?? (rowCount = data.Count()).Value; } }
+		public int RowCount { get { return rowCount ?? (rowCount = rows.Count()).Value; } }
 
 		/// <inheritdoc/>
 		public int Offset { get; private set; }
+		
+		/// <inheritdoc/>
+		IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
 		/// <inheritdoc/>
-		public IEnumerator<T> GetEnumerator()
-		{
-			return data.GetEnumerator();
-		}
-
-		/// <inheritdoc/>
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
+		public IEnumerator<TRow> GetEnumerator() { return rows.GetEnumerator(); }
 	}
 }

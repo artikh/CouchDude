@@ -17,22 +17,20 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Dynamic;
 using System.IO;
 using System.Linq.Expressions;
 using System.Reflection;
-using CouchDude.Core.Impl;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace CouchDude.Core
+namespace CouchDude.Core.Api
 {
-	/// <summary>Represents simple JSON fragment. Data could be accessed as </summary>
-	public class JsonFragment : IDynamicMetaObjectProvider, IEquatable<JsonFragment>
+	/// <summary>Implements <see cref="IJsonFragment"/> wrapping <see cref="JToken"/>.</summary>
+	public class JsonFragment : IEquatable<JsonFragment>, IJsonFragment
 	{
 		/// <summary>Standard set of JSON value convertors.</summary>
 		internal static readonly JsonConverter[] Converters =
@@ -49,29 +47,39 @@ namespace CouchDude.Core
 		/// <summary>Parses JSON string.</summary>
 		/// <exception cref="ArgumentNullException">Provided string is null or empty.</exception>
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
-		public JsonFragment(string jsonString): this(Parse(jsonString)) { }
+		public JsonFragment(string jsonString): this(Parse(jsonString))
+		{
+			Contract.Requires(!string.IsNullOrWhiteSpace(jsonString));
+		}
 
 		/// <summary>Loads JSON from provided text reader.</summary>
 		/// <param name="textReader"><see cref="TextReader"/> to read JSON from. Should be closed (disposed) by caller.</param>
 		/// <remarks>Text reader should be disposed outside of the constructor,</remarks>
 		/// <exception cref="ArgumentNullException">Provided text reader is null.</exception>
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
-		public JsonFragment(TextReader textReader) : this(Load(textReader)) { }
-
-		/// <constructor />
-		internal JsonFragment(JToken jsonObject)
+		public JsonFragment(TextReader textReader): this(Load(textReader))
 		{
-			JsonToken = jsonObject;
+			Contract.Requires(textReader != null);
 		}
 
-		private static JToken Parse(string json)
+		/// <constructor />
+		internal JsonFragment(JToken jsonToken)
 		{
-			if (string.IsNullOrWhiteSpace(json)) throw new ArgumentNullException("json");
+			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
+			Contract.EndContractBlock();
+
+			JsonToken = jsonToken;
+		}
+
+		private static JToken Parse(string jsonString)
+		{
+			if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
+			Contract.EndContractBlock();
 
 			JToken jsonToken;
 			try
 			{
-				jsonToken = JToken.Parse(json);
+				jsonToken = JToken.Parse(jsonString);
 			}
 			catch (Exception e)
 			{
@@ -148,23 +156,23 @@ namespace CouchDude.Core
 		}
 
 		/// <summary>Serializes provided object to <see cref="JsonFragment"/>.</summary>
-		public static JsonFragment Serialize(object obj)
+		public static IJsonFragment Serialize(object obj)
 		{
 			if (obj == null)
 				throw new ArgumentNullException("obj");
 			Contract.EndContractBlock();
 
-			JObject jsonToken;
+			JToken jsonToken;
 			using (var jTokenWriter = new JTokenWriter())
 			{
 				Serializer.Serialize(jTokenWriter, obj);
-				jsonToken = (JObject)jTokenWriter.Token;
+				jsonToken = jTokenWriter.Token;
 			}
 			return new JsonFragment(jsonToken);
 		}
 
 		/// <summary>Creates standard serializen properties.</summary>
-		protected static JsonSerializerSettings CreateSerializerSettings()
+		protected internal static JsonSerializerSettings CreateSerializerSettings()
 		{
 			return new JsonSerializerSettings {
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
@@ -197,6 +205,13 @@ namespace CouchDude.Core
 			}
 		}
 
+		/// <summary>Writes JSON string to provided text writer.</summary>
+		public void WriteTo(TextWriter writer)
+		{
+			using(var jTokenWriter = new JsonTextWriter(writer) { CloseOutput = false})
+				JsonToken.WriteTo(jTokenWriter, Converters);
+		}
+
 		DynamicMetaObject IDynamicMetaObjectProvider.GetMetaObject(Expression parameter)
 		{
 			return new ForwardingMetaObject(
@@ -207,7 +222,7 @@ namespace CouchDude.Core
 			  // JObject's meta-object needs to know where to find the instance of JObject it is operating on.
 			  // Assuming that an instance of Document is passed to the 'parameter' expression
 			  // we get the corresponding instance of JObject by reading the "jsonObject" field.
-			  document => Expression.Field(document, "jsonObject")
+				document => Expression.Field(document, "JsonToken")
 			);
 		}
 
@@ -224,7 +239,7 @@ namespace CouchDude.Core
 		{
 			if (ReferenceEquals(null, obj)) return false;
 			if (ReferenceEquals(this, obj)) return true;
-			if (obj.GetType() != typeof (JsonFragment)) return false;
+			if (!(obj is JsonFragment)) return false;
 			return Equals((JsonFragment) obj);
 		}
 
@@ -297,13 +312,6 @@ namespace CouchDude.Core
 			{
 				return AddRestrictions(metaForwardee.BindConvert(binder));
 			}
-		}
-
-		/// <summary>Writes JSON string to provided text writer.</summary>
-		public void WriteTo(TextWriter writer)
-		{
-			using(var jTokenWriter = new JsonTextWriter(writer) { CloseOutput = false})
-				JsonToken.WriteTo(jTokenWriter, Converters);
 		}
 	}
 }

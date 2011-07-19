@@ -1,18 +1,18 @@
 ﻿#region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+	    http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -36,24 +36,14 @@ namespace CouchDude.Tests.SampleData
 			rev = StandardRevision
 		}.ToJObject();
 
-		public static JsonFragment OkResponseJson = new
+		public static IJsonFragment OkResponseJson = new
 		{
 			ok = true,
 			id = StandardDocId,
 			rev = StandardRevision
 		}.ToJsonFragment();
 
-		public static JObject DocumentWithRevision = new
-		{
-			_id = StandardDocId,
-			_rev = StandardRevision,
-			type = "simpleEntityWithoutRevision",
-			name = "John Smith",
-			age = 42,
-			date = "1959-04-10T00:00:00"
-		}.ToJObject();
-
-		public static Document DocWithRevision = new
+		public static IDocument DocWithRevision = new
 		{
 			_id = StandardDocId,
 			_rev = StandardRevision,
@@ -66,12 +56,12 @@ namespace CouchDude.Tests.SampleData
 		public static SimpleEntityWithoutRevision CreateStd()
 		{
 			return new SimpleEntityWithoutRevision
-			  {
-			    Id = StandardEntityId,
-			    Name = "John Smith",
-			    Age = 42,
-			    Date = new DateTime(1957, 4, 10)
-			  };
+				{
+					Id = StandardEntityId,
+					Name = "John Smith",
+					Age = 42,
+					Date = new DateTime(1957, 4, 10)
+				};
 		}
 
 		[JsonIgnore]

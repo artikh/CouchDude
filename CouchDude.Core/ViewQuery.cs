@@ -18,13 +18,11 @@
 
 using System;
 using System.Diagnostics.Contracts;
-using System.IO;
 using System.Linq;
 using System.Collections.Specialized;
 using System.Text;
 using System.Web;
-using Newtonsoft.Json;
-using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
+using CouchDude.Core.Api;
 
 namespace CouchDude.Core
 {
@@ -145,11 +143,7 @@ namespace CouchDude.Core
 			public void AddIfNotNull(object value, string key)
 			{
 				if (value != null)
-					using (var writer = new StringWriter())
-					{
-						JsonSerializer.Instance.Serialize(writer, value);
-						querySring[key] = writer.ToString();
-					}
+					querySring[key] = JsonFragment.Serialize(value).ToString();
 			}
 
 			public void AddIfHasValue<TValue>(TValue? value, string key) where TValue: struct 

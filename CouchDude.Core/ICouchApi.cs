@@ -16,22 +16,19 @@
 */
 #endregion
 
-using CouchDude.Core.Api;
-using Newtonsoft.Json.Linq;
-
 namespace CouchDude.Core
 {
 	/// <summary>Represents lower-level CouchDB API: in-between HTTP and ISession.</summary>
 	public interface ICouchApi
 	{
 		/// <summary>Requests CouchDB for document.</summary>
-		Document GetDocumentFromDbById(string docId);
+		IDocument GetDocumentFromDbById(string docId);
 
 		/// <summary>Saves new document in CouchDB.</summary>
-		JsonFragment SaveDocumentToDb(string docId, Document document);
+		IJsonFragment SaveDocumentToDb(string docId, IDocument document);
 
 		/// <summary>Updates document in CouchDB.</summary>
-		JsonFragment UpdateDocumentInDb(string docId, Document document);
+		IJsonFragment UpdateDocumentInDb(string docId, IDocument document);
 
 		/// <summary>Retrives current document revision from database. <c>null</c> returned if
 		/// there is no such document in database.</summary>
@@ -39,12 +36,12 @@ namespace CouchDude.Core
 
 		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
 		/// is equal to provided <param name="revision"/>.</summary>
-		JsonFragment DeleteDocument(string docId, string revision);
+		IJsonFragment DeleteDocument(string docId, string revision);
 
 		/// <summary>Queries CouchDB view.</summary>
-		ViewResult Query(ViewQuery query);
+		IPagedList<ViewResultRow> Query(ViewQuery query);
 
 		/// <summary>Queries CouchDB view.</summary>
-		LuceneResult FulltextQuery(LuceneQuery query);
+		IPagedList<LuceneResultRow> FulltextQuery(LuceneQuery query);
 	}
 }

@@ -6,7 +6,7 @@
 	you may not use this file except in compliance with the License.					
 	You may obtain a copy of the License at																	
 																																					
-			http://www.apache.org/licenses/LICENSE-2.0														
+	    http://www.apache.org/licenses/LICENSE-2.0														
 																																					
 	Unless required by applicable law or agreed to in writing, software			
 	distributed under the License is distributed on an "AS IS" BASIS,				
@@ -18,6 +18,7 @@
 
 using System.IO;
 using CouchDude.Core;
+using CouchDude.Core.Api;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -53,12 +54,12 @@ namespace CouchDude.Tests
 			return JObject.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
 		}
 
-		public static Document ToDocument(this object self)
+		public static IDocument ToDocument(this object self)
 		{
 			return new Document(self.ToJsonString());
 		}
 
-		public static JsonFragment ToJsonFragment(this object self)
+		public static IJsonFragment ToJsonFragment(this object self)
 		{
 			return new JsonFragment(self.ToJsonString());
 		}

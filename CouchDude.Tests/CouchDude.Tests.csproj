@@ -77,6 +77,7 @@
     <Compile Include="SampleData\SimpleViewData.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
+    <Compile Include="Unit\Api\LuceneResultsParserTests.cs" />
     <Compile Include="Unit\Api\ViewResultParserTests.cs" />
     <Compile Include="Unit\Configuration\DefaultEntityConfigConventionsTests.cs" />
     <Compile Include="Unit\Configuration\EntityConfigTests.cs" />
@@ -100,7 +101,6 @@
     <Compile Include="Unit\DocumentTests.cs" />
     <Compile Include="Unit\DocumentTests.Deserialize.cs" />
     <Compile Include="Unit\DocumentTests.Serialize.cs" />
-    <Compile Include="Unit\Impl\EntitySerializerDeserializeTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionQueryTests.cs" />
@@ -114,7 +114,6 @@
     <Compile Include="Unit\Impl\DocumentEntityTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Impl\EntitySerializerSerializeTests.cs" />
     <Compile Include="Unit\JsonFragmentTests.cs" />
     <Compile Include="Integration\SaveLoadAndDelete.cs" />
     <Compile Include="JTokenStringCompairer.cs" />

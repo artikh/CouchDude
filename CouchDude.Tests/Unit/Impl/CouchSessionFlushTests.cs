@@ -6,7 +6,7 @@
 	you may not use this file except in compliance with the License.					
 	You may obtain a copy of the License at																	
 																																					
-			http://www.apache.org/licenses/LICENSE-2.0														
+	    http://www.apache.org/licenses/LICENSE-2.0														
 																																					
 	Unless required by applicable law or agreed to in writing, software			
 	distributed under the License is distributed on an "AS IS" BASIS,				
@@ -17,6 +17,7 @@
 #endregion
 
 using CouchDude.Core;
+using CouchDude.Core.Api;
 using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -34,13 +35,14 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldUpdateChangedDocumentsOnFlush()
 		{
 			string updatedDocId = null;
-			JObject updatedDoc = null;
+			IDocument updatedDoc = null;
 			var totalUpdateCount = 0;
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
 				.Setup(ca => ca.UpdateDocumentInDb(It.IsAny<string>(), It.IsAny<Document>()))
-				.Returns((string docId, JObject doc) => {
+				.Returns((string docId, IDocument doc) =>
+				{
 					updatedDocId = docId;
 					updatedDoc = doc;
 					totalUpdateCount++;
@@ -52,20 +54,16 @@ namespace CouchDude.Tests.Unit.Impl
 				});
 			couchApiMock
 				.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<Document>()))
-				.Returns(new {
-					ok = true,
-					id = entity.Id,
-					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJsonFragment);
+				.Returns(new { ok = true, id = entity.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
 			
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Save(entity);
 			entity.Name = "Artem Tikhomirov";
-			session.Flush();
+			session.SaveChanges();
 
 			Assert.Equal(1, totalUpdateCount);
 			Assert.Equal("simpleEntity.doc1", updatedDocId);
-			TestUtils.AssertSameJson(
+			Assert.Equal(
 				new
 				{
 					_id = "simpleEntity.doc1",
@@ -74,7 +72,7 @@ namespace CouchDude.Tests.Unit.Impl
 					name = "Artem Tikhomirov",
 					age = 42,
 					date = "1957-04-10T00:00:00"
-				},
+				}.ToDocument(),
 				updatedDoc
 			);
 		}

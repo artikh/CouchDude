@@ -16,50 +16,15 @@
 */
 #endregion
 
-using System.Collections;
 using System.Collections.Generic;
 
 namespace CouchDude.Core.Api
 {
 	/// <summary>Result of CouchDB view query.</summary>
-	public class ViewResult : IPagedList<ViewResultRow>
+	public class ViewResult: RequestResultBase<ViewResultRow, ViewQuery, ViewResult>
 	{
-		/// <summary>Empty view result list.</summary>
-		public static readonly ViewResult Empty = new ViewResult(new List<ViewResultRow>(), 0, 0, null);
-
-		private readonly ICollection<ViewResultRow> rows;
-		
 		/// <constructor />
-		public ViewResult(ICollection<ViewResultRow> rows, int totalRows, int offset, ViewQuery query)
-		{
-			this.rows = rows;
-			Offset = offset;
-			TotalRowCount = totalRows;
-			Query = query;
-		}
-
-		/// <inheritdoc/>
-		public ViewQuery Query { get; private set; }
-
-		/// <inheritdoc/>
-		public int TotalRowCount { get; private set; }
-
-		/// <inheritdoc/>
-		public int RowCount { get { return rows.Count; } }
-
-		/// <inheritdoc/>
-		public int Offset { get; private set; }
-
-		/// <inheritdoc/>
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return GetEnumerator();
-		}
-
-		/// <inheritdoc/>
-		public IEnumerator<ViewResultRow> GetEnumerator()
-		{
-			return rows.GetEnumerator();
-		}
+		public ViewResult(IEnumerable<ViewResultRow> rows, int totalRowCount, int offset, ViewQuery query) 
+			: base(rows, totalRowCount, offset, query) { }
 	}
 }

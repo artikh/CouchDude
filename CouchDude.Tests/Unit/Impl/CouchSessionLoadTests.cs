@@ -6,7 +6,7 @@
 	you may not use this file except in compliance with the License.					
 	You may obtain a copy of the License at																	
 																																					
-			http://www.apache.org/licenses/LICENSE-2.0														
+	    http://www.apache.org/licenses/LICENSE-2.0														
 																																					
 	Unless required by applicable law or agreed to in writing, software			
 	distributed under the License is distributed on an "AS IS" BASIS,				
@@ -117,7 +117,7 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		private SimpleEntity DoTest(
-			Func<string, Document> apiResponse = null,
+			Func<string, IDocument> apiResponse = null,
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1")
@@ -126,7 +126,7 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		private T DoTest<T>(
-			Func<string, Document> apiResponse = null,
+			Func<string, IDocument> apiResponse = null,
 			Mock<ICouchApi> couchApiMock = null,
 			Action<ISession> action = null,
 			string documentId = "doc1",
@@ -148,8 +148,8 @@ namespace CouchDude.Tests.Unit.Impl
 					.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
 					.Returns(apiResponse);
 				couchApiMock
-					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<Document>()))
-					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToDocument());
+					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<IDocument>()))
+					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
 			}
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);

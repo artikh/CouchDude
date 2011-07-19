@@ -31,7 +31,7 @@ namespace CouchDude.Core
 		TEntity Load<TEntity>(string entityId) where TEntity : class;
 
 		/// <summary>Synchronises all changes to CouchDB.</summary>
-		void Flush();
+		void SaveChanges();
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
 		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class;

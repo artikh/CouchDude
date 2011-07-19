@@ -16,6 +16,9 @@
 */
 #endregion
 
+using System.Dynamic;
+using CouchDude.Core.Api;
+
 namespace CouchDude.Core
 {
 	/// <summary>CouchDB query result row.</summary>
@@ -25,7 +28,7 @@ namespace CouchDude.Core
 		public ViewResultRow() { }
 
 		/// <constructor />
-		public ViewResultRow(JsonFragment key, JsonFragment value, string documentId, Document document)
+		public ViewResultRow(IDynamicMetaObjectProvider key, JsonFragment value, string documentId, IDocument document)
 		{
 			Key = key;
 			Value = value;
@@ -34,7 +37,7 @@ namespace CouchDude.Core
 		}
 
 		/// <summary>View key.</summary>
-		public JsonFragment Key { get; private set; }
+		public IDynamicMetaObjectProvider Key { get; private set; }
 
 		/// <summary>View value.</summary>
 		public JsonFragment Value { get; private set; }
@@ -43,6 +46,6 @@ namespace CouchDude.Core
 		public string DocumentId { get; private set; }
 
 		/// <summary>Document associated with the row.</summary>
-		public Document Document { get; private set; }
+		public IDocument Document { get; private set; }
 	}
 }

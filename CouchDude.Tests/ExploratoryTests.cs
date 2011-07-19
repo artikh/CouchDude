@@ -1,18 +1,18 @@
 #region Licence Info 
 /*
-  Copyright 2011 · Artem Tikhomirov																					
- 																																					
-  Licensed under the Apache License, Version 2.0 (the "License");					
-  you may not use this file except in compliance with the License.					
-  You may obtain a copy of the License at																	
- 																																					
-      http://www.apache.org/licenses/LICENSE-2.0														
- 																																					
-  Unless required by applicable law or agreed to in writing, software			
-  distributed under the License is distributed on an "AS IS" BASIS,				
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
-  See the License for the specific language governing permissions and			
-  limitations under the License.																						
+	Copyright 2011 · Artem Tikhomirov																					
+																																					
+	Licensed under the Apache License, Version 2.0 (the "License");					
+	you may not use this file except in compliance with the License.					
+	You may obtain a copy of the License at																	
+																																					
+	    http://www.apache.org/licenses/LICENSE-2.0														
+																																					
+	Unless required by applicable law or agreed to in writing, software			
+	distributed under the License is distributed on an "AS IS" BASIS,				
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.	
+	See the License for the specific language governing permissions and			
+	limitations under the License.																						
 */
 #endregion
 
@@ -22,8 +22,6 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
-
-using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 
 // ReSharper disable UnusedMember.Local
@@ -89,39 +87,7 @@ namespace CouchDude.Tests
 			public string Id;
 			public IList<JObject> SubObject;
 		}
-
-		[Fact]
-		public void ShouldDeserializeDocumentsWithJObjectProperties()
-		{
-			var json = new {
-				id = "some ID",
-				subObject = new[] { 
-					new {
-						prop1 = "prop 1 value",
-						prop2 = "prop 2 value"
-					},
-					new {
-						prop1 = "prop 1 second value",
-						prop2 = "prop 2 second value"
-					}
-				}
-			}.ToJObject();
-
-			ClassWithJObjectProperty entity;
-			using (var reader = new JTokenReader(json))
-				entity = JsonSerializer.Instance.Deserialize<ClassWithJObjectProperty>(reader);
-
-			Assert.Equal("some ID", entity.Id);
-			Assert.Equal(2, entity.SubObject.Count);
-			TestUtils.AssertSameJson(
-				new {
-					prop1 = "prop 1 value",
-					prop2 = "prop 2 value"
-				},
-				entity.SubObject[0]
-			);
-		}
-
+		
 		public class PrivatePropertySetterClass
 		{
 			private string name = "name name";
@@ -135,35 +101,6 @@ namespace CouchDude.Tests
 			public string Name { get { return name; } private set { name = value; } }
 
 			public int Age { get; private set; }
-		}
-
-		[Fact]
-		public void ShouldDeserializePrivatePropertySetter()
-		{
-			var json = new {
-				name = "some Name",
-				age = 42
-			}.ToJObject();
-
-			PrivatePropertySetterClass obj;
-			using (var jTokenReader = new JTokenReader(json))
-				obj = JsonSerializer.Instance.Deserialize<PrivatePropertySetterClass>(jTokenReader);
-
-			Assert.NotNull(obj);
-			Assert.Equal("some Name", obj.Name);
-			Assert.Equal(42, obj.Age);
-		}
-
-		[Fact]
-		public void ShouldNotSerializePrivateFields()
-		{
-			var instance = new PrivatePropertySetterClass("John Don", 42);
-
-			var writer = new JTokenWriter();
-			JsonSerializer.Instance.Serialize(writer, instance);
-			var json = (JObject)writer.Token;
-
-			Assert.Null(json.Property("_name"));
 		}
 
 		[Fact]

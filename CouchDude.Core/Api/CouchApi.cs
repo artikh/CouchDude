@@ -24,10 +24,7 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using CouchDude.Core.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using CouchDude.Core.Http;
-using JsonSerializer = CouchDude.Core.Utils.JsonSerializer;
 
 namespace CouchDude.Core.Api
 {
@@ -48,7 +45,7 @@ namespace CouchDude.Core.Api
 			databaseUri = new Uri(serverUri, databaseName + "/");
 		}
 
-		public Document GetDocumentFromDbById(string docId)
+		public IDocument GetDocumentFromDbById(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			Contract.EndContractBlock();
@@ -62,7 +59,7 @@ namespace CouchDude.Core.Api
 			return ReadDocument(response.GetContentTextReader());
 		}
 
-		public JsonFragment DeleteDocument(string docId, string revision)
+		public IJsonFragment DeleteDocument(string docId, string revision)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
@@ -75,7 +72,7 @@ namespace CouchDude.Core.Api
 			return ReadJson(response.GetContentTextReader());
 		}
 
-		public JsonFragment SaveDocumentToDb(string docId, Document document)
+		public IJsonFragment SaveDocumentToDb(string docId, IDocument document)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
@@ -89,7 +86,7 @@ namespace CouchDude.Core.Api
 			return ReadJson(response.GetContentTextReader());
 		}
 
-		public JsonFragment UpdateDocumentInDb(string docId, Document document)
+		public IJsonFragment UpdateDocumentInDb(string docId, IDocument document)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
@@ -117,38 +114,37 @@ namespace CouchDude.Core.Api
 			ThrowIfNotOk(response);
 			var etag = response.Headers.ETag;
 			if (etag == null || etag.Tag == null)
-                throw new ParseException("Etag header expected but was not found.");
+								throw new ParseException("Etag header expected but was not found.");
 			return etag.Tag.Trim('"');
 		}
 
 		/// <inheritdoc/>
-		public ViewResult Query(ViewQuery query)
+		public IPagedList<ViewResultRow> Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 			Contract.EndContractBlock();
-			/*
+			
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
-			*/
-			return ViewResult.Empty;
+			
+			return ViewResultParser.Parse(response.GetContentTextReader(), query);
 		}
 
 		/// <inheritdoc/>
 		/// TODO: Неплохо бы засовывать вес поиска в результаты
-		public LuceneResult FulltextQuery(LuceneQuery query)
+		public IPagedList<LuceneResultRow> FulltextQuery(LuceneQuery query)
 		{
 			if (query == null) 
 				throw new ArgumentNullException("query");
 			Contract.EndContractBlock();
-			/*
+			
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var response = MakeRequest(request);
-			*/
-
-			return LuceneResult.Empty;
+			
+			return LuceneResultParser.Parse(response.GetContentTextReader(), query);
 		}
 
 		private static Document ReadDocument(TextReader responseTextReader)
@@ -184,22 +180,19 @@ namespace CouchDude.Core.Api
 			if (errorTextReader == null)
 				return null;
 
-			JObject errorObject;
-			using (var jsonReader = new JsonTextReader(errorTextReader))
+			dynamic errorObject;
+			using (errorTextReader)
 				try
 				{
-					errorObject = JObject.Load(jsonReader);
+					errorObject = new JsonFragment(errorTextReader);
 				}
 				catch (Exception)
 				{
 					return null;
 				}
 
-			var errorNameToken = errorObject["error"];
-			var errorName = errorNameToken == null ? String.Empty : errorNameToken.Value<string>();
-
-			var reasonMessageToken = errorObject["reason"];
-			var reasonMessage = reasonMessageToken == null ? String.Empty : reasonMessageToken.Value<string>();
+			string errorName = errorObject.error ?? string.Empty;
+			string reasonMessage = errorObject.reason ?? string.Empty;
 
 			var message = new StringBuilder();
 			message.Append(errorName);

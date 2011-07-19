@@ -6,7 +6,7 @@
 	you may not use this file except in compliance with the License.					
 	You may obtain a copy of the License at																	
 																																					
-			http://www.apache.org/licenses/LICENSE-2.0														
+	    http://www.apache.org/licenses/LICENSE-2.0														
 																																					
 	Unless required by applicable law or agreed to in writing, software			
 	distributed under the License is distributed on an "AS IS" BASIS,				
@@ -19,9 +19,6 @@
 using System;
 using System.Runtime.Serialization;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using CouchDude.Core.Impl;
 
 namespace CouchDude.Core
 {
@@ -44,12 +41,12 @@ namespace CouchDude.Core
 			: base(info, context) { }
 
 		/// <constructor />
-		public DocumentTypeMissingException(Document document) : base(GenerateMessage(document)) { }
+		public DocumentTypeMissingException(IDocument document) : base(GenerateMessage(document)) { }
 
-		private static string GenerateMessage(Document document = null)
+		private static string GenerateMessage(IDocument document = null)
 		{
 			var message = new StringBuilder("Required field '")
-				.Append(EntitySerializer.TypePropertyName)
+				.Append(Api.Document.TypePropertyName)
 				.Append("' have not found on document. ")
 				.Append("Type on documents has nothing to do with CouchDB itself, ")
 				.Append("however it's required by CouchDude so it colud do it magic stuff.");

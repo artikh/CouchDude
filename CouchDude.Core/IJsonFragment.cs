@@ -17,30 +17,27 @@
 #endregion
 
 using System;
-using CouchDude.Core;
+using System.Dynamic;
+using System.IO;
 using CouchDude.Core.Api;
-using CouchDude.Core.Impl;
-using CouchDude.Tests.SampleData;
-using Moq;
-using Xunit;
 
-namespace CouchDude.Tests.Unit.Impl
+namespace CouchDude.Core
 {
-	public class CouchSessionConstuctorTests
+	/// <summary>Represents simple JSON fragment. Data could be accessed as dynamic.</summary>
+	public interface IJsonFragment : IDynamicMetaObjectProvider
 	{
-		[Fact]
-		public void ShouldThrowOnNullParameters()
-		{
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, null));
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(null, Mock.Of<ICouchApi>()));
-		}
+		/// <summary>Produces <see cref="TextReader"/> over content of the JSON fragmet.</summary>
+		/// <remarks>Client code is responsible for disposing it.</remarks>
+		TextReader Read();
 
-		[Fact]
-		public void ShouldThrowOnUnfinishedSettings()
-		{
-			Assert.Throws<ArgumentException>(() => 
-				new CouchSession(new Settings(), Mock.Of<ICouchApi>())
-			);
-		}
+		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/>.</summary>
+		object Deserialize(Type type);
+
+		/// <summary>Writes JSON string to provided text writer.</summary>
+		void WriteTo(TextWriter writer);
+
+		/// <summary>Grabs required property value throwing
+		/// <see cref="ParseException"/> if not found or empty.</summary>
+		string GetRequiredProperty(string name, string additionalMessage = null);
 	}
 }

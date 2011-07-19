@@ -19,9 +19,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using CouchDude.Core.Impl;
+using CouchDude.Core.Api;
 
 namespace CouchDude.Core
 {
@@ -44,16 +42,16 @@ namespace CouchDude.Core
 			: base(info, context) { }
 
 		/// <constructor />
-		public DocumentIdMissingException(JObject document) : base(GenerateMessage(document)) { }
+		public DocumentIdMissingException(IDocument document) : base(GenerateMessage(document)) { }
 
-		private static string GenerateMessage(JToken document = null)
+		private static string GenerateMessage(IDocument document = null)
 		{
 			var message = new StringBuilder("Required field '")
-				.Append(EntitySerializer.IdPropertyName)
+				.Append(Document.IdPropertyName)
 				.Append("' have not found on document. ")
 				.Append("Documents id is required by CouchDB.");
 			if (document != null)
-				message.AppendLine().Append(document.ToString(Formatting.Indented));
+				message.AppendLine().Append(document.ToString());
 
 			return message.ToString();
 		}
