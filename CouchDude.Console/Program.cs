@@ -6,7 +6,7 @@
 	you may not use this file except in compliance with the License.					
 	You may obtain a copy of the License at																	
 																																					
-	    http://www.apache.org/licenses/LICENSE-2.0														
+			http://www.apache.org/licenses/LICENSE-2.0														
 																																					
 	Unless required by applicable law or agreed to in writing, software			
 	distributed under the License is distributed on an "AS IS" BASIS,				
@@ -22,6 +22,8 @@ using CommandLine;
 using CommandLine.Text;
 using Common.Logging;
 using CouchDude.Core.DesignDocumentManagment;
+
+#pragma warning disable 0649
 
 namespace CouchDude
 {
@@ -51,6 +53,9 @@ namespace CouchDude
 			[Option("a", "address", HelpText = "Database URL")]
 			public string DatabaseUrl;
 
+			[Option("v", "verbose", HelpText = "Log diagnostics to console window")]
+			public bool Verbose;
+
 			[Option("d", "directory", HelpText = "Base directory for document generation")]
 			public string BaseDirectory = string.Empty;
 			
@@ -73,9 +78,11 @@ namespace CouchDude
 			ICommandLineParser parser = new CommandLineParser(new CommandLineParserSettings(Console.Error));
 			if (!parser.ParseArguments(args, options))
 			{
-				Log.ErrorFormat("Some of argumens are incorrect");
+				Console.Error.WriteLine("Some of argumens are incorrect");
 				return IncorrectOptionsReturnCode;
 			}
+
+			ChangeLoggingLevel(options.Verbose ? "INFO" : "WARN");
 
 			var directoryPath = !string.IsNullOrWhiteSpace(options.BaseDirectory)? options.BaseDirectory: Environment.CurrentDirectory;
 
@@ -103,6 +110,26 @@ namespace CouchDude
 				}
 
 			return OkReturnCode;
+		}
+
+		private static void ChangeLoggingLevel(string level)
+		{
+			var repositories= log4net.LogManager.GetAllRepositories();
+
+			//Configure all loggers to be at the debug level.
+			foreach (var repository in repositories)
+			{
+				repository.Threshold = repository.LevelMap[level];
+					var hier = (log4net.Repository.Hierarchy.Hierarchy)repository;
+					var loggers=hier.GetCurrentLoggers();
+				foreach (var logger in loggers)
+					((log4net.Repository.Hierarchy.Logger) logger).Level = hier.LevelMap[level];
+			}
+
+			//Configure the root logger.
+			var h = (log4net.Repository.Hierarchy.Hierarchy)log4net.LogManager.GetRepository();
+			var rootLogger = h.Root;
+			rootLogger.Level = h.LevelMap[level];
 		}
 
 		private static void ExecuteCommand(CommandType command, DirectoryInfo baseDirectory, Lazy<Uri> url, string password) 
