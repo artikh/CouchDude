@@ -165,11 +165,14 @@ namespace CouchDude.Core.Impl
 		
 		private IPagedList<T> GetEntityList<T>(IPagedList<ViewResultRow> queryResult)
 		{
-			var entities = 
-				from row in queryResult
-				select DocumentEntity.TryFromDocument<T>(row.Document, settings) into documentEntity
-				where documentEntity != null
-				select (T)cache.PutOrReplace(documentEntity).Entity;
+			var documentEntities =
+				queryResult.Select(row => DocumentEntity.TryFromDocument<T>(row.Document, settings)).ToArray();
+			
+			foreach (var documentEntity in documentEntities)
+				if (documentEntity != null)
+					cache.PutOrReplace(documentEntity);
+
+			var entities = from de in documentEntities select de == null ? default(T) : (T) de.Entity;
 
 			return new PagedList<T>(entities, queryResult.TotalRowCount, queryResult.Offset);
 		}
@@ -177,10 +180,7 @@ namespace CouchDude.Core.Impl
 		private static IPagedList<T> GetViewDataList<T>(IPagedList<ViewResultRow> queryResult)
 		{
 			var viewDataList =
-				from row in queryResult
-				where row.Value != null
-				let viewDataItem = (T) row.Value.Deserialize(typeof (T))
-				select viewDataItem;
+				from row in queryResult select row.Value != null ? (T)row.Value.Deserialize(typeof(T)) : default(T);
 
 			return new PagedList<T>(viewDataList, queryResult.TotalRowCount, queryResult.Offset);
 		}
