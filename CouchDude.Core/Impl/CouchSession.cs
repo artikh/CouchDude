@@ -56,7 +56,7 @@ namespace CouchDude.Core.Impl
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
 			
 			documentEntity.DoMap();
-			var result = couchApi.SaveDocumentToDb(documentEntity.DocumentId, documentEntity.Document);
+			var result = couchApi.SaveDocumentToDb(documentEntity.Document);
 			cache.Put(documentEntity);
 
 			var newRevision = result.GetRequiredProperty("rev");
@@ -123,7 +123,7 @@ namespace CouchDude.Core.Impl
 			foreach (var documentEntity in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
 				documentEntity.DoMap();
-				couchApi.UpdateDocumentInDb(documentEntity.DocumentId, documentEntity.Document);
+				couchApi.UpdateDocumentInDb(documentEntity.Document);
 			}
 		}
 

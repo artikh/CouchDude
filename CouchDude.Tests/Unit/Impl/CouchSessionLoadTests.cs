@@ -148,7 +148,7 @@ namespace CouchDude.Tests.Unit.Impl
 					.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
 					.Returns(apiResponse);
 				couchApiMock
-					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<IDocument>()))
+					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<IDocument>()))
 					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
 			}
 

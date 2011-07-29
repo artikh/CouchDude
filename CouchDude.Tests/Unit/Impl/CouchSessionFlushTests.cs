@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.UpdateDocumentInDb(It.IsAny<string>(), It.IsAny<Document>()))
+				.Setup(ca => ca.UpdateDocumentInDb(It.IsAny<Document>()))
 				.Returns((string docId, IDocument doc) =>
 				{
 					updatedDocId = docId;
@@ -53,7 +53,7 @@ namespace CouchDude.Tests.Unit.Impl
 					}.ToJsonFragment();
 				});
 			couchApiMock
-				.Setup(ca => ca.SaveDocumentToDb(It.IsAny<string>(), It.IsAny<Document>()))
+				.Setup(ca => ca.SaveDocumentToDb(It.IsAny<Document>()))
 				.Returns(new { ok = true, id = entity.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
 			
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);

@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Api
 						rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
 					}.ToJsonString());
 
-			var result = couchApi.UpdateDocumentInDb("doc1", new { _id = "doc1", name = "John Smith" }.ToDocument());
+			var result = couchApi.UpdateDocumentInDb(new { _id = "doc1", name = "John Smith" }.ToDocument());
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpClientMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
@@ -60,23 +60,23 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnNullParametersUpdatingDocumentInDb()
 		{
 			ICouchApi couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentNullException>(() =>  couchApi.SaveDocumentToDb(null, new { _id = "doc1" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb("", new { _id = "doc1" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb("doc1", null));
+			Assert.Throws<ArgumentNullException>(() =>  couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonUpdatingDocumentInDb()
 		{
 			ICouchApi couchApi = CreateCouchApi(response: "Some none-json [) content");
-			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
 		public void ShouldThrowOnEmptyResponseUpdatingDocumentInDb()
 		{
 			ICouchApi couchApi = CreateCouchApi(response: "    ");
-			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb("doc1", new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]

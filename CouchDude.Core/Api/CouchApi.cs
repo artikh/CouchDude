@@ -72,13 +72,14 @@ namespace CouchDude.Core.Api
 			return ReadJson(response.GetContentTextReader());
 		}
 
-		public IJsonFragment SaveDocumentToDb(string docId, IDocument document)
+		public IJsonFragment SaveDocumentToDb(IDocument document)
 		{
-			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
+			if (document.Id.IsNullOrEmpty()) 
+				throw new ArgumentException("Document ID should not be empty or noll.", "document");
 			Contract.EndContractBlock();
 
-			var documentUri = GetDocumentUri(docId);
+			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
 			var response = MakeRequest(request);
@@ -86,13 +87,14 @@ namespace CouchDude.Core.Api
 			return ReadJson(response.GetContentTextReader());
 		}
 
-		public IJsonFragment UpdateDocumentInDb(string docId, IDocument document)
+		public IJsonFragment UpdateDocumentInDb(IDocument document)
 		{
-			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (document == null) throw new ArgumentNullException("document");
+			if (document.Id.IsNullOrEmpty())
+				throw new ArgumentException("Document ID should not be empty or noll.", "document");
 			Contract.EndContractBlock();
 
-			var documentUri = GetDocumentUri(docId);
+			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
 			var response = MakeRequest(request);

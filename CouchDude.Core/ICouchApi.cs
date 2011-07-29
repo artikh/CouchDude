@@ -25,10 +25,10 @@ namespace CouchDude.Core
 		IDocument GetDocumentFromDbById(string docId);
 
 		/// <summary>Saves new document in CouchDB.</summary>
-		IJsonFragment SaveDocumentToDb(string docId, IDocument document);
+		IJsonFragment SaveDocumentToDb(IDocument document);
 
 		/// <summary>Updates document in CouchDB.</summary>
-		IJsonFragment UpdateDocumentInDb(string docId, IDocument document);
+		IJsonFragment UpdateDocumentInDb(IDocument document);
 
 		/// <summary>Retrives current document revision from database. <c>null</c> returned if
 		/// there is no such document in database.</summary>

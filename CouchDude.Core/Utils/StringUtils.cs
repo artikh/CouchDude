@@ -39,5 +39,11 @@ namespace CouchDude.Core.Utils
 			output[0] = Char.ToLower(firstLetter);
 			return output.ToString();
 		}
+
+		/// <summary>Inverts <see cref="string.IsNullOrEmpty"/> to be more convinient.</summary>
+		public static bool IsNullOrEmpty(this string self)
+		{
+			return string.IsNullOrEmpty(self);
+		}
 	}
 }
