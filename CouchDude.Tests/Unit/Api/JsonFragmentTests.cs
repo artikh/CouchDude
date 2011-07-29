@@ -20,11 +20,10 @@ using System;
 using System.IO;
 using CouchDude.Core;
 using CouchDude.Core.Api;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit
+namespace CouchDude.Tests.Unit.Api
 {
 	public class JsonFragmentTests
 	{

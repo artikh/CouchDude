@@ -23,12 +23,13 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 using CouchDude.Core.Utils;
 using CouchDude.Core.Http;
 
 namespace CouchDude.Core.Api
 {
-	internal class CouchApi: ICouchApi
+	internal partial class CouchApi: ICouchApi
 	{
 		private readonly IHttpClient httpClient;
 		private readonly Uri databaseUri;
@@ -45,21 +46,24 @@ namespace CouchDude.Core.Api
 			databaseUri = new Uri(serverUri, databaseName + "/");
 		}
 
-		public IDocument GetDocumentFromDbById(string docId)
+		public Task<IDocument> RequestDocumentById(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
-			var response = MakeRequest(request);
-			if (response.StatusCode == HttpStatusCode.NotFound)
-				return null;
-			ThrowIfNotOk(response);
-			return ReadDocument(response.GetContentTextReader());
+			return StartRequest(request).ContinueWith<IDocument>(
+				rt => {
+					var response = rt.Result;
+					if (response.StatusCode == HttpStatusCode.NotFound)
+						return null;
+					ThrowIfNotOk(response);
+					return new Document(response.GetContentTextReader());
+				});
 		}
 
-		public IJsonFragment DeleteDocument(string docId, string revision)
+		public Task<IJsonFragment> DeleteDocument(string docId, string revision)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
@@ -67,96 +71,97 @@ namespace CouchDude.Core.Api
 
 			var documentUri = GetDocumentUri(docId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
-			var response = MakeRequest(request);
-			ThrowIfNotOk(response);
-			return ReadJson(response.GetContentTextReader());
+			return StartRequest(request).ContinueWith<IJsonFragment>(
+				rt => {
+					var response = rt.Result;
+					ThrowIfNotOk(response);
+					return new JsonFragment(response.GetContentTextReader());
+				});
 		}
-
-		public IJsonFragment SaveDocumentToDb(IDocument document)
+		
+		public Task<IJsonFragment> SaveDocument(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
-			if (document.Id.IsNullOrEmpty()) 
+			if (document.Id.HasNoValue()) 
 				throw new ArgumentException("Document ID should not be empty or noll.", "document");
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
-			var response = MakeRequest(request);
-			ThrowIfNotOk(response);
-			return ReadJson(response.GetContentTextReader());
+			return StartRequest(request).ContinueWith<IJsonFragment>(
+				rt => {
+					var response = rt.Result;
+					ThrowIfNotOk(response);
+					return new JsonFragment(response.GetContentTextReader());
+				});
 		}
 
-		public IJsonFragment UpdateDocumentInDb(IDocument document)
+		public Task<IJsonFragment> UpdateDocument(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
-			if (document.Id.IsNullOrEmpty())
+			if (document.Id.HasNoValue())
 				throw new ArgumentException("Document ID should not be empty or noll.", "document");
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
-			var response = MakeRequest(request);
-			ThrowIfNotOk(response);
-			return ReadJson(response.GetContentTextReader());
+			return StartRequest(request).ContinueWith<IJsonFragment>(
+				rt => {
+					var response = rt.Result;
+					ThrowIfNotOk(response);
+					return new JsonFragment(response.GetContentTextReader());
+				});
 		}
 
-		public string GetLastestDocumentRevision(string docId)
+		public Task<string> RequestLastestDocumentRevision(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			Contract.EndContractBlock();
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
-			var response = MakeRequest(request);
-			if (response.StatusCode == HttpStatusCode.NotFound)
-				return null;
+			return StartRequest(request).ContinueWith(
+				rt =>
+				{
+					var response = rt.Result;
 
-			ThrowIfNotOk(response);
-			var etag = response.Headers.ETag;
-			if (etag == null || etag.Tag == null)
-								throw new ParseException("Etag header expected but was not found.");
-			return etag.Tag.Trim('"');
+					if (response.StatusCode == HttpStatusCode.NotFound)
+						return null;
+
+					ThrowIfNotOk(response);
+					var etag = response.Headers.ETag;
+					if (etag == null || etag.Tag == null)
+						throw new ParseException("Etag header expected but was not found.");
+					return etag.Tag.Trim('"');
+				});
 		}
-
-		/// <inheritdoc/>
-		public IPagedList<ViewResultRow> Query(ViewQuery query)
+		
+		public Task<IPagedList<ViewResultRow>> Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 			Contract.EndContractBlock();
-			
+
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
-			var response = MakeRequest(request);
-			
-			return ViewResultParser.Parse(response.GetContentTextReader(), query);
+			return StartRequest(request).ContinueWith<IPagedList<ViewResultRow>>(
+				rt => ViewResultParser.Parse(rt.Result.GetContentTextReader(), query)
+			);
 		}
-
-		/// <inheritdoc/>
-		/// TODO: Неплохо бы засовывать вес поиска в результаты
-		public IPagedList<LuceneResultRow> FulltextQuery(LuceneQuery query)
+		
+		public Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query)
 		{
-			if (query == null) 
+			if (query == null)
 				throw new ArgumentNullException("query");
 			Contract.EndContractBlock();
-			
+
 			var viewUri = databaseUri + query.ToUri();
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
-			var response = MakeRequest(request);
-			
-			return LuceneResultParser.Parse(response.GetContentTextReader(), query);
-		}
-
-		private static Document ReadDocument(TextReader responseTextReader)
-		{
-			return new Document(responseTextReader);
-		}
-
-		private static JsonFragment ReadJson(TextReader responseTextReader)
-		{
-			return new JsonFragment(responseTextReader);
+			return StartRequest(request).ContinueWith<IPagedList<LuceneResultRow>>(
+				rt => LuceneResultParser.Parse(rt.Result.GetContentTextReader(), query)
+			);
 		}
 
 		private Uri GetDocumentUri(string docId, string revision = null)
@@ -217,11 +222,11 @@ namespace CouchDude.Core.Api
 				+ (int) response.StatusCode);
 		}
 
-		private HttpResponseMessage MakeRequest(HttpRequestMessage request)
+		private Task<HttpResponseMessage> StartRequest(HttpRequestMessage request)
 		{
 			try
 			{
-				return httpClient.MakeRequest(request);
+				return httpClient.StartRequest(request);
 			}
 			catch (SocketException e)
 			{

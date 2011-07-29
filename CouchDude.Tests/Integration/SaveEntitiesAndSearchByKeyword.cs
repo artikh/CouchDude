@@ -51,15 +51,15 @@ namespace CouchDude.Tests.Integration
 				}
 			}.ToDocument();
 
-			var existingLucineDesignDocRevision = couchApi.GetLastestDocumentRevision("_design/lucene");
+			var existingLucineDesignDocRevision = couchApi.RequestLastestDocumentRevisionAndWaitForResult("_design/lucene");
 			if (existingLucineDesignDocRevision != null)
 			{
 				luceneDoc.Revision = existingLucineDesignDocRevision;
-				couchApi.UpdateDocumentInDb("_design/lucene", luceneDoc);
+				couchApi.UpdateDocumentAndWaitForResult(luceneDoc);
 			}
 			else
 			{
-				couchApi.SaveDocumentToDb("_design/lucene", luceneDoc);
+				couchApi.SaveDocumentSyncAndWaitForResult(luceneDoc);
 			}
 		}
 

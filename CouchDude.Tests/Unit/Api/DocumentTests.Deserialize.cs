@@ -27,7 +27,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit
+namespace CouchDude.Tests.Unit.Api
 {
 	public class DocumentTestsDeserialize
 	{

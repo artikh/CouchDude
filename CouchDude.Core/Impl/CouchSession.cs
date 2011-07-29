@@ -56,7 +56,7 @@ namespace CouchDude.Core.Impl
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
 			
 			documentEntity.DoMap();
-			var result = couchApi.SaveDocumentToDb(documentEntity.Document);
+			var result = couchApi.SaveDocumentSyncAndWaitForResult(documentEntity.Document);
 			cache.Put(documentEntity);
 
 			var newRevision = result.GetRequiredProperty("rev");
@@ -83,7 +83,7 @@ namespace CouchDude.Core.Impl
 						+ " found in first level cache.", 
 					"entity");
 			
-			var result = couchApi.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
+			var result = couchApi.DeleteDocumentAndWaitForResult(documentEntity.DocumentId, documentEntity.Revision);
 			var newRevision = result.GetRequiredProperty("rev");
 			return new DocumentInfo(documentEntity.EntityId, newRevision);
 		}
@@ -108,7 +108,7 @@ namespace CouchDude.Core.Impl
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
 
-			var document = couchApi.GetDocumentFromDbById(docId);
+			var document = couchApi.RequestDocumentByIdAndWaitForResult(docId);
 			if (document == null)
 				return null;
 			var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
@@ -123,7 +123,7 @@ namespace CouchDude.Core.Impl
 			foreach (var documentEntity in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
 				documentEntity.DoMap();
-				couchApi.UpdateDocumentInDb(documentEntity.Document);
+				couchApi.UpdateDocumentAndWaitForResult(documentEntity.Document);
 			}
 		}
 
@@ -135,7 +135,7 @@ namespace CouchDude.Core.Impl
 
 			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
 
-			var queryResult = couchApi.Query(query);
+			var queryResult = couchApi.QueryAndWaitForResult(query);
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
 		}
 
@@ -147,7 +147,7 @@ namespace CouchDude.Core.Impl
 			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
 			Contract.EndContractBlock();
 
-			var queryResult = couchApi.FulltextQuery(query);
+			var queryResult = couchApi.QueryLuceneAndWaitForResult(query);
 			
 			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
 		}

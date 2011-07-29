@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Api
 				  rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
 				}.ToJsonString());
 
-			var result = couchApi.SaveDocumentToDb(new { _id = "doc1", name = "John Smith" }.ToDocument()
+			var result = couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1", name = "John Smith" }.ToDocument()
 				);
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpClientMock.Request.RequestUri.ToString());
@@ -62,23 +62,23 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnNullParametersSavingToDb()
 		{
 			var couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentToDb(null));
+			Assert.Throws<ArgumentException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { }.ToDocument()));
+			Assert.Throws<ArgumentException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentSyncAndWaitForResult(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonSavingToDb()
 		{
 			var couchApi = CreateCouchApi(response: "Some none-json [) content");
-			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
 		public void ShouldThrowOnEmptyResponseSavingToDb()
 		{
 			var couchApi = CreateCouchApi(response: "    ");
-			Assert.Throws<ParseException>(() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ParseException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
@@ -90,13 +90,13 @@ namespace CouchDude.Tests.Unit.Api
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
-					() => couchApi.SaveDocumentToDb(new { _id = "doc1" }.ToDocument()));
+					() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1" }.ToDocument()));
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
 
-		private static ICouchApi CreateCouchApi(string response = "")
+		private static ICouchApi CreateCouchApi(string response = "{\"_id\":\"doc1\"}")
 		{
 			HttpClientMock httpClientMock;
 			return CreateCouchApi(out httpClientMock, response);

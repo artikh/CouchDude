@@ -41,9 +41,17 @@ namespace CouchDude.Core.Utils
 		}
 
 		/// <summary>Inverts <see cref="string.IsNullOrEmpty"/> to be more convinient.</summary>
-		public static bool IsNullOrEmpty(this string self)
+		[Pure]
+		public static bool HasNoValue(this string self)
 		{
 			return string.IsNullOrEmpty(self);
+		}
+
+		/// <summary>Inverts <see cref="string.IsNullOrEmpty"/> and negates it to be more convinient.</summary>
+		[Pure]
+		public static bool HasValue(this string self)
+		{
+			return !string.IsNullOrEmpty(self);
 		}
 	}
 }

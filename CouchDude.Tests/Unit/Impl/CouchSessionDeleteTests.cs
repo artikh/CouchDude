@@ -38,7 +38,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(ca => ca.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(ca => ca.DeleteDocumentAndWaitForResult(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns(
 					(string id, string revision) => {
 						deletedId = id;
@@ -78,10 +78,10 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocumentByIdAndWaitForResult(It.IsAny<string>()))
 				.Returns(SimpleEntityWithoutRevision.DocWithRevision);
 			couchApi
-				.Setup(ca => ca.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(ca => ca.DeleteDocumentAndWaitForResult(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns((string id, string rev) => {
 					deletedId = id;
 					deletedRev = rev;

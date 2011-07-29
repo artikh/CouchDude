@@ -34,7 +34,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			var resultObject = couchApi.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
+			var resultObject = couchApi.DeleteDocumentAndWaitForResult(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
@@ -49,8 +49,8 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			Assert.Throws<ArgumentNullException>(() => couchApi.DeleteDocument(docId: "doc1", revision: null));
-			Assert.Throws<ArgumentNullException>(() => couchApi.DeleteDocument(docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+			Assert.Throws<ArgumentNullException>(() => couchApi.DeleteDocumentAndWaitForResult(docId: "doc1", revision: null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.DeleteDocumentAndWaitForResult(docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
 		}
 
 		[Fact]
@@ -62,7 +62,7 @@ namespace CouchDude.Tests.Unit.Api
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			Assert.Throws<StaleObjectStateException>(
-				() => couchApi.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+				() => couchApi.DeleteDocumentAndWaitForResult(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
 		}
 	}
 }

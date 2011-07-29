@@ -17,10 +17,8 @@
 #endregion
 
 using System;
-using CouchDude.Core;
 using CouchDude.Core.Api;
 using CouchDude.Core.Configuration;
-using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
@@ -29,7 +27,7 @@ using Xunit.Extensions;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global	
 // ReSharper disable NotAccessedField.Global
-namespace CouchDude.Tests.Unit
+namespace CouchDude.Tests.Unit.Api
 {
 	public class DocumentTestsSerialize
 	{

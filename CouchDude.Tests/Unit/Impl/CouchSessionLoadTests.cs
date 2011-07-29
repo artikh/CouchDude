@@ -81,7 +81,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldLoadDataCorrectlyIfNoRevisionPropertyFound()
 		{
 			var couchApi = Mock.Of<ICouchApi>(
-				ca => ca.GetDocumentFromDbById(It.IsAny<string>()) ==
+				ca => ca.RequestDocumentByIdAndWaitForResult(It.IsAny<string>()) ==
 					SimpleEntityWithoutRevision.DocWithRevision
 				);
 
@@ -105,7 +105,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocumentByIdAndWaitForResult(It.IsAny<string>()))
 				.Returns<string>(docId => { 
 					requestedId = docId;
 					return SimpleEntity.DocWithRevision;
@@ -145,10 +145,10 @@ namespace CouchDude.Tests.Unit.Impl
 			{
 				couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 				couchApiMock
-					.Setup(ca => ca.GetDocumentFromDbById(It.IsAny<string>()))
+					.Setup(ca => ca.RequestDocumentByIdAndWaitForResult(It.IsAny<string>()))
 					.Returns(apiResponse);
 				couchApiMock
-					.Setup(ca => ca.SaveDocumentToDb(It.IsAny<IDocument>()))
+					.Setup(ca => ca.SaveDocumentSyncAndWaitForResult(It.IsAny<IDocument>()))
 					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
 			}
 
