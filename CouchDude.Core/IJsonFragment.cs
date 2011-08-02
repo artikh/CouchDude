@@ -39,5 +39,9 @@ namespace CouchDude.Core
 		/// <summary>Grabs required property value throwing
 		/// <see cref="ParseException"/> if not found or empty.</summary>
 		string GetRequiredProperty(string name, string additionalMessage = null);
+
+		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/> returning
+		/// <c>null</c> if deserialization was unsuccessful..</summary>
+		object TryDeserialize(Type type);
 	}
 }

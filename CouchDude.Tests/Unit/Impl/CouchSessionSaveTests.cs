@@ -86,7 +86,7 @@ namespace CouchDude.Tests.Unit.Impl
 			couchApiMock
 				.Setup(ca => ca.SaveDocumentSyncAndWaitForResult(It.IsAny<IDocument>()))
 				.Returns(
-					(string docId, IDocument doc) => new { id = docId, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment()
+					(IDocument doc) => new { id = doc.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment()
 				);
 
 			var savingEntity = new SimpleEntity

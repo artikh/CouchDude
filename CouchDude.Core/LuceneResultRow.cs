@@ -22,23 +22,30 @@ using CouchDude.Core.Api;
 namespace CouchDude.Core
 {
 	/// <summary>CouchDB-lucene query result row.</summary>
-	public class LuceneResultRow: ViewResultRow
+	public class LuceneResultRow
 	{
 		/// <constructor />
 		public LuceneResultRow() { }
 
 		/// <constructor />
-		public LuceneResultRow(JsonFragment fields, decimal score, string documentId, IDocument document)
-			: base(null, fields, documentId, document)
+		public LuceneResultRow(IJsonFragment fields, decimal score, string documentId, IDocument document)
 		{
 			Score = score;
 			Fields = fields;
+			DocumentId = documentId;
+			Document = document;
 		}
 
 		/// <summary>The normalized score (0.0-1.0, inclusive) for this match.</summary>
 		public decimal Score { get; private set; }
 
 		/// <summary>All the fields that were stored with this match</summary>
-		public IDynamicMetaObjectProvider Fields { get; private set; }
+		public IJsonFragment Fields { get; private set; }
+
+		/// <summary>Document ID associated with view row.</summary>
+		public string DocumentId { get; private set; }
+
+		/// <summary>Document associated with the row.</summary>
+		public IDocument Document { get; private set; }
 	}
 }

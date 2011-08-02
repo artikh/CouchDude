@@ -16,7 +16,6 @@
 */
 #endregion
 
-using System.Dynamic;
 using CouchDude.Core.Api;
 
 namespace CouchDude.Core
@@ -28,7 +27,7 @@ namespace CouchDude.Core
 		public ViewResultRow() { }
 
 		/// <constructor />
-		public ViewResultRow(IDynamicMetaObjectProvider key, JsonFragment value, string documentId, IDocument document)
+		public ViewResultRow(IJsonFragment key, IJsonFragment value, string documentId, IDocument document)
 		{
 			Key = key;
 			Value = value;
@@ -37,10 +36,10 @@ namespace CouchDude.Core
 		}
 
 		/// <summary>View key.</summary>
-		public IDynamicMetaObjectProvider Key { get; private set; }
+		public IJsonFragment Key { get; private set; }
 
 		/// <summary>View value.</summary>
-		public JsonFragment Value { get; private set; }
+		public IJsonFragment Value { get; private set; }
 
 		/// <summary>Document ID associated with view row.</summary>
 		public string DocumentId { get; private set; }

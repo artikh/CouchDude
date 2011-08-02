@@ -133,10 +133,12 @@ namespace CouchDude.Core.Impl
 			if (query == null) 
 				throw new ArgumentNullException("query");
 
-			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
+			CheckIfEntityType<T>(query.IncludeDocs);
 
-			var queryResult = couchApi.QueryAndWaitForResult(query);
-			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
+			var rawQueryResult = couchApi.QueryAndWaitForResult(query);
+			var queryResultRows = query.ProcessRows(settings, rawQueryResult);
+
+			return new PagedList<T>(queryResultRows, rawQueryResult.TotalRowCount, rawQueryResult.Offset);
 		}
 
 		/// <inheritdoc/>
@@ -153,7 +155,6 @@ namespace CouchDude.Core.Impl
 		}
 
 		// ReSharper disable UnusedParameter.Local
-		[Pure]
 		private bool CheckIfEntityType<T>(bool includeDocs)
 		// ReSharper restore UnusedParameter.Local
 		{
@@ -162,8 +163,8 @@ namespace CouchDude.Core.Impl
 				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
 			return isEntityType;
 		}
-		
-		private IPagedList<T> GetEntityList<T>(IPagedList<ViewResultRow> queryResult)
+
+		private IPagedList<T> GetEntityList<T>(IPagedList<LuceneResultRow> queryResult)
 		{
 			var documentEntities =
 				queryResult.Select(row => DocumentEntity.TryFromDocument<T>(row.Document, settings)).ToArray();
@@ -177,10 +178,10 @@ namespace CouchDude.Core.Impl
 			return new PagedList<T>(entities, queryResult.TotalRowCount, queryResult.Offset);
 		}
 
-		private static IPagedList<T> GetViewDataList<T>(IPagedList<ViewResultRow> queryResult)
+		private static IPagedList<T> GetViewDataList<T>(IPagedList<LuceneResultRow> queryResult)
 		{
 			var viewDataList =
-				from row in queryResult select row.Value != null ? (T)row.Value.Deserialize(typeof(T)) : default(T);
+				from row in queryResult select row.Fields != null ? (T)row.Fields.Deserialize(typeof(T)) : default(T);
 
 			return new PagedList<T>(viewDataList, queryResult.TotalRowCount, queryResult.Offset);
 		}

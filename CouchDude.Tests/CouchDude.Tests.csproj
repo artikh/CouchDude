@@ -119,7 +119,8 @@
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Unit\Api\ViewQueryTests.cs" />
+    <Compile Include="Unit\ViewQueryOfTTests.cs" />
+    <Compile Include="Unit\ViewQueryUriConverterTests.cs" />
     <Compile Include="Unit\Configuration\SettingsBuilderTests.cs" />
     <Compile Include="Unit\SettingsTests.cs" />
     <Compile Include="TestBase.cs" />

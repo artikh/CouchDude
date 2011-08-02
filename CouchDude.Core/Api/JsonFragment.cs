@@ -122,6 +122,7 @@ namespace CouchDude.Core.Api
 					name,
 					additionalMessage == null ? string.Empty : ". " + additionalMessage,
 					ToString()
+
 				);
 			var value = propertyValue.Value<string>();
 			if (string.IsNullOrWhiteSpace(value))
@@ -152,7 +153,33 @@ namespace CouchDude.Core.Api
 			Contract.EndContractBlock();
 
 			using (var jTokenReader = new JTokenReader(JsonToken))
-				return Serializer.Deserialize(jTokenReader, type);
+				try
+				{
+					return Serializer.Deserialize(jTokenReader, type);
+				}
+				catch (JsonSerializationException e)
+				{
+					throw new ParseException(e, "Error deserialising JSON fragment");
+				}
+		}
+
+		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/> returning
+		/// <c>null</c> if deserialization was unsuccessful..</summary>
+		public object TryDeserialize(Type type)
+		{
+			if (type == null)
+				throw new ArgumentNullException("type");
+			Contract.EndContractBlock();
+
+			using (var jTokenReader = new JTokenReader(JsonToken))
+				try
+				{
+					return Serializer.Deserialize(jTokenReader, type);
+				}
+				catch (JsonSerializationException)
+				{
+					return null;
+				}
 		}
 
 		/// <summary>Serializes provided object to <see cref="JsonFragment"/>.</summary>

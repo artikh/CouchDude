@@ -97,8 +97,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			Assert.Throws<ArgumentNullException>(() => CreateDoc().Deserialize(null));
 		}
-
-
+		
 		[Theory]
 		[InlineData(null)]
 		[InlineData("")]
@@ -148,8 +147,14 @@ namespace CouchDude.Tests.Unit.Api
 				)
 			);
 		}
-
-
+		
+		[Fact]
+		public void ShouldThrowParseExceptionOnDeserializationError()
+		{
+			var obj = new Document(@"{ ""_id"": ""simpleEntity.doc1"", ""_rev"": ""123"", ""type"": ""simpleEntity"", ""age"": ""not an integer"" }");
+			Assert.Throws<ParseException>(() => obj.Deserialize(Default.Settings.GetConfig(typeof (SimpleEntity))));
+		}
+		
 		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{

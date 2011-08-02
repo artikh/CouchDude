@@ -125,7 +125,7 @@ namespace CouchDude.Tests.Unit.Api
 			var couchCommunicationException = 
 				Assert.Throws<CouchCommunicationException>(() => couchApi.RequestDocumentByIdAndWaitForResult("doc1"));
 
-			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
+			Assert.True(couchCommunicationException.Message.Contains("Something wrong detected"));
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
 

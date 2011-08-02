@@ -188,6 +188,13 @@ namespace CouchDude.Tests.Unit.Api
 			var entity = (User)fragment.Deserialize(typeof(User));
 			Assert.Equal(UserSex.Female, entity.Sex);
 		}
+
+		[Fact]
+		public void ShouldThrowParseExceptionOnDeserializationError()
+		{
+			var obj = new JsonFragment(@"{ ""age"": ""not an integer"" }");
+			Assert.Throws<ParseException>(() => obj.Deserialize(typeof(User)));
+		}
 		
 		[Fact]
 		public void ShouldThrowOnNullArgumentToSerialize()

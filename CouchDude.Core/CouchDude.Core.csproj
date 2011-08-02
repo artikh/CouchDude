@@ -116,6 +116,9 @@
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
+    <Compile Include="LuceneQueryOfT.cs" />
+    <Compile Include="LuceneQueryUriConverter.cs" />
+    <Compile Include="ViewQueryOfT.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -148,6 +151,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="IDocument.cs" />
+    <Compile Include="IEntityConfigRepository.cs" />
     <Compile Include="IJsonFragment.cs" />
     <Compile Include="Api\JsonFragment.cs" />
     <Compile Include="LuceneResultRow.cs" />
@@ -204,6 +208,7 @@
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewQueryUriConverter.cs" />
     <Compile Include="ViewResultRow.cs" />
   </ItemGroup>
   <ItemGroup>

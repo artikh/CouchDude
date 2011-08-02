@@ -21,8 +21,6 @@ using System.Linq;
 using System.Net.Http;
 using CouchDude.Core;
 using CouchDude.Core.Api;
-using CouchDude.Core.Impl;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

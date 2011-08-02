@@ -16,14 +16,11 @@
 */
 #endregion
 
-using System.Text;
-using System.Web;
+using System;
+using System.ComponentModel;
 
 namespace CouchDude.Core
 {
-	/// <summary>Класс типизирован так как могут возвращаться в том числе объекты из бд</summary>
-	public class LuceneQuery<T>:LuceneQuery { }
-
 	/// <summary>Сортировка поля объекта</summary>
 	public struct LuceneSort
 	{
@@ -42,6 +39,7 @@ namespace CouchDude.Core
 	}
 
 	/// <summary>Fulltext query to couchdb-lucene</summary>
+	[TypeConverter(typeof(LuceneQueryUriConverter))]
 	public class LuceneQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
@@ -101,29 +99,15 @@ namespace CouchDude.Core
 		}		
 
 		/// <summary>Трансформировать запрос в строку запроса</summary>
-		public string ToUri()
+		public Uri ToUri()
 		{
-			var uriBuilder = new StringBuilder();
-			uriBuilder.Append("_fti/_design/" + DesignDocumentName + "/");
-			uriBuilder.Append(IndexName);
-			uriBuilder.Append("?");
-			uriBuilder.Append("q=" + HttpUtility.UrlEncode(Query));
-			if (IncludeDocs)
-				uriBuilder.Append("&include_docs=true");
-			if (Analyzer != null)
-				uriBuilder.Append("&analyzer=" + HttpUtility.UrlEncode(Analyzer));
-			if (Sort != null)
-			{
-				uriBuilder.Append("&sort=");
-				var oneItemInList = true;
-				foreach (var luceneSort in Sort)
-				{
-					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/") + luceneSort.FieldName;
-					uriBuilder.Append(sortLuceneString);
-					oneItemInList = false;
-				}	
-			}
-			return uriBuilder.ToString();
+			return new Uri(LuceneQueryUriConverter.ToUriString(this), UriKind.Relative);
+		}
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			return LuceneQueryUriConverter.ToUriString(this);
 		}
 	}
 }

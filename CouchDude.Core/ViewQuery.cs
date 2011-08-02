@@ -17,24 +17,13 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
-using System.Linq;
-using System.Collections.Specialized;
-using System.Text;
-using System.Web;
-using CouchDude.Core.Api;
+using System.ComponentModel;
 
 namespace CouchDude.Core
 {
-	/// <summary>Describes typed CouchDB view query.</summary>
-	public class ViewQuery<T>: ViewQuery
-	{
-		/// <summary>Type of the row result item.</summary>
-		public Type RowType { get { return typeof (T); } }
-	}
-
 	/// <summary>Describes CouchDB view query.</summary>
 	/// <remarks>http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options</remarks>
+	[TypeConverter(typeof(ViewQueryUriConverter))]
 	public class ViewQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
@@ -93,96 +82,15 @@ namespace CouchDude.Core
 		public bool DoNotIncludeEndKey;
 
 		/// <summary>Gets query URI.</summary>
-		public string ToUri()
+		public override string ToString()
 		{
-			// http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options
-			var uriBuilder = new ViewUriBuilder(DesignDocumentName, ViewName);
-			uriBuilder.AddIfNotNull    (Key,                "key"                    );
-			uriBuilder.AddIfNotNull    (StartKey,           "startkey"               );
-			uriBuilder.AddIfNotNull    (StartDocumentId,    "startkey_docid"         );
-			uriBuilder.AddIfNotNull    (EndKey,             "endkey"                 );
-			uriBuilder.AddIfNotNull    (EndDocumentId,      "endkey_docid"           );
-			uriBuilder.AddIfHasValue   (Limit,              "limit"                  );
-			uriBuilder.AddIfHasValue   (Skip,               "skip"                   );
-			uriBuilder.AddIfTrue       (StaleViewIsOk,      "stale",         "ok"    );
-			uriBuilder.AddIfTrue       (FetchDescending,    "descending",    "true"  );
-			uriBuilder.AddIfTrue       (SuppressReduce,     "reduce",        "false" );
-			uriBuilder.AddIfTrue       (IncludeDocs,        "include_docs",  "true"  );
-			uriBuilder.AddIfTrue       (DoNotIncludeEndKey, "inclusive_end", "false" );
-			uriBuilder.AddIfTrue       (Group,              "group",         "true"  );
-			uriBuilder.AddIfHasValue   (GroupLevel,         "group_level"            );
-			return uriBuilder.ToUri();
+			return ViewQueryUriConverter.ToUriString(this);
 		}
 
-		private class ViewUriBuilder
+		/// <summary>Gets query URI.</summary>
+		public Uri ToUri()
 		{
-			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
-
-			private readonly NameValueCollection querySring = new NameValueCollection();
-			private readonly string designDocumentName;
-			private readonly string viewName;
-
-			public ViewUriBuilder(string designDocumentName, string viewName)
-			{
-				if(string.IsNullOrEmpty(viewName))
-					throw new QueryException("View name is required.");
-				if (designDocumentName == null && !SpecialViewNames.Contains(viewName))
-					throw new QueryException("Querying view {0} requires design document name to be specified.", viewName);
-				Contract.EndContractBlock();
-
-				this.designDocumentName = designDocumentName;
-				this.viewName = viewName;
-			}
-
-			public void AddIfNotNull<TValue>(TValue value, string key) where TValue: class 
-			{
-				if (value != null)
-					querySring[key] = value.ToString();
-			}
-
-			public void AddIfNotNull(object value, string key)
-			{
-				if (value != null)
-					querySring[key] = JsonFragment.Serialize(value).ToString();
-			}
-
-			public void AddIfHasValue<TValue>(TValue? value, string key) where TValue: struct 
-			{
-				if (value.HasValue)
-					querySring[key] = value.Value.ToString();
-			}
-
-			public void AddIfTrue(bool value, string key, string valueString)
-			{
-				if (value)
-					querySring[key] = valueString;
-			}
-
-			public string ToUri()
-			{
-				var uri = new StringBuilder();
-				if (!string.IsNullOrEmpty(designDocumentName))
-					uri.Append("_design/").Append(designDocumentName).Append("/_view/");
-				uri.Append(viewName);
-
-				if(querySring.Count > 0)
-					uri.Append("?");
-
-				foreach (string key in querySring)
-				{
-					var stringValue = querySring[key];
-					uri.Append(key);
-					if (!string.IsNullOrEmpty(stringValue))
-						uri.Append("=").Append(HttpUtility.UrlEncode(stringValue));
-					uri.Append("&");
-				}
-
-
-				if (querySring.Count > 0)
-					uri.Remove(uri.Length - 1, 1); // Removing last '&'
-
-				return uri.ToString();
-			}
+			return new Uri(ViewQueryUriConverter.ToUriString(this), UriKind.Relative);
 		}
 	}
 }

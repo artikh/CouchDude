@@ -36,15 +36,6 @@ namespace CouchDude.Tests.SampleData
 				rev = StandardRevision
 			}.ToJObject();
 
-		public static JObject DocumentWithRevision = new {
-				_id = StandardDocId,
-				_rev = StandardRevision,
-				type = "simpleEntity",
-				name = "John Smith",
-				age = 42,
-				date = "1957-04-10T00:00:00"
-			}.ToJObject();
-
 		public static Document DocWithRevision = new Document(new {
 				_id = StandardDocId,
 				_rev = StandardRevision,

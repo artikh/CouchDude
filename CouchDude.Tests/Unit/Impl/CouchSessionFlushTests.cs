@@ -19,7 +19,6 @@
 using CouchDude.Core;
 using CouchDude.Core.Api;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 using CouchDude.Core.Impl;
@@ -34,16 +33,14 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldUpdateChangedDocumentsOnFlush()
 		{
-			string updatedDocId = null;
 			IDocument updatedDoc = null;
 			var totalUpdateCount = 0;
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
 				.Setup(ca => ca.UpdateDocumentAndWaitForResult(It.IsAny<Document>()))
-				.Returns((string docId, IDocument doc) =>
+				.Returns((IDocument doc) =>
 				{
-					updatedDocId = docId;
 					updatedDoc = doc;
 					totalUpdateCount++;
 					return new {
@@ -62,7 +59,7 @@ namespace CouchDude.Tests.Unit.Impl
 			session.SaveChanges();
 
 			Assert.Equal(1, totalUpdateCount);
-			Assert.Equal("simpleEntity.doc1", updatedDocId);
+			Assert.Equal("simpleEntity.doc1", updatedDoc.Id);
 			Assert.Equal(
 				new
 				{

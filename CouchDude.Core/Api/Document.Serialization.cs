@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using CouchDude.Core.Configuration;
 using CouchDude.Core.Impl;
+using CouchDude.Core.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -100,6 +101,9 @@ namespace CouchDude.Core.Api
 			string documentId, revision, documentType;
 			GetDocumentTypeAndRevision(clonedJObject, out documentId, out revision, out documentType);
 
+			if(documentType.HasNoValue())
+				throw new DocumentTypeMissingException(document);
+
 			if (entityConfig.DocumentType != documentType)
 				throw new InvalidOperationException(String.Format(
 					"Deserializing document's type {0} does not match type {1} in configuration.", documentType,
@@ -148,15 +152,27 @@ namespace CouchDude.Core.Api
 			revision = document.Value<string>(RevisionPropertyName);
 
 			var typeProperty = document.Property(TypePropertyName);
-			type = typeProperty.Value.Value<string>();
-			typeProperty.Remove();
+			if (typeProperty != null)
+			{
+				type = typeProperty.Value.Value<string>();
+				typeProperty.Remove();
+			}
+			else
+				type = null;
 		}
 
 		private static object DeserializeFromJObject(JObject document, IEntityConfig entityConfig)
 		{
 			var serializer = GetSerializer(entityConfig);
 			using (var jTokenReader = new JTokenReader(document))
-				return serializer.Deserialize(jTokenReader, entityConfig.EntityType);
+				try
+				{	
+					return serializer.Deserialize(jTokenReader, entityConfig.EntityType);
+				}
+				catch (JsonSerializationException e)
+				{
+					throw new ParseException(e, "Error deserialising document");
+				}
 		}
 
 		private static JObject SerializeToJObject(object entity, IEntityConfig entityConfig)

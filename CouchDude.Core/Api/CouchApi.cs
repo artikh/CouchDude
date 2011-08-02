@@ -144,24 +144,27 @@ namespace CouchDude.Core.Api
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 			Contract.EndContractBlock();
 
-			var viewUri = databaseUri + query.ToUri();
-			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
-			return StartRequest(request).ContinueWith<IPagedList<ViewResultRow>>(
+			return StartQuery(query.ToUri()).ContinueWith<IPagedList<ViewResultRow>>(
 				rt => ViewResultParser.Parse(rt.Result.GetContentTextReader(), query)
 			);
 		}
 		
 		public Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query)
 		{
-			if (query == null)
-				throw new ArgumentNullException("query");
+			if (query == null) throw new ArgumentNullException("query");
 			Contract.EndContractBlock();
 
-			var viewUri = databaseUri + query.ToUri();
-			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
-			return StartRequest(request).ContinueWith<IPagedList<LuceneResultRow>>(
+			return StartQuery(query.ToUri()).ContinueWith<IPagedList<LuceneResultRow>>(
 				rt => LuceneResultParser.Parse(rt.Result.GetContentTextReader(), query)
 			);
+		}
+
+		private Task<HttpResponseMessage> StartQuery(Uri uri)
+		{
+			var viewUri = new Uri(databaseUri, uri);
+			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
+			var task = StartRequest(request);
+			return task;
 		}
 
 		private Uri GetDocumentUri(string docId, string revision = null)
@@ -230,11 +233,11 @@ namespace CouchDude.Core.Api
 			}
 			catch (SocketException e)
 			{
-				throw new CouchCommunicationException(e, e.Message);
+				throw new CouchCommunicationException(e);
 			}
 			catch (WebException e)
 			{
-				throw new CouchCommunicationException(e, e.Message);
+				throw new CouchCommunicationException(e);
 			}
 		}
 	}

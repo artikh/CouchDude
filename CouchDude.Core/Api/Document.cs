@@ -19,7 +19,6 @@
 using System;
 using System.Diagnostics.Contracts;
 using System.IO;
-using CouchDude.Core.Impl;
 using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Core.Api

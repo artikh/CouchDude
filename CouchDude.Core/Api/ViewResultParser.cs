@@ -20,6 +20,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -52,7 +54,7 @@ namespace CouchDude.Core.Api
 		// ReSharper restore InconsistentNaming
 		// ReSharper restore UnassignedField.Local
 		#pragma warning restore 0649
-
+		
 		/// <summary>Loads view request result from provided <see cref="TextReader"/>.</summary>
 		public static ViewResult Parse(TextReader textReader, ViewQuery viewQuery)
 		{

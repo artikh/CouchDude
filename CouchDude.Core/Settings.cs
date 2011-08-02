@@ -25,7 +25,7 @@ using CouchDude.Core.Configuration;
 namespace CouchDude.Core
 {
 	/// <summary>CouchDude settings.</summary>
-	public class Settings
+	public class Settings : IEntityConfigRepository
 	{
 		private readonly EntityRegistry entityRegistry = new EntityRegistry();
 		private Uri serverUri;
@@ -138,4 +138,4 @@ namespace CouchDude.Core
 			return entityRegistry[documentType];
 		}
 	}
-} ;
+}

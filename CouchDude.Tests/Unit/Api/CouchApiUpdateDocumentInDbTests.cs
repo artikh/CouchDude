@@ -60,8 +60,8 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnNullParametersUpdatingDocumentInDb()
 		{
 			ICouchApi couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentNullException>(() =>  couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "doc1" }.ToDocument()));
+			Assert.Throws<ArgumentException>(() =>  couchApi.SaveDocumentSyncAndWaitForResult(new { }.ToDocument()));
+			Assert.Throws<ArgumentException>(() => couchApi.SaveDocumentSyncAndWaitForResult(new { _id = "" }.ToDocument()));
 			Assert.Throws<ArgumentNullException>(() => couchApi.SaveDocumentSyncAndWaitForResult(null));
 		}
 

@@ -32,7 +32,14 @@
 			Exception innerException,
 			string messageTemplate,
 			params object[] messageParams)
-			: base(String.Format(messageTemplate, messageParams), innerException) { }
+			: base(AddInnerExceptionMessage(String.Format(messageTemplate, messageParams), innerException), innerException) { }
+
+		/// <summary>Initializes a new instance of the 
+		/// <#=this.ExceptionDocReference#> class.</summary>
+		/// <param name="innerException">The inner exception.</param>
+		[JetBrains.Annotations.StringFormatMethod("messageTemplate")]
+		public <#=this.ExceptionCtorName#>(Exception innerException)
+			: base(innerException.Message, innerException) { }
 
 		/// <summary>Initializes a new instance of the 
 		/// <#=this.ExceptionDocReference#> class.</summary>
@@ -40,7 +47,12 @@
 		/// <param name="message">The message.</param>
 		[JetBrains.Annotations.StringFormatMethod("message")]
 		public <#=this.ExceptionCtorName#>(Exception innerException, string message)
-			: base(message, innerException) { }<#+
+			: base(AddInnerExceptionMessage(message, innerException), innerException) { }
+			
+		private static string AddInnerExceptionMessage(string message, Exception innerException)
+		{
+			return string.Concat(message, ": ", innerException.Message);
+		}<#+
 			
 string DocReferenceTemplate = "{0}Exception";
 string CtorNameTemplate = "{0}Exception";
