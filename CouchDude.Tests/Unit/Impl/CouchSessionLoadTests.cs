@@ -35,8 +35,8 @@ namespace CouchDude.Tests.Unit.Impl
 
 			DoTest(
 				action: session => {
-					entityA = session.Load<SimpleEntity>("doc1");
-					entityB = session.Load<SimpleEntity>("doc1");
+					entityA = session.LoadSync<SimpleEntity>("doc1");
+					entityB = session.LoadSync<SimpleEntity>("doc1");
 				});
 
 			Assert.Same(entityA, entityB);
@@ -50,7 +50,7 @@ namespace CouchDude.Tests.Unit.Impl
 			DoTest(
 				action: session => {
 					session.Save(entity);
-					loadedEntity = session.Load<SimpleEntity>("doc1");
+					loadedEntity = session.LoadSync<SimpleEntity>("doc1");
 				});
 
 			Assert.Same(entity, loadedEntity);
@@ -63,7 +63,7 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.Throws<EntityTypeMismatchException>(() => DoTest(
 				action: session => {
 					session.Save(entity);
-					session.Load<SimpleEntityWithoutRevision>("doc1");
+					session.LoadSync<SimpleEntityWithoutRevision>("doc1");
 			}));  
 		}
 
@@ -85,7 +85,7 @@ namespace CouchDude.Tests.Unit.Impl
 					SimpleEntityWithoutRevision.DocWithRevision
 				);
 
-			var loadedEntity = new CouchSession(Default.Settings, couchApi).Load<SimpleEntityWithoutRevision>("simpleEntityWithoutRevision");
+			var loadedEntity = new CouchSession(Default.Settings, couchApi).LoadSync<SimpleEntityWithoutRevision>("simpleEntityWithoutRevision");
 			Assert.NotNull(loadedEntity);
 			Assert.Equal("doc1", loadedEntity.Id);
 			Assert.Equal("John Smith", loadedEntity.Name);
@@ -94,8 +94,8 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldThrowOnNullOrEmptyId()
 		{
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Load<SimpleEntity>(null));
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Load<SimpleEntity>(""));
+			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).LoadSync<SimpleEntity>(null));
+			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).LoadSync<SimpleEntity>(""));
 		}
 
 		[Fact]
@@ -111,7 +111,7 @@ namespace CouchDude.Tests.Unit.Impl
 					return SimpleEntity.DocWithRevision;
 				});
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			session.Load<SimpleEntity>("doc1");
+			session.LoadSync<SimpleEntity>("doc1");
 
 			Assert.Equal(requestedId, "simpleEntity.doc1");
 		}
@@ -155,7 +155,7 @@ namespace CouchDude.Tests.Unit.Impl
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 
 			if (action == null)
-				return session.Load<T>(documentId);
+				return session.LoadSync<T>(documentId);
 			else
 			{
 				action(session);

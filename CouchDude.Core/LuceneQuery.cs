@@ -43,41 +43,41 @@ namespace CouchDude.Core
 	public class LuceneQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
-		public string DesignDocumentName;
+		public string DesignDocumentName { get; set; }
 
 		/// <summary>Index view name.</summary>
-		public string IndexName;
+		public string IndexName { get; set; }
 
 		/// <summary>Search query (see http://lucene.apache.org/java/2_4_0/queryparsersyntax.html) </summary>
-		public string Query;
+		public string Query { get; set; }
 
 		/// <summary>Indicates that we need documents from couchdb in result</summary>
-		public bool IncludeDocs;
+		public bool IncludeDocs { get; set; }
 
 		/// <summary>Name of analizer which is used for this query</summary>
-		public string Analyzer;
+		public string Analyzer { get; set; }
 
 		/// <summary>Array of objects to sort on</summary>
-		public LuceneSort[] Sort;
+		public LuceneSort[] Sort { get; set; }
 
 		/// <summary>How many documents will be returned</summary>
-		public int Limit;
+		public int? Limit { get; set; }
 
 		/// <summary>How many documents need to be skipped</summary>
-		public int Skip;
+		public int? Skip { get; set; }
 
 		/*
 		 * UNIMPLEMENTED
 		/// <summary></summary>
-		public string Callback;
+		public string Callback{ get; set; }
 
 		/// <summary></summary>
-		public bool Debug;
+		public bool Debug{ get; set; }
 		/// <summary></summary>
-		public string DefaultOperator;
+		public string DefaultOperator{ get; set; }
 
 		/// <summary></summary>
-		public bool Stale;
+		public bool Stale{ get; set; }
 		*/
 
 		/// <constructor/>
@@ -96,9 +96,9 @@ namespace CouchDude.Core
 			DesignDocumentName = designDocumentName;
 			Query = query;
 			IndexName = indexName;
-		}		
+		}
 
-		/// <summary>Трансформировать запрос в строку запроса</summary>
+		/// <summary>Expreses query as relative URL.</summary>
 		public Uri ToUri()
 		{
 			return new Uri(LuceneQueryUriConverter.ToUriString(this), UriKind.Relative);

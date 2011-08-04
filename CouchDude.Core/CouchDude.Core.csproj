@@ -116,6 +116,8 @@
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
+    <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryResultRow.cs" />
     <Compile Include="LuceneQueryOfT.cs" />
     <Compile Include="LuceneQueryUriConverter.cs" />
     <Compile Include="ViewQueryOfT.cs" />
@@ -245,6 +247,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>DesignDocumentAssemblerException.cs</LastGenOutput>
     </None>
+    <Compile Include="Impl\CouchSession.Query.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

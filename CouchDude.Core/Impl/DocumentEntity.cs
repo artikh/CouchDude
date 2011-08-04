@@ -116,9 +116,9 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document. If any error does occur returns <c>null</c>.</summary>
-		public static DocumentEntity TryFromDocument<TEntity>(IDocument document, Settings settings)
+		public static DocumentEntity TryFromDocument<TEntity>(IDocument document, IEntityConfigRepository settings)
 		{
-			if (!string.IsNullOrWhiteSpace(document.Type))
+			if (document != null && !string.IsNullOrWhiteSpace(document.Type))
 			{
 				var entityConfiguration = settings.GetConfig(document.Type);
 				if (entityConfiguration != null && entityConfiguration.IsCompatibleWith<TEntity>())
@@ -133,7 +133,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document.</summary>
-		public static DocumentEntity FromDocument<TEntity>(IDocument document, Settings settings) 
+		public static DocumentEntity FromDocument<TEntity>(IDocument document, IEntityConfigRepository settings) 
 			where TEntity : class
 		{
 			if(string.IsNullOrWhiteSpace(document.Type))

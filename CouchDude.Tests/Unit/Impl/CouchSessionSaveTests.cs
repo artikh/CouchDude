@@ -65,14 +65,6 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
-		public void ShouldReturnRevisionAndId()
-		{
-			var documentInfo = DoSave();
-			Assert.Equal(entity.Id, documentInfo.Id);
-			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", documentInfo.Revision);
-		}
-
-		[Fact]
 		public void ShouldReturnFillRevisionPropertyOnEntity()
 		{
 			DoSave();
@@ -94,14 +86,13 @@ namespace CouchDude.Tests.Unit.Impl
 				Name = "John Smith"
 			};
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			var docInfo = session.Save(savingEntity);
+			session.Save(savingEntity);
 
 			Assert.NotNull(savingEntity.Id);
 			Assert.NotEqual(string.Empty, savingEntity.Id);
-			Assert.Equal(savingEntity.Id, docInfo.Id);
 		}
 
-		private DocumentInfo DoSave(
+		private void DoSave(
 			SimpleEntity savingEntity = null, 
 			Mock<ICouchApi> couchApiMock = null,
 			Func<ISession, DocumentInfo> action = null)
@@ -121,9 +112,9 @@ namespace CouchDude.Tests.Unit.Impl
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 
 			if (action == null)
-				return session.Save(savingEntity);
+				session.Save(savingEntity);
 			else
-				return action(session);
+				action(session);
 		}
 	}
 }

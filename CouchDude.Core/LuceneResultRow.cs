@@ -16,13 +16,10 @@
 */
 #endregion
 
-using System.Dynamic;
-using CouchDude.Core.Api;
-
 namespace CouchDude.Core
 {
 	/// <summary>CouchDB-lucene query result row.</summary>
-	public class LuceneResultRow
+	public class LuceneResultRow : IQueryResultRow
 	{
 		/// <constructor />
 		public LuceneResultRow() { }
@@ -41,6 +38,8 @@ namespace CouchDude.Core
 
 		/// <summary>All the fields that were stored with this match</summary>
 		public IJsonFragment Fields { get; private set; }
+
+		IJsonFragment IQueryResultRow.Value { get { return Fields; } }
 
 		/// <summary>Document ID associated with view row.</summary>
 		public string DocumentId { get; private set; }

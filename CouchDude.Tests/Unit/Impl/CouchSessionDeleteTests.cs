@@ -91,7 +91,7 @@ namespace CouchDude.Tests.Unit.Impl
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
 			Assert.DoesNotThrow(() => {
-				var entity = session.Load<SimpleEntityWithoutRevision>(SimpleEntityWithoutRevision.StandardEntityId);
+				var entity = session.LoadSync<SimpleEntityWithoutRevision>(SimpleEntityWithoutRevision.StandardEntityId);
 				session.Delete(entity: entity);
 			});
 

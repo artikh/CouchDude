@@ -23,26 +23,9 @@ using System.Linq;
 namespace CouchDude.Core
 {
 	/// <summary>Describes typed CouchDB view query.</summary>
-	public class ViewQuery<T>: ViewQuery
+	public class ViewQuery<T> : ViewQuery, IQuery<ViewResultRow, T>
 	{
 		/// <summary>Processes raw query result producing meningfull results.</summary>
-		public readonly Func<IEntityConfigRepository, IEnumerable<ViewResultRow>, IEnumerable<T>> ProcessRows = ProcessResultDefault;
-
-		private static IEnumerable<T> ProcessResultDefault(IEntityConfigRepository entityConfigRepository, IEnumerable<ViewResultRow> rawViewResults)
-		{
-			var entityConfig = entityConfigRepository.TryGetConfig(typeof(T));
-			if(entityConfig != null)
-			{
-				return 
-					from row in rawViewResults
-					select row.Document into document
-					select document == null ? default(T) : (T)document.TryDeserialize(entityConfig);
-			}
-			else
-				return
-					from row in rawViewResults
-					select row.Value into value
-					select value == null ? default(T) : (T)value.TryDeserialize(typeof(T));
-		}
+		public Func<IEnumerable<ViewResultRow>, IEnumerable<T>> ProcessRows { get; set; }
 	}
 }

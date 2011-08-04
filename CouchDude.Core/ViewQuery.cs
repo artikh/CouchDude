@@ -27,59 +27,59 @@ namespace CouchDude.Core
 	public class ViewQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
-		public string DesignDocumentName;
+		public string DesignDocumentName { get; set; }
 
 		/// <summary>View name.</summary>
-		public string ViewName;
+		public string ViewName { get; set; }
 
 		/// <summary>Key to fetch view rows by.</summary>
-		public object Key;
+		public object Key { get; set; }
 
 		/// <summary>Key to start view result fetching from.</summary>
-		public object StartKey;
+		public object StartKey { get; set; }
 
 		/// <summary>Document id to start view result fetching from.</summary>
 		/// <remarks>Should allways be used with <see cref="StartKey"/>.</remarks>
-		public string StartDocumentId;
+		public string StartDocumentId { get; set; }
 
 		/// <summary>Key to stop view result fetching by.</summary>
-		public object EndKey;
+		public object EndKey { get; set; }
 
 		/// <summary>Document id to stop view result fetching by.</summary>
 		/// <remarks>Should allways be used with <see cref="EndKey"/>.</remarks>
-		public string EndDocumentId;
+		public string EndDocumentId { get; set; }
 
 		/// <summary>Flag that indicates that query should run multiple reduce</summary>
-		public bool Group;
+		public bool Group { get; set; }
 
 		/// <summary>Indicates level of grouping which used when query executed</summary>
-		public int? GroupLevel;
+		public int? GroupLevel { get; set; }
 
 		/// <summary>Limit the number of view rows in the output.</summary>
-		public int? Limit;
+		public int? Limit { get; set; }
 
 		/// <summary>Sets number of view rows to skip when fetching.</summary>
 		/// <remarks>You should not set this to more then single digit values.</remarks>
-		public int? Skip;
+		public int? Skip { get; set; }
 
 		/// <summary>CouchDB will not refresh the view even if it is stalled.</summary>
-		public bool StaleViewIsOk;
+		public bool StaleViewIsOk { get; set; }
 
 		/// <summary>Fetches view backwards.</summary>
 		/// <remarks>You should switch <see cref="StartKey"/> with <see cref="EndKey"/>
 		/// when using this.</remarks>
-		public bool FetchDescending;
+		public bool FetchDescending { get; set; }
 
 		/// <summary>If set makes CouchDB to do not use reduce part of the view.</summary>
-		public bool SuppressReduce;
+		public bool SuppressReduce { get; set; }
 
 		/// <summary>Prompts database to include corresponding document as a part of each
 		/// view result row.</summary>
-		public bool IncludeDocs;
+		public bool IncludeDocs { get; set; }
 
 		/// <summary>If set requires database to treat requested key range
 		/// as exclusive at the end.</summary>
-		public bool DoNotIncludeEndKey;
+		public bool DoNotIncludeEndKey { get; set; }
 
 		/// <summary>Gets query URI.</summary>
 		public override string ToString()

@@ -17,29 +17,39 @@
 #endregion
 
 using System;
+using System.Threading.Tasks;
 
 namespace CouchDude.Core
 {
 	/// <summary>CouchDB session interface.</summary>
 	public interface ISession: IDisposable
 	{
-		/// <summary>Attaches entity to the session and saves it to
-		/// CouchDB.</summary>
-		DocumentInfo Save<TEntity>(TEntity entity) where TEntity : class;
-
-		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
-		TEntity Load<TEntity>(string entityId) where TEntity : class;
-
-		/// <summary>Synchronises all changes to CouchDB.</summary>
-		void SaveChanges();
+		/// <summary>Attaches entity to the session, assigns it an identifier if needed.</summary>
+		/// <remarks>No changes to databas are made until <see cref="SaveChanges"/> is called.</remarks>
+		void Save<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
 		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class;
 
-		/// <summary>Queries CouchDB view returning ether paged list of documents or view data items.</summary>
-		IPagedList<T> Query<T>(ViewQuery<T> query);
+		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
+		TEntity LoadSync<TEntity>(string entityId) where TEntity : class;
 
-		/// <summary>Queries LuceneCouchDB</summary>
-		IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
+		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
+		Task<TEntity> Load<TEntity>(string entityId) where TEntity : class;
+
+		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items waiting for result.</summary>
+		IPagedList<T> QuerySync<T>(ViewQuery<T> query);
+
+		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items.</summary>
+		Task<IPagedList<T>> Query<T>(ViewQuery<T> query);
+
+		/// <summary>Queries lucene-couchdb index waiting for the result.</summary>
+		IPagedList<T> FulltextQuerySync<T>(LuceneQuery<T> query) where T : class;
+
+		/// <summary>Queries lucene-couchdb index.</summary>
+		Task<IPagedList<T>> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
+
+		/// <summary>Saves all changes to CouchDB.</summary>
+		void SaveChanges();
 	}
 }

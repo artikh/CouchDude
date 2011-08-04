@@ -15,13 +15,10 @@
 	limitations under the License.																						
 */
 #endregion
-
-using CouchDude.Core.Api;
-
 namespace CouchDude.Core
 {
 	/// <summary>CouchDB query result row.</summary>
-	public class ViewResultRow
+	public class ViewResultRow : IQueryResultRow
 	{
 		/// <constructor />
 		public ViewResultRow() { }

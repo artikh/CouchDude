@@ -46,14 +46,14 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				updatingEntity = session.Load<SimpleEntity>(savedEntity.Id);
+				updatingEntity = session.LoadSync<SimpleEntity>(savedEntity.Id);
 				updatingEntity.Name = "Artem Tikhomirov";
 				session.SaveChanges();
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				loadedEntity = session.Load<SimpleEntity>(updatingEntity.Id);
+				loadedEntity = session.LoadSync<SimpleEntity>(updatingEntity.Id);
 				Assert.Equal("Artem Tikhomirov", loadedEntity.Name);
 			}
 			

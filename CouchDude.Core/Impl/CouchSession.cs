@@ -23,7 +23,7 @@ using System.Linq;
 namespace CouchDude.Core.Impl
 {
 	/// <summary>Session implementation.</summary>
-	public class CouchSession: ISession
+	public partial class CouchSession : ISession
 	{
 		private readonly Settings settings;
 		private readonly ICouchApi couchApi;
@@ -42,7 +42,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <inheritdoc/>
-		public DocumentInfo Save<TEntity>(TEntity entity) where TEntity : class
+		public void Save<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
 			Contract.EndContractBlock();
@@ -89,7 +89,7 @@ namespace CouchDude.Core.Impl
 		}
 
 		/// <inheritdoc/>
-		public TEntity Load<TEntity>(string entityId) where TEntity : class
+		public TEntity LoadSync<TEntity>(string entityId) where TEntity : class
 		{
 			if (string.IsNullOrWhiteSpace(entityId)) 
 				throw new ArgumentNullException("entityId");
@@ -125,65 +125,6 @@ namespace CouchDude.Core.Impl
 				documentEntity.DoMap();
 				couchApi.UpdateDocumentAndWaitForResult(documentEntity.Document);
 			}
-		}
-
-		/// <inheritdoc/>
-		public IPagedList<T> Query<T>(ViewQuery<T> query)
-		{
-			if (query == null) 
-				throw new ArgumentNullException("query");
-
-			CheckIfEntityType<T>(query.IncludeDocs);
-
-			var rawQueryResult = couchApi.QueryAndWaitForResult(query);
-			var queryResultRows = query.ProcessRows(settings, rawQueryResult);
-
-			return new PagedList<T>(queryResultRows, rawQueryResult.TotalRowCount, rawQueryResult.Offset);
-		}
-
-		/// <inheritdoc/>
-		public IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class
-		{
-			if (query == null)
-				throw new ArgumentNullException("query");
-			var isEntityType = CheckIfEntityType<T>(query.IncludeDocs);
-			Contract.EndContractBlock();
-
-			var queryResult = couchApi.QueryLuceneAndWaitForResult(query);
-			
-			return isEntityType ? GetEntityList<T>(queryResult) : GetViewDataList<T>(queryResult);
-		}
-
-		// ReSharper disable UnusedParameter.Local
-		private bool CheckIfEntityType<T>(bool includeDocs)
-		// ReSharper restore UnusedParameter.Local
-		{
-			var isEntityType = settings.TryGetConfig(typeof (T)) != null;
-			if (isEntityType && !includeDocs)
-				throw new ArgumentException("You should use IncludeDocs query option when querying entities.");
-			return isEntityType;
-		}
-
-		private IPagedList<T> GetEntityList<T>(IPagedList<LuceneResultRow> queryResult)
-		{
-			var documentEntities =
-				queryResult.Select(row => DocumentEntity.TryFromDocument<T>(row.Document, settings)).ToArray();
-			
-			foreach (var documentEntity in documentEntities)
-				if (documentEntity != null)
-					cache.PutOrReplace(documentEntity);
-
-			var entities = from de in documentEntities select de == null ? default(T) : (T) de.Entity;
-
-			return new PagedList<T>(entities, queryResult.TotalRowCount, queryResult.Offset);
-		}
-
-		private static IPagedList<T> GetViewDataList<T>(IPagedList<LuceneResultRow> queryResult)
-		{
-			var viewDataList =
-				from row in queryResult select row.Fields != null ? (T)row.Fields.Deserialize(typeof(T)) : default(T);
-
-			return new PagedList<T>(viewDataList, queryResult.TotalRowCount, queryResult.Offset);
 		}
 		
 		/// <summary>Backup plan finalizer - use Dispose() method!</summary>

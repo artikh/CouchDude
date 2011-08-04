@@ -21,7 +21,7 @@ using System.Collections.Generic;
 namespace CouchDude.Core.Api
 {
 	/// <summary>Result of CouchDB-lucene query.</summary>
-	public class LuceneResult: RequestResultBase<LuceneResultRow, LuceneQuery, LuceneResult>
+	public class LuceneResult : RequestResultBase<LuceneResultRow, LuceneQuery, LuceneResult>
 	{
 		/// <constructor />
 		public LuceneResult(IEnumerable<LuceneResultRow> rows, int totalRowCount, int offset, LuceneQuery query) 
