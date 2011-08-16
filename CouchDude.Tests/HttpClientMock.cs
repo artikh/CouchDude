@@ -18,7 +18,7 @@
 
 using System;
 using System.Net; 
-using CouchDude.Core.Http;
+using CouchDude.Http;
 using System.Net.Http;
 using System.Threading.Tasks;
 

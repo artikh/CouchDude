@@ -1,5 +1,5 @@
 using System;
-using CouchDude.Core.Api;
+using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

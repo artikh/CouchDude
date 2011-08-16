@@ -18,7 +18,7 @@
 
 using System;
 using System.Collections.Generic;
-using CouchDude.Core.Configuration;
+using CouchDude.Configuration;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Configuration

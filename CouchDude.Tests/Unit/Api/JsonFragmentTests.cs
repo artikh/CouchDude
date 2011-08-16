@@ -18,8 +18,8 @@
 
 using System;
 using System.IO;
-using CouchDude.Core;
-using CouchDude.Core.Api;
+using CouchDude;
+using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 

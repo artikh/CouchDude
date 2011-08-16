@@ -18,10 +18,10 @@
 
 using System;
 using System.Linq;
-using CouchDude.Core;
-using CouchDude.Core.Api;
-using CouchDude.Core.Http;
-using CouchDude.Core.Impl;
+using CouchDude;
+using CouchDude.Api;
+using CouchDude.Http;
+using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 

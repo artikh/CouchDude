@@ -63,17 +63,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CouchDude.Core\CouchDude.Core.csproj">
-      <Project>{81B07B94-A04A-4178-8465-7BF668519DD7}</Project>
-      <Name>CouchDude.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\CouchDude.licenseheader">
       <Link>CouchDude.licenseheader</Link>
     </None>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CouchDude\CouchDude.csproj">
+      <Project>{81B07B94-A04A-4178-8465-7BF668519DD7}</Project>
+      <Name>CouchDude</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -19,7 +19,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using CouchDude.Core.Configuration;
+using CouchDude.Configuration;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;

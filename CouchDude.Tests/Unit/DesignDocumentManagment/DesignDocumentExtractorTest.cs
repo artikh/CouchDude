@@ -19,8 +19,8 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using CouchDude.Core;
-using CouchDude.Core.DesignDocumentManagment;
+using CouchDude;
+using CouchDude.DesignDocumentManagment;
 using Newtonsoft.Json.Linq;
 using Xunit;
 

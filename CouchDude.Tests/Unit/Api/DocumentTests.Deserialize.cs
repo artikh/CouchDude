@@ -17,9 +17,9 @@
 #endregion
 
 using System;
-using CouchDude.Core;
-using CouchDude.Core.Api;
-using CouchDude.Core.Configuration;
+using CouchDude;
+using CouchDude.Api;
+using CouchDude.Configuration;
 using CouchDude.Tests.SampleData;
 using JetBrains.Annotations;
 using Moq;

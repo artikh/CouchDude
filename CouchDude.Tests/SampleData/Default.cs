@@ -16,7 +16,7 @@
 */
 #endregion
 
-using CouchDude.Core;
+using CouchDude;
 
 namespace CouchDude.Tests.SampleData
 {

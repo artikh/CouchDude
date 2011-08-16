@@ -21,8 +21,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CouchDude.Core;
-using CouchDude.Core.Api;
+using CouchDude;
+using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 

@@ -17,8 +17,8 @@
 #endregion
 
 using System.IO;
-using CouchDude.Core.Api;
-using CouchDude.Core.Impl;
+using CouchDude.Api;
+using CouchDude.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

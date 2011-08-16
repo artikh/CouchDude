@@ -17,12 +17,12 @@
 #endregion
 
 using System;
-using CouchDude.Core;
-using CouchDude.Core.Api;
+using CouchDude;
+using CouchDude.Api;
 using Moq;
 using Xunit;
 
-using CouchDude.Core.Impl;
+using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 
 namespace CouchDude.Tests.Unit.Impl

@@ -17,8 +17,8 @@
 #endregion
 
 using System;
-using CouchDude.Core;
-using CouchDude.Core.Impl;
+using CouchDude;
+using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 

@@ -19,10 +19,10 @@
 using System;
 using System.IO;
 using System.Linq;
-using CouchDude.Core;
-using CouchDude.Core.DesignDocumentManagment;
+using CouchDude;
+using CouchDude.DesignDocumentManagment;
 using Xunit;
-using Directory = CouchDude.Core.DesignDocumentManagment.Directory;
+using Directory = CouchDude.DesignDocumentManagment.Directory;
 
 namespace CouchDude.Tests.Unit.DesignDocumentManagment
 {

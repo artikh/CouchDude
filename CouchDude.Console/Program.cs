@@ -21,7 +21,7 @@ using System.IO;
 using CommandLine;
 using CommandLine.Text;
 using Common.Logging;
-using CouchDude.Core.DesignDocumentManagment;
+using CouchDude.DesignDocumentManagment;
 
 #pragma warning disable 0649
 

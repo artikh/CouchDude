@@ -21,8 +21,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
-using CouchDude.Core.DesignDocumentManagment;
-using CouchDude.Core.Http;
+using CouchDude.DesignDocumentManagment;
+using CouchDude.Http;
 
 using Moq;
 using Newtonsoft.Json.Linq;

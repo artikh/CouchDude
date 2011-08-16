@@ -19,8 +19,8 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using CouchDude.Core;
-using CouchDude.Core.Api;
+using CouchDude;
+using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

@@ -20,7 +20,7 @@ using System;
 using System.IO;
 using Common.Logging;
 using System.Windows.Forms;
-using CouchDude.Core.DesignDocumentManagment;
+using CouchDude.DesignDocumentManagment;
 using File = System.IO.File;
 
 namespace CouchDude.Gui

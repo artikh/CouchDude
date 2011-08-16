@@ -95,9 +95,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CouchDude.Core\CouchDude.Core.csproj">
+    <ProjectReference Include="..\CouchDude\CouchDude.csproj">
       <Project>{81B07B94-A04A-4178-8465-7BF668519DD7}</Project>
-      <Name>CouchDude.Core</Name>
+      <Name>CouchDude</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

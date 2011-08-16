@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using CouchDude.Core.Configuration;
+using CouchDude.Configuration;
 using Xunit;
 using Xunit.Extensions;
 #pragma warning disable 169

@@ -17,7 +17,7 @@
 #endregion
 
 using System.IO;
-using CouchDude.Core.Api;
+using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 

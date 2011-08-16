@@ -16,7 +16,7 @@
 */
 #endregion
 
-using CouchDude.Core.DesignDocumentManagment;
+using CouchDude.DesignDocumentManagment;
 using Newtonsoft.Json.Linq;
 using Xunit;
 

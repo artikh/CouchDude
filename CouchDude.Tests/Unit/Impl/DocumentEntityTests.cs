@@ -17,9 +17,9 @@
 #endregion
 
 using System.IO;
-using CouchDude.Core;
-using CouchDude.Core.Configuration;
-using CouchDude.Core.Impl;
+using CouchDude;
+using CouchDude.Configuration;
+using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json;
