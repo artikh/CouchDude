@@ -44,7 +44,7 @@ namespace CouchDude.Tests.Unit.Api
 			}.ToJsonString());
 
 			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
-			var result = couchApi.QueryAndWaitForResult(new ViewQuery {
+			var result = couchApi.Synchronously.Query(new ViewQuery {
 				ViewName = "_all_docs",
 				Key = new object[] { "key", 0 },
 				Skip = 1,
@@ -72,7 +72,7 @@ namespace CouchDude.Tests.Unit.Api
 			.ToJsonString());
 
 			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
-			couchApi.QueryAndWaitForResult(new ViewQuery {
+			couchApi.Synchronously.Query(new ViewQuery {
 				DesignDocumentName = "dd",
 				ViewName = "v1",
 				Skip = 1,
@@ -90,14 +90,14 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnNullQuery()
 		{
 			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
-			Assert.Throws<ArgumentNullException>(() => couchApi.QueryAndWaitForResult(null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnSkipMoreThen9()
 		{
 			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
-			Assert.Throws<ArgumentException>(() => couchApi.QueryAndWaitForResult(new ViewQuery{ Skip = 10 }));
+			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.Query(new ViewQuery { Skip = 10 }));
 		}
 	}
 }

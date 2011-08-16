@@ -22,7 +22,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using CouchDude.Core;
 using CouchDude.Core.Api;
-using CouchDude.Core.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -44,7 +43,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			var httpMock = new HttpClientMock(response);
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			var revision = couchApi.RequestLastestDocumentRevisionAndWaitForResult("doc1");
+			var revision = couchApi.Synchronously.RequestLastestDocumentRevision("doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Head, httpMock.Request.Method);
@@ -59,8 +58,8 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(response);
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			Assert.Throws<ArgumentNullException>(() => couchApi.RequestLastestDocumentRevisionAndWaitForResult(""));
-			Assert.Throws<ArgumentNullException>(() => couchApi.RequestLastestDocumentRevisionAndWaitForResult(null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision(""));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision(null));
 		}
 
 		[Fact]
@@ -70,7 +69,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(response);
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			Assert.Throws<ParseException>(() => couchApi.RequestLastestDocumentRevisionAndWaitForResult("doc1"));
+			Assert.Throws<ParseException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("doc1"));
 		}
 
 		[Fact]
@@ -79,7 +78,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "not found"));
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			var version = couchApi.RequestLastestDocumentRevisionAndWaitForResult("doc1");
+			var version = couchApi.Synchronously.RequestLastestDocumentRevision("doc1");
 			Assert.Null(version);
 		}
 
@@ -93,7 +92,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
-					() => couchApi.RequestLastestDocumentRevisionAndWaitForResult("doc1"));
+					() => couchApi.Synchronously.RequestLastestDocumentRevision("doc1"));
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);

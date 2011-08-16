@@ -17,8 +17,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Threading.Tasks;
+using CouchDude.Core.Utils;
 
 namespace CouchDude.Core.Impl
 {
@@ -39,7 +42,14 @@ namespace CouchDude.Core.Impl
 
 			this.settings = settings;
 			this.couchApi = couchApi;
+			Synchronously = new SynchronousSessionMethods(this);
 		}
+
+		/// <inheritdoc/>
+		public ISynchronousSessionMethods Synchronously { get; private set; }
+
+		/// <inheritdoc/>
+		public ICouchApi RawApi { get { return couchApi; } }
 
 		/// <inheritdoc/>
 		public void Save<TEntity>(TEntity entity) where TEntity : class
@@ -56,16 +66,16 @@ namespace CouchDude.Core.Impl
 				throw new ArgumentException("Saving entity should not contain revision.", "entity");
 			
 			documentEntity.DoMap();
-			var result = couchApi.SaveDocumentSyncAndWaitForResult(documentEntity.Document);
+
+			// TODO: Should write to the unit of work insted of DB
+			dynamic documentInfo = couchApi.Synchronously.SaveDocumentSync(documentEntity.Document);
 			cache.Put(documentEntity);
 
-			var newRevision = result.GetRequiredProperty("rev");
-			documentEntity.Revision = newRevision;
-			return new DocumentInfo(documentEntity.EntityId, newRevision);
+			documentEntity.Revision = documentInfo.rev;
 		}
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
-		public DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class
+		public void Delete<TEntity>(TEntity entity) where TEntity : class
 		{
 			var documentEntity = cache.TryGet(entity);
 			if (documentEntity != null)
@@ -82,14 +92,14 @@ namespace CouchDude.Core.Impl
 					"No revision property found on entity and no revision information" 
 						+ " found in first level cache.", 
 					"entity");
-			
-			var result = couchApi.DeleteDocumentAndWaitForResult(documentEntity.DocumentId, documentEntity.Revision);
-			var newRevision = result.GetRequiredProperty("rev");
-			return new DocumentInfo(documentEntity.EntityId, newRevision);
+
+			// TODO: Should delete from the unit of work insted of DB
+			couchApi.Synchronously.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
+			cache.Remove(documentEntity);
 		}
 
 		/// <inheritdoc/>
-		public TEntity LoadSync<TEntity>(string entityId) where TEntity : class
+		public Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
 		{
 			if (string.IsNullOrWhiteSpace(entityId)) 
 				throw new ArgumentNullException("entityId");
@@ -100,7 +110,7 @@ namespace CouchDude.Core.Impl
 			{
 				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))
 					throw new EntityTypeMismatchException(cachedEntity.EntityType, typeof (TEntity));
-				return (TEntity) cachedEntity.Entity;
+				return Task.Factory.StartNew(() => (TEntity) cachedEntity.Entity);
 			}
 
 			var entityConfig = settings.GetConfig(typeof (TEntity));
@@ -108,23 +118,41 @@ namespace CouchDude.Core.Impl
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
 
-			var document = couchApi.RequestDocumentByIdAndWaitForResult(docId);
-			if (document == null)
-				return null;
-			var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
-			cache.Put(documentEntity);
+			return couchApi.RequestDocumentById(docId).ContinueWith(rt => {
+				var document = rt.Result;
+				if (document == null)
+					return null;
+				var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
+				cache.Put(documentEntity);
 
-			return (TEntity) documentEntity.Entity;
+				return (TEntity)documentEntity.Entity;                                                		
+			});
+		}
+
+		/// <inheritdoc/>
+		public Task BeginSavingChanges()
+		{
+			var saveTasks = new List<Task>();
+			foreach (var de in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
+			{
+				var documentEntity = de;
+				documentEntity.DoMap();
+				var updateTask = couchApi
+					.UpdateDocument(documentEntity.Document)
+					.ContinueWith(pt => {
+						dynamic documentInfo = pt.Result;
+					  documentEntity.Revision = (string) documentInfo.rev;
+					});
+
+				saveTasks.Add(updateTask);
+			}
+			return Task.Factory.ContinueWhenAll(saveTasks.ToArray(), tasks => { });
 		}
 
 		/// <inheritdoc/>
 		public void SaveChanges()
 		{
-			foreach (var documentEntity in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
-			{
-				documentEntity.DoMap();
-				couchApi.UpdateDocumentAndWaitForResult(documentEntity.Document);
-			}
+			BeginSavingChanges().WaitForResult();
 		}
 		
 		/// <summary>Backup plan finalizer - use Dispose() method!</summary>

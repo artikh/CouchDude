@@ -22,7 +22,6 @@ using CouchDude.Core.Api;
 using CouchDude.Core.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Impl
@@ -76,10 +75,12 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.SaveDocumentSyncAndWaitForResult(It.IsAny<IDocument>()))
+				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
 				.Returns(
-					(IDocument doc) => new { id = doc.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment()
+					(IDocument doc) => new { id = doc.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask()
 				);
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 
 			var savingEntity = new SimpleEntity
 			{
@@ -102,11 +103,13 @@ namespace CouchDude.Tests.Unit.Impl
 			{
 				couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 				couchApiMock
-					.Setup(ca => ca.SaveDocumentSyncAndWaitForResult(It.IsAny<Document>()))
+					.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
 					.Returns(new {
 						id = savingEntity == null? null: savingEntity.Id,
 						rev = "42-1a517022a0c2d4814d51abfedf9bfee7"
-					}.ToJsonFragment());
+					}.ToJsonFragment().ToTask());
+				couchApiMock
+					.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 			}
 			
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);

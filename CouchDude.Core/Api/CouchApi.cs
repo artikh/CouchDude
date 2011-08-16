@@ -29,7 +29,7 @@ using CouchDude.Core.Http;
 
 namespace CouchDude.Core.Api
 {
-	internal partial class CouchApi: ICouchApi
+	internal class CouchApi : ICouchApi
 	{
 		private readonly IHttpClient httpClient;
 		private readonly Uri databaseUri;
@@ -44,6 +44,7 @@ namespace CouchDude.Core.Api
 
 			this.httpClient = httpClient;
 			databaseUri = new Uri(serverUri, databaseName + "/");
+			Synchronously = new SynchronousCouchApi(this);
 		}
 
 		public Task<IDocument> RequestDocumentById(string docId)
@@ -158,6 +159,8 @@ namespace CouchDude.Core.Api
 				rt => LuceneResultParser.Parse(rt.Result.GetContentTextReader(), query)
 			);
 		}
+
+		public ISynchronousCouchApi Synchronously { get; private set; }
 
 		private Task<HttpResponseMessage> StartQuery(Uri uri)
 		{

@@ -54,7 +54,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.QuerySync(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
+				var result = session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
 				Assert.True(result.RowCount >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);

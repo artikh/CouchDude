@@ -25,31 +25,31 @@ namespace CouchDude.Core
 	public interface ISession: IDisposable
 	{
 		/// <summary>Attaches entity to the session, assigns it an identifier if needed.</summary>
-		/// <remarks>No changes to databas are made until <see cref="SaveChanges"/> is called.</remarks>
+		/// <remarks>No changes to databas are made until <see cref="BeginSavingChanges"/> is called.</remarks>
 		void Save<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
-		DocumentInfo Delete<TEntity>(TEntity entity) where TEntity : class;
-
-		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
-		TEntity LoadSync<TEntity>(string entityId) where TEntity : class;
+		void Delete<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
 		Task<TEntity> Load<TEntity>(string entityId) where TEntity : class;
 
-		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items waiting for result.</summary>
-		IPagedList<T> QuerySync<T>(ViewQuery<T> query);
-
 		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items.</summary>
 		Task<IPagedList<T>> Query<T>(ViewQuery<T> query);
-
-		/// <summary>Queries lucene-couchdb index waiting for the result.</summary>
-		IPagedList<T> FulltextQuerySync<T>(LuceneQuery<T> query) where T : class;
 
 		/// <summary>Queries lucene-couchdb index.</summary>
 		Task<IPagedList<T>> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
 
-		/// <summary>Saves all changes to CouchDB.</summary>
+		/// <summary>Synchronous session methods.</summary>
+		ISynchronousSessionMethods Synchronously { get; }
+
+		/// <summary>Exposes raw CouchDB APIs.</summary>
+		ICouchApi RawApi { get; }
+
+		/// <summary>Saves all changes to CouchDB returning asynchronously.</summary>
+		Task BeginSavingChanges();
+		
+		/// <summary>Saves all changes to CouchDB and waites for result.</summary>
 		void SaveChanges();
 	}
 }

@@ -37,7 +37,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns(
 					(ViewQuery query) =>
 					{
@@ -53,12 +53,13 @@ namespace CouchDude.Tests.Unit.Impl
 							},
 							1,
 							offset: 0,
-							query: query);
+							query: query
+						).ToTask<IPagedList<ViewResultRow>>();
 					});
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			var viewQuery = new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true };
-			session.QuerySync(viewQuery);
+			session.Synchronously.Query(viewQuery);
 
 			Assert.Same(sendQuery, viewQuery);
 		}
@@ -70,7 +71,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					query => new ViewResult(
 						new [] {
@@ -84,11 +85,11 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: query
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 			);
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			var queryResult = session.QuerySync(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
+			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
 
 			var firstRow = queryResult.First();
 			Assert.NotNull(firstRow);
@@ -103,14 +104,14 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldThrowQueryExceptionIfNoIncludeDocsOptionAndEntityTypeParameter()
 		{
 			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
-			Assert.Throws<QueryException>(() => session.QuerySync(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" }));
+			Assert.Throws<QueryException>(() => session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" }));
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullQuery()
 		{
 			Assert.Throws<ArgumentNullException>(
-				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).QuerySync<SimpleEntity>(query: null));
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Query<SimpleEntity>(query: null));
 		}
 
 		[Fact]
@@ -118,7 +119,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(q =>
 					new ViewResult(
 						new[] { 
@@ -135,10 +136,10 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: q
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.QuerySync(new ViewQuery<SimpleEntity> {IncludeDocs = true});
+			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true });
 
 			Assert.NotNull(queryResult);
 			Assert.Equal(1, queryResult.RowCount);
@@ -155,7 +156,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(q =>
 					new ViewResult(
 						new[] { 
@@ -169,12 +170,12 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: q
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
-			var queriedEntity = session.QuerySync(new ViewQuery<SimpleEntity> { IncludeDocs = true }).First();
-			var loadedEntity = session.LoadSync<SimpleEntity>(SimpleEntity.StandardEntityId);
+			var queriedEntity = session.Synchronously.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true }).First();
+			var loadedEntity = session.Synchronously.Load<SimpleEntity>(SimpleEntity.StandardEntityId);
 			Assert.Same(queriedEntity, loadedEntity);
 		}
 
@@ -183,7 +184,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(q =>
 					new ViewResult(
 						new[] { 
@@ -197,10 +198,10 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: q
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.QuerySync(new ViewQuery<SimpleEntity> {IncludeDocs = true});
+			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> {IncludeDocs = true});
 
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.Count());
@@ -212,7 +213,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(q =>
 					new ViewResult(
 						new[] { 
@@ -226,10 +227,10 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: q
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.QuerySync(new ViewQuery<SimpleViewData>());
+			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleViewData>());
 
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.Count());
@@ -241,7 +242,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.QueryAndWaitForResult(It.IsAny<ViewQuery>()))
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(q =>
 					new ViewResult(
 						new[] { 
@@ -255,10 +256,10 @@ namespace CouchDude.Tests.Unit.Impl
 						totalRowCount: 1,
 						offset: 0,
 						query: q
-					)
+					).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.QuerySync(new ViewQuery<SimpleViewData>());
+			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleViewData>());
 
 			Assert.NotNull(queryResult);
 			Assert.Equal(1, queryResult.RowCount);

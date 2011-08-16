@@ -38,7 +38,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.UpdateDocumentAndWaitForResult(It.IsAny<Document>()))
+				.Setup(ca => ca.UpdateDocument(It.IsAny<Document>()))
 				.Returns((IDocument doc) =>
 				{
 					updatedDoc = doc;
@@ -47,24 +47,25 @@ namespace CouchDude.Tests.Unit.Impl
 						ok = true,
 						id = entity.Id,
 						rev = "2-1a517022a0c2d4814d51abfedf9bfee7"
-					}.ToJsonFragment();
+					}.ToJsonFragment().ToTask();
 				});
 			couchApiMock
-				.Setup(ca => ca.SaveDocumentSyncAndWaitForResult(It.IsAny<Document>()))
-				.Returns(new { ok = true, id = entity.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment());
+				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
+				.Returns(new { ok = true, id = entity.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask());
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 			
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Save(entity);
 			entity.Name = "Artem Tikhomirov";
-			session.SaveChanges();
+			session.BeginSavingChanges().Wait();
 
 			Assert.Equal(1, totalUpdateCount);
 			Assert.Equal("simpleEntity.doc1", updatedDoc.Id);
 			Assert.Equal(
-				new
-				{
+				new {
 					_id = "simpleEntity.doc1",
-					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
+					_rev = "2-1a517022a0c2d4814d51abfedf9bfee7",
 					type = "simpleEntity",
 					name = "Artem Tikhomirov",
 					age = 42,

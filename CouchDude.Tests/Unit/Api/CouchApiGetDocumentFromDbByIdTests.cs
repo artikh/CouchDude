@@ -38,7 +38,7 @@ namespace CouchDude.Tests.Unit.Api
 				}.ToJsonString());
 
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			var result = couchApi.RequestDocumentByIdAndWaitForResult("doc1");
+			var result = couchApi.Synchronously.RequestDocumentById("doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Get, httpMock.Request.Method);
@@ -64,7 +64,7 @@ namespace CouchDude.Tests.Unit.Api
 					name = "John Smith"
 				}.ToJsonString());
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			couchApi.RequestDocumentByIdAndWaitForResult("docs/doc1");
+			couchApi.Synchronously.RequestDocumentById("docs/doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
@@ -80,8 +80,8 @@ namespace CouchDude.Tests.Unit.Api
 						name = "John Smith"
 					}.ToJsonString());
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			
-			couchApi.RequestDocumentByIdAndWaitForResult("_design/docs/doc1");
+
+			couchApi.Synchronously.RequestDocumentById("_design/docs/doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/_design/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
@@ -92,7 +92,7 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Throws<ParseException>(() => {
 				var httpMock = new HttpClientMock("Some none-json [) content");
 				ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-				couchApi.RequestDocumentByIdAndWaitForResult("doc1");
+				couchApi.Synchronously.RequestDocumentById("doc1");
 			});
 		}
 		
@@ -101,8 +101,8 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpMock = new HttpClientMock(string.Empty);
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			Assert.Throws<ArgumentNullException>(() => couchApi.RequestDocumentByIdAndWaitForResult(null));
-			Assert.Throws<ArgumentNullException>(() => couchApi.RequestDocumentByIdAndWaitForResult(string.Empty));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById(null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById(string.Empty));
 		}
 
 		[Fact]
@@ -111,7 +111,7 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Throws<ParseException>(() => {
 				var httpMock = new HttpClientMock("    ");
 				ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-				couchApi.RequestDocumentByIdAndWaitForResult("doc1");
+				couchApi.Synchronously.RequestDocumentById("doc1");
 			});
 		}
 
@@ -122,8 +122,8 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(webExeption);
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			var couchCommunicationException = 
-				Assert.Throws<CouchCommunicationException>(() => couchApi.RequestDocumentByIdAndWaitForResult("doc1"));
+			var couchCommunicationException =
+				Assert.Throws<CouchCommunicationException>(() => couchApi.Synchronously.RequestDocumentById("doc1"));
 
 			Assert.True(couchCommunicationException.Message.Contains("Something wrong detected"));
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
@@ -135,7 +135,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new HttpClientMock(new HttpResponseMessage{ StatusCode = HttpStatusCode.NotFound });
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
-			Assert.Null(couchApi.RequestDocumentByIdAndWaitForResult("doc1"));
+			Assert.Null(couchApi.Synchronously.RequestDocumentById("doc1"));
 		}
 	}
 }

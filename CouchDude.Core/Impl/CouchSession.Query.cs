@@ -18,8 +18,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace CouchDude.Core.Impl
 {
@@ -27,27 +27,27 @@ namespace CouchDude.Core.Impl
 	public partial class CouchSession
 	{
 		/// <inheritdoc/>
-		public IPagedList<T> FulltextQuerySync<T>(LuceneQuery<T> query) where T : class
+		public Task<IPagedList<T>> FulltextQuery<T>(LuceneQuery<T> query) where T : class
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 
-			return QueryInternal<T, LuceneQuery<T>, LuceneResultRow>(query, (api, q) => api.QueryLuceneAndWaitForResult(q));
+			return QueryInternal<T, LuceneQuery<T>, LuceneResultRow>(query, (api, q) => api.QueryLucene(q));
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<T> QuerySync<T>(ViewQuery<T> query)
+		public Task<IPagedList<T>> Query<T>(ViewQuery<T> query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 			if (query.Skip >= 10)
 				throw new ArgumentException("", "query");
 
-			return QueryInternal<T, ViewQuery<T>, ViewResultRow>(query, (api, q) => api.QueryAndWaitForResult(q));
+			return QueryInternal<T, ViewQuery<T>, ViewResultRow>(query, (api, q) => api.Query(q));
 		}
 
-		private IPagedList<T> QueryInternal<T, TQuery, TRow>(
-			TQuery query, Func<ICouchApi, TQuery, IPagedList<TRow>> querySync)
+		private Task<IPagedList<T>> QueryInternal<T, TQuery, TRow>(
+			TQuery query, Func<ICouchApi, TQuery, Task<IPagedList<TRow>>> queryTask)
 			where TQuery : IQuery<TRow, T>
 			where TRow : IQueryResultRow
 		{
@@ -55,17 +55,20 @@ namespace CouchDude.Core.Impl
 			if (isEntityType && !query.IncludeDocs)
 				throw new QueryException("You should use IncludeDocs query option when querying for entities.");
 
-			var rawQueryResult = querySync(couchApi, query);
+			return queryTask(couchApi, query).ContinueWith<IPagedList<T>>(
+				qt =>{
+					var rawQueryResult = qt.Result;
+					IEnumerable<T> queryResultRows;
+					if (query.ProcessRows != null)
+						queryResultRows = query.ProcessRows(rawQueryResult);
+					else if (isEntityType)
+						queryResultRows = DeserializeEntitiesAndCache<T, TRow>(rawQueryResult);
+					else
+						queryResultRows = DeserializeViewData<T, TRow>(rawQueryResult);
 
-			IEnumerable<T> queryResultRows;
-			if (query.ProcessRows != null)
-				queryResultRows = query.ProcessRows(rawQueryResult);
-			else if (isEntityType)
-				queryResultRows = DeserializeEntitiesAndCache<T, TRow>(rawQueryResult);
-			else
-				queryResultRows = DeserializeViewData<T, TRow>(rawQueryResult);
-
-			return new PagedList<T>(queryResultRows, rawQueryResult.TotalRowCount, rawQueryResult.Offset);
+					return new PagedList<T>(queryResultRows, rawQueryResult.TotalRowCount, rawQueryResult.Offset);
+				}
+			);
 		}
 
 		private static IEnumerable<T> DeserializeViewData<T, TRow>(IEnumerable<TRow> rawViewResults) where TRow : IQueryResultRow

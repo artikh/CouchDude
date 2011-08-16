@@ -36,23 +36,22 @@ namespace CouchDude.Tests.Unit.Impl
 			string deletedId = null;
 			string deletedRevision = null;
 
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(ca => ca.DeleteDocumentAndWaitForResult(It.IsAny<string>(), It.IsAny<string>()))
+			var couchApiMock = new Mock<ICouchApi>();
+			couchApiMock
+				.Setup(ca => ca.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns(
 					(string id, string revision) => {
 						deletedId = id;
 						deletedRevision = revision;
-						return new {ok = true, id, rev = "2-1a517022a0c2d4814d51abfedf9bfee7"}.ToJsonFragment();
+						return new {ok = true, id, rev = "2-1a517022a0c2d4814d51abfedf9bfee7"}.ToJsonFragment().ToTask();
 					});
-			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var docInfo = session.Delete(entity);
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			session.Delete(entity);
 
 			Assert.Equal(SimpleEntity.StandardDocId, deletedId);
 			Assert.Equal(entity.Revision, deletedRevision);
-
-			Assert.Equal(entity.Id, docInfo.Id);
-			Assert.Equal("2-1a517022a0c2d4814d51abfedf9bfee7", docInfo.Revision);
 		}
 
 		[Fact]
@@ -76,22 +75,24 @@ namespace CouchDude.Tests.Unit.Impl
 			string deletedId = null;
 			string deletedRev = null;
 
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(ca => ca.RequestDocumentByIdAndWaitForResult(It.IsAny<string>()))
-				.Returns(SimpleEntityWithoutRevision.DocWithRevision);
-			couchApi
-				.Setup(ca => ca.DeleteDocumentAndWaitForResult(It.IsAny<string>(), It.IsAny<string>()))
+			var couchApiMock = new Mock<ICouchApi>();
+			couchApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Returns(SimpleEntityWithoutRevision.DocWithRevision.ToTask());
+			couchApiMock
+				.Setup(ca => ca.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns((string id, string rev) => {
 					deletedId = id;
 					deletedRev = rev;
-					return SimpleEntityWithoutRevision.OkResponseJson;
+					return SimpleEntityWithoutRevision.OkResponseJson.ToTask();
 				});
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
 
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 
 			Assert.DoesNotThrow(() => {
-				var entity = session.LoadSync<SimpleEntityWithoutRevision>(SimpleEntityWithoutRevision.StandardEntityId);
+				var entity = session.Synchronously.Load<SimpleEntityWithoutRevision>(SimpleEntityWithoutRevision.StandardEntityId);
 				session.Delete(entity: entity);
 			});
 

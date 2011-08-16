@@ -17,6 +17,7 @@
 #endregion
 
 using System.IO;
+using System.Threading.Tasks;
 using CouchDude.Core;
 using CouchDude.Core.Api;
 using Newtonsoft.Json;
@@ -37,6 +38,11 @@ namespace CouchDude.Tests
 				NullValueHandling = NullValueHandling.Ignore,
 				ContractResolver = new CamelCasePropertyNamesContractResolver()
 			};
+		}
+
+		public static Task<T> ToTask<T>(this T dataItemToReturn)
+		{
+			return Task.Factory.StartNew(() => dataItemToReturn);
 		}
 
 		public static string ToJsonString(this object self)

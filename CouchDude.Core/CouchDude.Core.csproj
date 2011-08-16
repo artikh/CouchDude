@@ -99,7 +99,7 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\CouchApi.SyncWrapers.cs" />
+    <Compile Include="Api\SynchronousCouchApi.cs" />
     <Compile Include="Api\LuceneResultParser.cs" />
     <Compile Include="Api\RequestResultBase.cs" />
     <Compile Include="Api\ViewResultParser.cs" />
@@ -116,10 +116,14 @@
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
+    <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResultRow.cs" />
+    <Compile Include="ISynchronousCouchApi.cs" />
+    <Compile Include="ISynchronousSessionMethods.cs" />
     <Compile Include="LuceneQueryOfT.cs" />
     <Compile Include="LuceneQueryUriConverter.cs" />
+    <Compile Include="Utils\TaskUtils.cs" />
     <Compile Include="ViewQueryOfT.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>

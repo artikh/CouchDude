@@ -46,7 +46,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var loadedEntity = session.LoadSync<SimpleEntity>(savedEntity.Id);
+				var loadedEntity = session.Synchronously.Load<SimpleEntity>(savedEntity.Id);
 
 				Assert.NotNull(loadedEntity);
 				Assert.Equal(savedEntity.Id, loadedEntity.Id);
@@ -78,16 +78,14 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var loadedEntity = session.LoadSync<SimpleEntityWithoutRevision>(savedEntity.Id);
+				var loadedEntity = session.Synchronously.Load<SimpleEntityWithoutRevision>(savedEntity.Id);
 
 				Assert.Equal(savedEntity.Id, loadedEntity.Id);
 				Assert.Equal(savedEntity.Name, loadedEntity.Name);
 				Assert.Equal(savedEntity.Age, loadedEntity.Age);
 				Assert.Equal(savedEntity.Date, loadedEntity.Date);
 
-				var docInfo = session.Delete(loadedEntity);
-				Assert.Equal(loadedEntity.Id, docInfo.Id);
-				Assert.NotNull(docInfo.Revision);
+				session.Delete(loadedEntity);
 			}
 		}
 	}
