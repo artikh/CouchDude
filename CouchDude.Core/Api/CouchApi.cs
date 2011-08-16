@@ -39,7 +39,7 @@ namespace CouchDude.Core.Api
 		{
 			if (httpClient == null) throw new ArgumentNullException("httpClient");
 			if (serverUri == null) throw new ArgumentNullException("serverUri");
-			if (databaseName == null) throw new ArgumentNullException("databaseName");
+			if (databaseName.HasNoValue()) throw new ArgumentNullException("databaseName");
 			Contract.EndContractBlock();
 
 			this.httpClient = httpClient;

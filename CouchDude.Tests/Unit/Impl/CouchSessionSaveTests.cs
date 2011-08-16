@@ -36,24 +36,26 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldThrowOnSameInstanseSave()
 		{
-			Assert.Throws<ArgumentException>(() => DoSave(
-				action: session => {
-					session.Save(entity);
-					session.Save(entity);
-					return new DocumentInfo();
-				}));
+			var couchApiMock = MockCouchApi();
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			session.Save(entity);
+			Assert.Throws<ArgumentException>(() => session.Save(entity));
 		}
 
 		[Fact]
 		public void ShouldThrowOnSaveWithRevision()
 		{
+			var couchApiMock = MockCouchApi();
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			Assert.Throws<ArgumentException>(() => 
-				DoSave(
+				session.Save(
 					new SimpleEntity {
 						Id = "doc1",
 						Revision = "42-1a517022a0c2d4814d51abfedf9bfee7",
 						Name = "John Smith"
-			}));
+					}
+				)
+			);
 		}
 
 		[Fact]
@@ -66,7 +68,9 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldReturnFillRevisionPropertyOnEntity()
 		{
-			DoSave();
+			var couchApiMock = MockCouchApi();
+			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			session.Save(entity);
 			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", entity.Revision);
 		}
 
@@ -93,31 +97,18 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.NotEqual(string.Empty, savingEntity.Id);
 		}
 
-		private void DoSave(
-			SimpleEntity savingEntity = null, 
-			Mock<ICouchApi> couchApiMock = null,
-			Func<ISession, DocumentInfo> action = null)
+		private static Mock<ICouchApi> MockCouchApi()
 		{
-			savingEntity = savingEntity ?? entity;
-			if (couchApiMock == null)
-			{
-				couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-				couchApiMock
-					.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
-					.Returns(new {
-						id = savingEntity == null? null: savingEntity.Id,
-						rev = "42-1a517022a0c2d4814d51abfedf9bfee7"
-					}.ToJsonFragment().ToTask());
-				couchApiMock
-					.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
-			}
-			
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-
-			if (action == null)
-				session.Save(savingEntity);
-			else
-				action(session);
+			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
+			couchApiMock
+				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
+				.Returns(new {
+					id = SimpleEntity.StandardDocId,
+					rev = "42-1a517022a0c2d4814d51abfedf9bfee7"
+				}.ToJsonFragment().ToTask());
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
+			return couchApiMock;
 		}
 	}
 }

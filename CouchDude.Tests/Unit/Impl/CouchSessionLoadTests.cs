@@ -35,12 +35,9 @@ namespace CouchDude.Tests.Unit.Impl
 			SimpleEntity entityA = null;
 			SimpleEntity entityB = null;
 
-			DoTest(
-				action: session => {
-					entityA = session.Synchronously.Load<SimpleEntity>("doc1");
-					entityB = session.Synchronously.Load<SimpleEntity>("doc1");
-				});
-
+			var session = new CouchSession(Default.Settings, MockCouchApi());
+			entityA = session.Synchronously.Load<SimpleEntity>("doc1");
+			entityB = session.Synchronously.Load<SimpleEntity>("doc1");
 			Assert.Same(entityA, entityB);
 		}
 
@@ -49,11 +46,9 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var entity = new SimpleEntity { Id = "doc1", Name = "John Smith" };
 			SimpleEntity loadedEntity = null;
-			DoTest(
-				action: session => {
-					session.Save(entity);
-					loadedEntity = session.Synchronously.Load<SimpleEntity>("doc1");
-				});
+			var session = new CouchSession(Default.Settings, MockCouchApi());
+			session.Save(entity);
+			loadedEntity = session.Synchronously.Load<SimpleEntity>("doc1");
 
 			Assert.Same(entity, loadedEntity);
 		}
@@ -62,17 +57,19 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldThrowOnInvalidTypeDuringCacheLookup()
 		{
 			var entity = new SimpleEntity { Id = "doc1", Name = "John Smith" };
-			Assert.Throws<EntityTypeMismatchException>(() => DoTest(
-				action: session => {
+			var session = new CouchSession(Default.Settings, MockCouchApi());
+			Assert.Throws<EntityTypeMismatchException>(() => {
 					session.Save(entity);
 					session.Synchronously.Load<SimpleEntityWithoutRevision>("doc1");
-			}));  
+				}
+			);  
 		}
 
 		[Fact]
 		public void ShouldLoadDataThroughtCouchApi()
 		{
-			var loadedEntity = DoTest();
+			var session = new CouchSession(Default.Settings, MockCouchApi());
+			var loadedEntity = session.Synchronously.Load<SimpleEntity>(SimpleEntity.StandardEntityId);
 			Assert.NotNull(loadedEntity);
 			Assert.Equal("doc1", loadedEntity.Id);
 			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", loadedEntity.Revision);
@@ -117,43 +114,24 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.Equal(requestedId, "simpleEntity.doc1");
 		}
 
-		private static SimpleEntity DoTest(
-			Func<string, IDocument> apiResponse = null,
-			Mock<ICouchApi> couchApiMock = null,
-			Action<ISession> action = null,
-			string documentId = "doc1")
+		static ICouchApi MockCouchApi()
 		{
-			if (apiResponse == null)
-				apiResponse = requestedUrl => 
-				               new {
-				                   	_id = "simpleEntity" + ".doc1",
-				                   	_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-				                   	type = "simpleEntity",
-				                   	name = "John Smith"
-				                   }.ToDocument();
-
-			if (couchApiMock == null)
-			{
-				couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-				couchApiMock
-					.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-					.Returns<string>(id => Task.Factory.StartNew(() => apiResponse(id)));
-				couchApiMock
-					.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
-					.Returns(new { id = documentId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask());
-				couchApiMock
-					.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
-			}
-
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-
-			if (action == null)
-				return session.Synchronously.Load<SimpleEntity>(documentId);
-			else
-			{
-				action(session);
-				return default(SimpleEntity);
-			}
+			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
+			couchApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Returns<string>(id => Task.Factory.StartNew(
+					() => new {
+						_id = "simpleEntity" + ".doc1",
+						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+						type = "simpleEntity",
+						name = "John Smith"
+					}.ToDocument()));
+			couchApiMock
+				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Returns(new { id = SimpleEntity.StandardDocId, rev = "42-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask());
+			couchApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
+			return couchApiMock.Object;
 		}
 	}
 }

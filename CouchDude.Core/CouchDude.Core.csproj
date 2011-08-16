@@ -173,7 +173,6 @@
     <Compile Include="DesignDocumentManagment\Engine.cs" />
     <Compile Include="DesignDocumentManagment\DesignDocumentAssembler.cs" />
     <Compile Include="DesignDocumentManagment\Directory.cs" />
-    <Compile Include="DocumentInfo.cs" />
     <Compile Include="Exceptions\CouchCommunicationException.cs">
       <DependentUpon>CouchCommunicationException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
