@@ -21,12 +21,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CouchDude;
+
 using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class ViewResultParserTests
 	{

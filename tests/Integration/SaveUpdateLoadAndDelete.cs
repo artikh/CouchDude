@@ -23,6 +23,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class SaveUpdateLoadAndDelete
 	{
 		[Fact]

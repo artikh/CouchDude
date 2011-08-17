@@ -24,7 +24,7 @@ using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Configuration
+namespace CouchDude.Tests.Unit.Core.Configuration
 {
 	public class EntityConfigTests
 	{

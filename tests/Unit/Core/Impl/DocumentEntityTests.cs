@@ -17,7 +17,7 @@
 #endregion
 
 using System.IO;
-using CouchDude;
+
 using CouchDude.Configuration;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
@@ -25,7 +25,7 @@ using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Impl
+namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class DocumentEntityTests
 	{

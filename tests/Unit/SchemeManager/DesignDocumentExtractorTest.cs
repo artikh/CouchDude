@@ -19,7 +19,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
-using CouchDude;
+
 using CouchDude.SchemeManager;
 using Newtonsoft.Json.Linq;
 using Xunit;

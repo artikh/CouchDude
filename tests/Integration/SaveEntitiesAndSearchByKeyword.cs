@@ -18,7 +18,7 @@
 
 using System;
 using System.Linq;
-using CouchDude;
+
 using CouchDude.Api;
 using CouchDude.Http;
 using CouchDude.Impl;
@@ -27,6 +27,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class SaveEntitiesAndSearchByKeyword
 	{
 		public SaveEntitiesAndSearchByKeyword()

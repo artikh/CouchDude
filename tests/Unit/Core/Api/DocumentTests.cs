@@ -21,7 +21,7 @@ using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class DocumentTests
 	{

@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using CouchDude;
+
 using CouchDude.Api;
 using CouchDude.Configuration;
 using CouchDude.Tests.SampleData;
@@ -27,7 +27,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class DocumentTestsDeserialize
 	{

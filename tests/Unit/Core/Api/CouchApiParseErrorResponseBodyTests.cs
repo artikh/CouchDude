@@ -21,7 +21,7 @@ using CouchDude.Api;
 using CouchDude.Impl;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class CouchApiParseErrorResponseBodyTests
 	{

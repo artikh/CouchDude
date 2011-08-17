@@ -27,7 +27,7 @@ using Xunit.Extensions;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global	
 // ReSharper disable NotAccessedField.Global
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class DocumentTestsSerialize
 	{

@@ -1,7 +1,7 @@
-TestResults
 old
 obj
 bin
+build
 _ReSharper.*
 *.user
 *.suo

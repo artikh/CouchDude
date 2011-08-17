@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using CouchDude;
+
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 

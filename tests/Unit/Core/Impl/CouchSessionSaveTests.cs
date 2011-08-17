@@ -17,14 +17,14 @@
 #endregion
 
 using System;
-using CouchDude;
+
 using CouchDude.Api;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Impl
+namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class CouchSessionSaveTests
 	{

@@ -16,7 +16,7 @@
 */
 #endregion
 
-using CouchDude;
+
 using CouchDude.Api;
 using Moq;
 using Xunit;
@@ -24,7 +24,7 @@ using Xunit;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 
-namespace CouchDude.Tests.Unit.Core.Core.Impl
+namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class CouchSessionFlushTests
 	{

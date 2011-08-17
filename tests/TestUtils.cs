@@ -18,7 +18,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using CouchDude;
+
 using CouchDude.Api;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;

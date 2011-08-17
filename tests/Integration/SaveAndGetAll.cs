@@ -18,13 +18,13 @@
 
 using System;
 using System.Linq;
-using CouchDude;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class SaveAndGetAll
 	{
 		[Fact]

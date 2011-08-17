@@ -19,7 +19,7 @@
 using System;
 using System.IO;
 using System.Linq;
-using CouchDude;
+
 using CouchDude.SchemeManager;
 using Xunit;
 using Directory = CouchDude.SchemeManager.Directory;

@@ -21,10 +21,10 @@ using System.Net;
 using System.Net.Http;
 using CouchDude.Api;
 using CouchDude.Http;
-using CouchDude;
+
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class CouchApiUpdateDocumentInDbTests
 	{

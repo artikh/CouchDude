@@ -17,13 +17,14 @@
 #endregion
 
 using System;
-using CouchDude;
+
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class SaveLoadAndDelete
 	{
 		[Fact]

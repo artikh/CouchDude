@@ -16,13 +16,13 @@
 */
 #endregion
 
-using CouchDude;
+
 using CouchDude.Configuration;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Configuration
+namespace CouchDude.Tests.Unit.Core.Configuration
 {
 	public class EntityRegistryTests
 	{

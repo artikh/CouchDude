@@ -19,12 +19,12 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using CouchDude;
+
 using CouchDude.Api;
 using CouchDude.Impl;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Api
+namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class CouchApiDeleteDocumentFromDbTests
 	{

@@ -22,7 +22,7 @@ using CouchDude.Tests.SampleData;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Core.Core.Configuration
+namespace CouchDude.Tests.Unit.Core.Configuration
 {
 	public class DefaultEntityConfigConventionsTests
 	{	

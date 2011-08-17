@@ -21,7 +21,7 @@ using System.Collections.Generic;
 using CouchDude.Configuration;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core.Core.Configuration
+namespace CouchDude.Tests.Unit.Core.Configuration
 {
 	public class SequentialUuidIdGeneratorTests
 	{
