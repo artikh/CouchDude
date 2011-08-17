@@ -26,10 +26,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 	public class CouchApiParseErrorResponseBodyTests
 	{
 		[Fact]
-		public void ShouldReturnNullWhenParsingIncorretResultBody()
+		public void ShouldReturnResultAsIsIfNotAJson()
 		{
-			using (var textReader = new StringReader("Some none-JSON string"))
-				Assert.Null(CouchApi.ParseErrorResponseBody(textReader));
+			using (var textReader = new StringReader("Some none-JSON string {{"))
+				Assert.Equal("Some none-JSON string {{", CouchApi.ParseErrorResponseBody(textReader));
 		}
 
 		[Fact]

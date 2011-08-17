@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -100,14 +101,56 @@ namespace CouchDude.Api
 
 		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder)
 		{
-			return Task.Factory.StartNew<IDictionary<string, DocumentInfo>>(() => new Dictionary<string, DocumentInfo>());
+			if (updateCommandBuilder == null) throw new ArgumentNullException("updateCommandBuilder");
+			var unitOfWork = new BulkUpdateUnitOfWork();
+			updateCommandBuilder(unitOfWork);
+			if(unitOfWork.IsEmpty)
+				throw new ArgumentException("Builder should invoke at least one method on unit of work", "updateCommandBuilder");
+
+			var bulkUpdateUri = new Uri(databaseUri, "_bulk_docs");
+			var request = new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri);
+			request.SetStringContent(unitOfWork.UpdateDescriptor);
+			return StartRequest(request).ContinueWith(
+				rt => {
+					var response = rt.Result;
+					ThrowIfNotOk(response);
+
+					var exceptions = new List<Exception>();
+					IDictionary<string, DocumentInfo> result = new Dictionary<string, DocumentInfo>();
+					dynamic responseDescriptors = new JsonFragment(response.GetContentTextReader());
+					foreach(var responseDescriptor in responseDescriptors)
+					{
+						string error = responseDescriptor.error;
+						if (error != null) 
+							exceptions.Add(CreateException(error, (string)responseDescriptor.reason));
+						else
+						{
+							var documentInfo = new DocumentInfo((string)responseDescriptor.id, (string)responseDescriptor.rev);
+							result[documentInfo.Id] = documentInfo;
+						}
+					}
+
+					return result;
+				});
+		}
+
+		public Exception CreateException(string errorName, string reasonMessage, int? errorCode = null)
+		{
+			switch (errorName)
+			{
+				case "conflict":
+					return CreateStaleStateException();
+				case "forbidden":
+					return CreateInvalidDocumentException(reasonMessage);
+				default:
+					return new CouchCommunicationException(FormatCouchError(errorName, reasonMessage, errorCode));
+			}
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			
-
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
 			return StartRequest(request).ContinueWith(
@@ -175,34 +218,52 @@ namespace CouchDude.Api
 			return new Uri(uriStringBuilder.ToString()).LeaveDotsAndSlashesEscaped();
 		}
 
-		static string ParseErrorResponseBody(HttpResponseMessage response) { return ParseErrorResponseBody(response.Content.GetTextReader()); }
-
-		internal static string ParseErrorResponseBody(TextReader errorTextReader)
+		static string ParseErrorResponseBody(HttpResponseMessage response)
 		{
-			if (errorTextReader == null)
-				return null;
+			return ParseErrorResponseBody(response.Content.GetTextReader(), (int)response.StatusCode);
+		}
 
-			dynamic errorObject;
+		internal static string ParseErrorResponseBody(TextReader errorTextReader, int? errorCode = null)
+		{
+			if (errorTextReader == null) return null;
+
+			string errorText;
 			using (errorTextReader)
-				try
-				{
-					errorObject = new JsonFragment(errorTextReader);
-				}
-				catch (Exception)
-				{
-					return null;
-				}
+				errorText = errorTextReader.ReadToEnd();
+			dynamic errorObject = TryGetErrorObject(errorText);
+			return errorObject == null? errorText: FormatCouchError((string)errorObject.error, (string)errorObject.reason, errorCode);
+		}
 
-			string errorName = errorObject.error ?? string.Empty;
-			string reasonMessage = errorObject.reason ?? string.Empty;
-
+		private static dynamic TryGetErrorObject(string errorText)
+		{
+			try
+			{
+				return new JsonFragment(errorText);
+			}
+			catch (Exception)
+			{
+				return null;
+			}
+		}
+		
+		private static string FormatCouchError(string errorName, string reasonMessage, int? errorCode = null)
+		{
+			errorName = errorName ?? string.Empty;
+			reasonMessage = reasonMessage ?? string.Empty; 
+			
 			var message = new StringBuilder();
 			message.Append(errorName);
 
-			if (message.Length > 0 && reasonMessage.Length > 0)
-				message.Append(": ");
+			if(message.Length > 0 && reasonMessage.Length > 0) message.Append(": ");
 			message.Append(reasonMessage);
-			return message.Length > 0 ? message.ToString() : null;
+
+			if (errorCode.HasValue)
+			{
+				if(message.Length <= 0) message.Append("Error returned by CouchDB: ").Append(errorCode);
+				else message.Append("[").Append(errorCode).Append("]");
+			}
+
+			return message.Length > 0? message.ToString(): null;
 		}
 
 		private static void ThrowIfNotOk(HttpResponseMessage response)
@@ -212,14 +273,29 @@ namespace CouchDude.Api
 			switch(response.StatusCode)
 			{
 				case HttpStatusCode.Conflict:
-					throw new StaleObjectStateException("Document update conflict detected");
+					throw CreateStaleStateException();
 				case HttpStatusCode.Forbidden:
-					throw new InvalidDocumentException("Document update conflict detected: " + ParseErrorResponseBody(response));
+					throw CreateInvalidDocumentException(ParseErrorResponseBody(response));
 				default:
-					throw new CouchCommunicationException(
-						string.Concat(ParseErrorResponseBody(response) ?? "Error returned from CouchDB", " ", (int) response.StatusCode)
-					);
+					throw CreateCommunicationException(response);
 			}
+		}
+
+		private static CouchCommunicationException CreateCommunicationException(HttpResponseMessage response)
+		{
+			return new CouchCommunicationException(
+				string.Concat(ParseErrorResponseBody(response) ?? "Error returned from CouchDB", " ", (int)response.StatusCode)
+			);
+		}
+
+		private static StaleObjectStateException CreateStaleStateException()
+		{
+			return new StaleObjectStateException("Document update conflict detected");
+		}
+
+		private static InvalidDocumentException CreateInvalidDocumentException(string reason)
+		{
+			return new InvalidDocumentException("Document is invalid: " + reason);
 		}
 
 		private Task<HttpResponseMessage> StartRequest(HttpRequestMessage request)
@@ -245,6 +321,59 @@ namespace CouchDude.Api
 			var revision = (string)couchResponse.rev;
 
 			return new DocumentInfo(id, revision);
+		}
+
+		class BulkUpdateUnitOfWork: IBulkUpdateUnitOfWork
+		{
+			private readonly IList<string> updateDescriptors = new List<string>();
+
+			public void Create(IDocument document)
+			{
+				if (document == null) throw new ArgumentNullException("document");
+				if (document.Revision.HasValue()) 
+					throw new ArgumentException("Document seems to have been previously saved as it has a revision.", "document");
+				updateDescriptors.Add(document.ToString());
+			}
+
+			public void Update(IDocument document)
+			{
+				if (document == null) throw new ArgumentNullException("document");
+				if (document.Revision.HasNoValue()) throw new ArgumentException("Document should have a revision to be updated", "document");
+				updateDescriptors.Add(document.ToString());
+			}
+
+			public void Delete(IDocument document)
+			{
+				if (document == null) throw new ArgumentNullException("document");
+				if (document.Revision.HasNoValue())
+					throw new ArgumentException("Document should have a revision to be deleted", "document");
+				Delete(document.Id, document.Revision);
+			}
+
+			public void Delete(string id, string revision)
+			{
+				if (id.HasNoValue()) throw new ArgumentNullException("id");
+				if (revision.HasNoValue()) throw new ArgumentNullException("revision");
+				updateDescriptors.Add(
+					string.Format("{{\"_id\":\"{0}\",\"_rev\":\"{1}\",\"_deleted\":true}}", id, revision)
+				);
+			}
+
+			public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
+
+			public string UpdateDescriptor
+			{
+				get
+				{
+					var descripton = new StringBuilder("[");
+					foreach(var updateDescriptor in updateDescriptors) 
+						descripton.Append(updateDescriptor).Append(",");
+					if (descripton[descripton.Length - 1] == ',')
+						descripton.Remove(descripton.Length - 1, 1);
+					descripton.Append("]");
+					return descripton.ToString();
+				}
+			}
 		}
 	}
 }
