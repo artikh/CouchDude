@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F8A42327-20C8-4E64-8907-8F895CE16571}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CouchDude.Tests</RootNamespace>
+    <AssemblyName>CouchDude.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Common.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Net.Http">
+      <HintPath>..\packages\HttpClient.0.3.0\lib\40\Microsoft.Net.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="Moq">
+      <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=4.0.2.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.4.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="xunit, Version=1.8.0.1545, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.1.8.0.1545\lib\xunit.dll</HintPath>
+    </Reference>
+    <Reference Include="xunit.extensions, Version=1.8.0.1545, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\xunit.extensions.1.8.0.1545\lib\xunit.extensions.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\src\GlobalAssemblyInfo.cs">
+      <Link>Properties\GlobalAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Integration\SaveEntitiesAndSearchByKeyword.cs" />
+    <Compile Include="Integration\SaveAndGetAll.cs" />
+    <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
+    <Compile Include="HttpClientMock.cs" />
+    <Compile Include="SampleData\Default.cs" />
+    <Compile Include="SampleData\IEntity.cs" />
+    <Compile Include="SampleData\SimpleViewData.cs" />
+    <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
+    <Compile Include="SampleData\SimpleEntity.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiConstructorTests.cs" />
+    <Compile Include="Unit\Core\Api\LuceneResultsParserTests.cs" />
+    <Compile Include="Unit\Core\Api\ViewResultParserTests.cs" />
+    <Compile Include="Unit\Core\Configuration\DefaultEntityConfigConventionsTests.cs" />
+    <Compile Include="Unit\Core\Configuration\EntityConfigTests.cs" />
+    <Compile Include="Unit\Core\Configuration\EntityRegistryTests.cs" />
+    <Compile Include="Unit\Core\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
+    <Compile Include="Unit\Core\Configuration\SequentialUuidIdGeneratorTests.cs" />
+    <Compile Include="Unit\SchemeManager\DesignDocumentAssemblerTests.cs" />
+    <Compile Include="Unit\SchemeManager\DesignDocumentExtractorTest.cs" />
+    <Compile Include="Unit\SchemeManager\DesignDocumentTests.cs" />
+    <Compile Include="Unit\SchemeManager\DirectoryTests.cs" />
+    <Compile Include="Unit\SchemeManager\EngineTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiDeleteDocumentFromDbTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiGetLastestDocumentRevisionTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiQueryTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiUpdateDocumentInDbTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiSaveDocumentToDbTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiParseErrorResponseBodyTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiGetDocumentFromDbByIdTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unit\Core\Api\DocumentTests.cs" />
+    <Compile Include="Unit\Core\Api\DocumentTests.Deserialize.cs" />
+    <Compile Include="Unit\Core\Api\DocumentTests.Serialize.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionConstuctorTests.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionDeleteTests.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionQueryTests.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionFlushTests.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionLoadTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unit\Core\Impl\CouchSessionSaveTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unit\Core\Impl\DocumentEntityTests.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Unit\Core\Api\JsonFragmentTests.cs" />
+    <Compile Include="Integration\SaveLoadAndDelete.cs" />
+    <Compile Include="JTokenStringCompairer.cs" />
+    <Compile Include="ExploratoryTests.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Unit\Core\ViewQueryUriConverterTests.cs" />
+    <Compile Include="Unit\Core\Configuration\SettingsBuilderTests.cs" />
+    <Compile Include="Unit\Core\SettingsTests.cs" />
+    <Compile Include="TestBase.cs" />
+    <Compile Include="TestUtils.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\CouchDude.licenseheader">
+      <Link>CouchDude.licenseheader</Link>
+    </None>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\src\Core\Core.csproj">
+      <Project>{81B07B94-A04A-4178-8465-7BF668519DD7}</Project>
+      <Name>Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\src\SchemeManager\SchemeManager.csproj">
+      <Project>{B4C845DC-F039-44EE-982D-E13E9F83DA7B}</Project>
+      <Name>SchemeManager %28SchemeManager\SchemeManager%29</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
