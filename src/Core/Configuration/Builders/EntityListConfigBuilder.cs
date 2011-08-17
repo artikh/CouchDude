@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.Reflection;
 using CouchDude.Configuration;
 
@@ -47,7 +47,7 @@ namespace CouchDude.Configuration.Builders
 		public TSelf FromAssembly(string assemblyNameString)
 		{
 			if(String.IsNullOrEmpty(assemblyNameString)) throw new ArgumentNullException("assemblyNameString");
-			Contract.EndContractBlock();
+			
 
 			AssembliesToScan.Add(Assembly.Load(assemblyNameString));
 			return (TSelf)this;
@@ -59,7 +59,7 @@ namespace CouchDude.Configuration.Builders
 			if (typeof(T).IsInterface)
 				throw new ArgumentException(
 					String.Format("Type {0} is an interface. Probably you should use Implements<T>() method insted.", typeof(T)));
-			Contract.EndContractBlock();
+			
 
 			Predicates.Add(type => typeof(T).IsAssignableFrom(type));
 			return (TSelf)this;
@@ -71,7 +71,7 @@ namespace CouchDude.Configuration.Builders
 			if (!typeof(T).IsInterface)
 				throw new ArgumentException(
 					String.Format("Type {0} is not an interface. Probably you should use InheritedFrom<T>() method insted.", typeof(T)));
-			Contract.EndContractBlock();
+			
 
 			Predicates.Add(type => typeof(T).IsAssignableFrom(type));
 			return (TSelf) this;
@@ -81,7 +81,7 @@ namespace CouchDude.Configuration.Builders
 		public TSelf Where(Predicate<Type> predicate)
 		{
 			if(predicate == null) throw new ArgumentNullException("predicate");
-			Contract.EndContractBlock();
+			
 
 			Predicates.Add(predicate);
 			return (TSelf) this;

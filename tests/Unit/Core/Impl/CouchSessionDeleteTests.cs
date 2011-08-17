@@ -43,7 +43,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					(string id, string revision) => {
 						deletedId = id;
 						deletedRevision = revision;
-						return new {ok = true, id, rev = "2-1a517022a0c2d4814d51abfedf9bfee7"}.ToJsonFragment().ToTask();
+						return new DocumentInfo(id, "2-1a517022a0c2d4814d51abfedf9bfee7").ToTask();
 					});
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
@@ -84,7 +84,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Returns((string id, string rev) => {
 					deletedId = id;
 					deletedRev = rev;
-					return SimpleEntityWithoutRevision.OkResponseJson.ToTask();
+					return SimpleEntityWithoutRevision.OkResponse.ToTask();
 				});
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));

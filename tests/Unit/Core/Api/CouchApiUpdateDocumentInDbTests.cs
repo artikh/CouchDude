@@ -47,11 +47,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal(
 				new { _id = "doc1", name = "John Smith" }.ToJsonString(), httpClientMock.Request.Content.GetTextReader().ReadToEnd());
 			Assert.Equal(
-				new {
-					ok = true,
-					id = "doc1",
-					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJsonFragment(),
+				new DocumentInfo("doc1","1-1a517022a0c2d4814d51abfedf9bfee7"),
 				result
 			);
 		}

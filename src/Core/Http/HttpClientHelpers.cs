@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.IO;
 using System.Net.Http;
 using System.Text;
@@ -33,7 +33,7 @@ namespace CouchDude.Http
 		public static TextReader GetContentTextReader(this HttpResponseMessage self)
 		{
 			if (self == null) throw new ArgumentNullException("self");
-			Contract.EndContractBlock();
+			
 
 			return self.Content.GetTextReader();
 		}
@@ -42,7 +42,7 @@ namespace CouchDude.Http
 		public static void SetStringContent(this HttpRequestMessage self, string contentTextString)
 		{
 			if (self == null) throw new ArgumentNullException("self");
-			Contract.EndContractBlock();
+			
 
 			self.Content = new StringContent(contentTextString, Encoding.UTF8);
 		}

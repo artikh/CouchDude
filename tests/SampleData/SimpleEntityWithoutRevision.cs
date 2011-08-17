@@ -29,19 +29,7 @@ namespace CouchDude.Tests.SampleData
 		public const string StandardEntityId = "doc1";
 		public const string StandardDocId = "simpleEntityWithoutRevision.doc1";
 
-		public static JObject OkResponse = new
-		{
-			ok = true,
-			id = StandardDocId,
-			rev = StandardRevision
-		}.ToJObject();
-
-		public static IJsonFragment OkResponseJson = new
-		{
-			ok = true,
-			id = StandardDocId,
-			rev = StandardRevision
-		}.ToJsonFragment();
+		public static DocumentInfo OkResponse = new DocumentInfo(StandardDocId, StandardRevision);
 
 		public static IDocument DocWithRevision = new
 		{

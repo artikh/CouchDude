@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.Linq;
 using System.Text.RegularExpressions;
 using CouchDude.Configuration;
@@ -41,7 +41,7 @@ namespace CouchDude
 					throw new ArgumentNullException("value");
 				if (!value.IsAbsoluteUri)
 					throw new ArgumentException("Server URL should be absolute.", "value");
-				Contract.EndContractBlock();
+				
 
 				serverUri = value;
 			}
@@ -61,7 +61,7 @@ namespace CouchDude
 						"digits (0-9), or any of the _$()+-/ characters and must end with a " +
 						"slash in the URL. The name has to start with a lowercase letter (a-z).",
 						"value");
-				Contract.EndContractBlock();
+				
 
 				if (databaseName == value) return;
 				databaseName = value;
@@ -78,9 +78,7 @@ namespace CouchDude
 		}
 
 		/// <constructor />
-		public Settings()
-		{
-		}
+		public Settings() { }
 
 		/// <constructor />
 		public Settings(Uri serverUri, string databaseName)
@@ -97,14 +95,13 @@ namespace CouchDude
 					"digits (0-9), or any of the _$()+-/ characters and must end with a " +
 					"slash in the URL. The name has to start with a lowercase letter (a-z).",
 					"databaseName");
-			Contract.EndContractBlock();
+			
 
 			ServerUri = serverUri;
 			DatabaseName = databaseName;
 		}
 
 		/// <summary>Determines if provided database name is valid.</summary>
-		[Pure]
 		public static bool ValidDbName(string databaseName)
 		{
 			var firstLetter = databaseName[0];

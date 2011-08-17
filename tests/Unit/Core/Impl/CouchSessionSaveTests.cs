@@ -81,7 +81,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			couchApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
 				.Returns(
-					(IDocument doc) => new { id = doc.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask()
+					(IDocument doc) => new DocumentInfo(doc.Id, "1-1a517022a0c2d4814d51abfedf9bfee7").ToTask()
 				);
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
@@ -102,10 +102,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
-				.Returns(new {
-					id = SimpleEntity.StandardDocId,
-					rev = "42-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJsonFragment().ToTask());
+				.Returns(new DocumentInfo(SimpleEntity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 			return couchApiMock;

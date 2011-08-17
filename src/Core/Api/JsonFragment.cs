@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.Dynamic;
 using System.IO;
 using System.Linq.Expressions;
@@ -49,7 +49,7 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
 		public JsonFragment(string jsonString): this(Parse(jsonString))
 		{
-			Contract.Requires(!string.IsNullOrWhiteSpace(jsonString));
+			if(string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
 		}
 
 		/// <summary>Loads JSON from provided text reader.</summary>
@@ -59,14 +59,13 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
 		public JsonFragment(TextReader textReader): this(Load(textReader))
 		{
-			Contract.Requires(textReader != null);
+			if (textReader == null) throw new ArgumentNullException("textReader");
 		}
 
 		/// <constructor />
 		internal JsonFragment(JToken jsonToken)
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
-			Contract.EndContractBlock();
 
 			JsonToken = jsonToken;
 		}
@@ -74,7 +73,7 @@ namespace CouchDude.Api
 		private static JToken Parse(string jsonString)
 		{
 			if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
-			Contract.EndContractBlock();
+			
 
 			JToken jsonToken;
 			try
@@ -92,7 +91,7 @@ namespace CouchDude.Api
 		{
 			if (textReader == null)
 				throw new ArgumentNullException("textReader");
-			Contract.EndContractBlock();
+			
 
 			JToken jsonToken;
 			try
@@ -150,7 +149,7 @@ namespace CouchDude.Api
 		{
 			if (type == null)
 				throw new ArgumentNullException("type");
-			Contract.EndContractBlock();
+			
 
 			using (var jTokenReader = new JTokenReader(JsonToken))
 				try
@@ -169,7 +168,7 @@ namespace CouchDude.Api
 		{
 			if (type == null)
 				throw new ArgumentNullException("type");
-			Contract.EndContractBlock();
+			
 
 			using (var jTokenReader = new JTokenReader(JsonToken))
 				try
@@ -187,7 +186,7 @@ namespace CouchDude.Api
 		{
 			if (obj == null)
 				throw new ArgumentNullException("obj");
-			Contract.EndContractBlock();
+			
 
 			JToken jsonToken;
 			using (var jTokenWriter = new JTokenWriter())

@@ -17,8 +17,8 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace CouchDude.Utils
 {
@@ -26,10 +26,11 @@ namespace CouchDude.Utils
 	public static class StringUtils
 	{
 		/// <summary>Converts first letter of the string to </summary>
+		[Pure]
 		public static string ToCamelCase(this string self)
 		{
 			if(string.IsNullOrEmpty(self)) throw new ArgumentNullException("self");
-			Contract.EndContractBlock();
+			
 
 			var firstLetter = self[0];
 			if (!Char.IsUpper(firstLetter))

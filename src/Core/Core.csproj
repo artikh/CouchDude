@@ -116,6 +116,7 @@
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
+    <Compile Include="DocumentInfo.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResultRow.cs" />
@@ -161,7 +162,6 @@
     <Compile Include="IJsonFragment.cs" />
     <Compile Include="Api\JsonFragment.cs" />
     <Compile Include="LuceneResultRow.cs" />
-    <Compile Include="Utils\ForwardingMetaObject.cs" />
     <Compile Include="Http\HttpClientHelpers.cs" />
     <Compile Include="Http\HttpClientImpl.cs" />
     <Compile Include="Http\IHttpClient.cs" />

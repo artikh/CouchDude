@@ -31,7 +31,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldSendDeleteRequestOnDeletion()
 		{
-			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
+			var httpMock = new HttpClientMock(new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
 			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 
 			var resultObject = couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
 				httpMock.Request.RequestUri.ToString());
 			Assert.Equal("DELETE", httpMock.Request.Method.ToString());
-			Assert.Equal(new { ok = true }.ToJsonFragment(), resultObject);
+			Assert.Equal(new DocumentInfo(id: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"), resultObject);
 		}
 
 		[Fact]

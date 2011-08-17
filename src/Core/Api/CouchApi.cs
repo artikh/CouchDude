@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -40,7 +40,7 @@ namespace CouchDude.Api
 			if (httpClient == null) throw new ArgumentNullException("httpClient");
 			if (serverUri == null) throw new ArgumentNullException("serverUri");
 			if (databaseName.HasNoValue()) throw new ArgumentNullException("databaseName");
-			Contract.EndContractBlock();
+			
 
 			this.httpClient = httpClient;
 			databaseUri = new Uri(serverUri, databaseName + "/");
@@ -50,7 +50,7 @@ namespace CouchDude.Api
 		public Task<IDocument> RequestDocumentById(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
-			Contract.EndContractBlock();
+			
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
@@ -64,62 +64,62 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<IJsonFragment> DeleteDocument(string docId, string revision)
+		public Task<DocumentInfo> DeleteDocument(string docId, string revision)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
 			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
-			Contract.EndContractBlock();
+			
 
 			var documentUri = GetDocumentUri(docId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
-			return StartRequest(request).ContinueWith<IJsonFragment>(
+			return StartRequest(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					ThrowIfNotOk(response);
-					return new JsonFragment(response.GetContentTextReader());
+					return ReadDocumentInfo(response);
 				});
 		}
-		
-		public Task<IJsonFragment> SaveDocument(IDocument document)
+
+		public Task<DocumentInfo> SaveDocument(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue()) 
 				throw new ArgumentException("Document ID should not be empty or noll.", "document");
-			Contract.EndContractBlock();
+			
 
 			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
-			return StartRequest(request).ContinueWith<IJsonFragment>(
+			return StartRequest(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					ThrowIfNotOk(response);
-					return new JsonFragment(response.GetContentTextReader());
+					return ReadDocumentInfo(response);
 				});
 		}
 
-		public Task<IJsonFragment> UpdateDocument(IDocument document)
+		public Task<DocumentInfo> UpdateDocument(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
 				throw new ArgumentException("Document ID should not be empty or noll.", "document");
-			Contract.EndContractBlock();
+			
 
 			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
 			request.SetStringContent(document.ToString());
-			return StartRequest(request).ContinueWith<IJsonFragment>(
+			return StartRequest(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					ThrowIfNotOk(response);
-					return new JsonFragment(response.GetContentTextReader());
+					return ReadDocumentInfo(response);
 				});
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string docId)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
-			Contract.EndContractBlock();
+			
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
@@ -138,22 +138,22 @@ namespace CouchDude.Api
 					return etag.Tag.Trim('"');
 				});
 		}
-		
+
 		public Task<IPagedList<ViewResultRow>> Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
-			Contract.EndContractBlock();
+			
 
 			return StartQuery(query.ToUri()).ContinueWith<IPagedList<ViewResultRow>>(
 				rt => ViewResultParser.Parse(rt.Result.GetContentTextReader(), query)
 			);
 		}
-		
+
 		public Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
-			Contract.EndContractBlock();
+			
 
 			return StartQuery(query.ToUri()).ContinueWith<IPagedList<LuceneResultRow>>(
 				rt => LuceneResultParser.Parse(rt.Result.GetContentTextReader(), query)
@@ -187,7 +187,7 @@ namespace CouchDude.Api
 
 			return new Uri(uriStringBuilder.ToString()).LeaveDotsAndSlashesEscaped();
 		}
-		
+
 		internal static string ParseErrorResponseBody(TextReader errorTextReader)
 		{
 			if (errorTextReader == null)
@@ -242,6 +242,15 @@ namespace CouchDude.Api
 			{
 				throw new CouchCommunicationException(e);
 			}
+		}
+
+		private static DocumentInfo ReadDocumentInfo(HttpResponseMessage response)
+		{
+			dynamic couchResponse = new JsonFragment(response.GetContentTextReader());
+			var id = (string)couchResponse.id;
+			var revision = (string)couchResponse.rev;
+
+			return new DocumentInfo(id, revision);
 		}
 	}
 }

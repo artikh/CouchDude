@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+using System.Diagnostics;
 using System.IO;
 using CouchDude.Api;
 using CouchDude.Configuration;
@@ -110,7 +110,7 @@ namespace CouchDude.Impl
 			if(id == null)
 			{
 				var generatedId = idGenerator.GenerateId();
-				Contract.Assert(!string.IsNullOrEmpty(generatedId));
+				Debug.Assert(!string.IsNullOrEmpty(generatedId));
 				entityConfiguration.SetId(entity, generatedId);
 			}
 		}
@@ -168,7 +168,7 @@ namespace CouchDude.Impl
 		{
 			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
-			Contract.EndContractBlock();
+			
 
 			Entity = entity;
 			Document = document;

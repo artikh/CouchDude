@@ -18,7 +18,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+
 using System.Linq;
 using System.Threading.Tasks;
 using CouchDude.Utils;
@@ -38,7 +38,7 @@ namespace CouchDude.Impl
 			if (settings == null) throw new ArgumentNullException("settings");
 			if (settings.Incomplete) throw new ArgumentException("Settings are incomplete.", "settings");
 			if (couchApi == null) throw new ArgumentNullException("couchApi");
-			Contract.EndContractBlock();
+			
 
 			this.settings = settings;
 			this.couchApi = couchApi;
@@ -55,7 +55,7 @@ namespace CouchDude.Impl
 		public void Save<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
-			Contract.EndContractBlock();
+			
 
 			var documentEntity = DocumentEntity.FromEntity(entity, settings);
 
@@ -68,10 +68,10 @@ namespace CouchDude.Impl
 			documentEntity.DoMap();
 
 			// TODO: Should write to the unit of work insted of DB
-			dynamic documentInfo = couchApi.Synchronously.SaveDocumentSync(documentEntity.Document);
+			var documentInfo = couchApi.Synchronously.SaveDocumentSync(documentEntity.Document);
 			cache.Put(documentEntity);
 
-			documentEntity.Revision = documentInfo.rev;
+			documentEntity.Revision = documentInfo.Revision;
 		}
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
@@ -103,7 +103,7 @@ namespace CouchDude.Impl
 		{
 			if (string.IsNullOrWhiteSpace(entityId)) 
 				throw new ArgumentNullException("entityId");
-			Contract.EndContractBlock();
+			
 
 			var cachedEntity = cache.TryGet(entityId, typeof(TEntity));
 			if (cachedEntity != null)
@@ -140,8 +140,8 @@ namespace CouchDude.Impl
 				var updateTask = couchApi
 					.UpdateDocument(documentEntity.Document)
 					.ContinueWith(pt => {
-						dynamic documentInfo = pt.Result;
-					  documentEntity.Revision = (string) documentInfo.rev;
+						var documentInfo = pt.Result;
+					  documentEntity.Revision = documentInfo.Revision;
 					});
 
 				saveTasks.Add(updateTask);

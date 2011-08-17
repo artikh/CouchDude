@@ -43,15 +43,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				{
 					updatedDoc = doc;
 					totalUpdateCount++;
-					return new {
-						ok = true,
-						id = entity.Id,
-						rev = "2-1a517022a0c2d4814d51abfedf9bfee7"
-					}.ToJsonFragment().ToTask();
+					return new DocumentInfo(entity.Id,"2-1a517022a0c2d4814d51abfedf9bfee7").ToTask();
 				});
 			couchApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
-				.Returns(new { ok = true, id = entity.Id, rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonFragment().ToTask());
+				.Returns(new DocumentInfo(entity.Id, "1-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 			

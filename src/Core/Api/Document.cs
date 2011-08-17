@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics.Contracts;
+
 using System.IO;
 using Newtonsoft.Json.Linq;
 
@@ -44,7 +44,6 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
 		public Document(string jsonString): base(jsonString)
 		{
-			Contract.Requires(!String.IsNullOrWhiteSpace(jsonString));
 			jsonObject = (JObject)JsonToken;
 		}
 
@@ -55,7 +54,6 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
 		public Document(TextReader textReader): base(textReader)
 		{
-			Contract.Requires(textReader != null);
 			jsonObject = (JObject)JsonToken;
 		}
 		
@@ -63,8 +61,6 @@ namespace CouchDude.Api
 		internal Document(JObject jsonToken): base(jsonToken)
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
-			Contract.EndContractBlock();
-
 			jsonObject = (JObject)JsonToken;
 		}
 

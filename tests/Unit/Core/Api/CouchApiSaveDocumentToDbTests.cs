@@ -48,14 +48,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			var requestBodyReader = httpClientMock.Request.Content.GetTextReader();
 			Assert.NotNull(requestBodyReader);
 			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), requestBodyReader.ReadToEnd());
-			Assert.Equal(
-				new {
-					ok = true,
-					id = "doc1",
-					rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJsonFragment(),
-				result
-			);
+			Assert.Equal(new DocumentInfo("doc1", "1-1a517022a0c2d4814d51abfedf9bfee7"), result);
 		}
 
 		[Fact]

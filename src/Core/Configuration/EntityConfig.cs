@@ -18,8 +18,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+
 using System.Reflection;
+using JetBrains.Annotations;
 
 namespace CouchDude.Configuration
 {
@@ -52,7 +53,7 @@ namespace CouchDude.Configuration
 			if (entityType == null) throw new ArgumentNullException("entityType");
 			if(!HasDefaultConstructor(entityType))
 				throw new ConfigurationException("Entity {0} should have a default constuctor (public or private)", entityType.FullName);
-			Contract.EndContractBlock();
+			
 
 			idMember                    = idMember                  ?? DefaultEntityConfigConventions.GetIdMember(entityType);
 			revisionMember              = revisionMember            ?? DefaultEntityConfigConventions.GetRevisionMember(entityType);
@@ -99,7 +100,7 @@ namespace CouchDude.Configuration
 		public virtual string ConvertDocumentIdToEntityId(string documentId)
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
-			Contract.EndContractBlock();
+			
 
 			return documentIdToEntityId(documentId, DocumentType, EntityType);
 		}
@@ -108,7 +109,7 @@ namespace CouchDude.Configuration
 		public virtual string ConvertEntityIdToDocumentId(string entityId)
 		{
 			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
-			Contract.EndContractBlock();
+			
 
 			return entityIdToDocumentId(entityId, EntityType, DocumentType);
 		}
@@ -123,7 +124,7 @@ namespace CouchDude.Configuration
 			if (string.IsNullOrEmpty(entityId)) throw new ArgumentNullException("entityId");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
-			Contract.EndContractBlock();
+			
 
 			idMember.SetValue(entity, entityId);
 		}
@@ -134,7 +135,7 @@ namespace CouchDude.Configuration
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
-			Contract.EndContractBlock();
+			
 
 			return idMember.GetValue(entity);
 		}
@@ -149,7 +150,7 @@ namespace CouchDude.Configuration
 			if (string.IsNullOrEmpty(entityRevision)) throw new ArgumentNullException("entityRevision");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
-			Contract.EndContractBlock();
+			
 
 			revisionMember.SetValue(entity, entityRevision);
 		}
@@ -160,7 +161,7 @@ namespace CouchDude.Configuration
 			if (entity == null) throw new ArgumentNullException("entity");
 			if (!EntityType.IsAssignableFrom(entity.GetType()))
 				throw new ArgumentException("Entity should be assignable to {0}.", EntityType.AssemblyQualifiedName);
-			Contract.EndContractBlock();
+			
 
 			return revisionMember.GetValue(entity);
 		}

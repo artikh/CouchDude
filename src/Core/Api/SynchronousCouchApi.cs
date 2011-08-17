@@ -16,7 +16,7 @@
 */
 #endregion
 
-using System.Diagnostics.Contracts;
+
 using CouchDude.Utils;
 
 namespace CouchDude.Api
@@ -33,46 +33,32 @@ namespace CouchDude.Api
 
 		public IDocument RequestDocumentById(string docId)
 		{
-			Contract.Requires(docId.HasValue());
 			return couchApi.RequestDocumentById(docId).WaitForResult();
 		}
 
-		public IJsonFragment DeleteDocument(string docId, string revision)
+		public DocumentInfo DeleteDocument(string docId, string revision)
 		{
-			Contract.Requires(docId.HasValue());
-			Contract.Requires(!revision.HasValue());
-
 			return couchApi.DeleteDocument(docId, revision).WaitForResult();
 		}
 
-		public IJsonFragment SaveDocumentSync(IDocument document)
+		public DocumentInfo SaveDocumentSync(IDocument document)
 		{
-			Contract.Requires(document != null);
-			Contract.Requires(!document.Id.HasNoValue());
-
 			return couchApi.SaveDocument(document).WaitForResult();
 		}
 
-		public IJsonFragment UpdateDocument(IDocument document)
+		public DocumentInfo UpdateDocument(IDocument document)
 		{
-			Contract.Requires(document != null);
-			Contract.Requires(document.Id.HasValue());
-
 			return couchApi.UpdateDocument(document).WaitForResult();
 		}
 
 		public string RequestLastestDocumentRevision(string docId)
 		{
-			Contract.Requires(docId.HasValue());
 			return couchApi.RequestLastestDocumentRevision(docId).WaitForResult();
 		}
 
 		/// <inheritdoc/>
 		public IPagedList<ViewResultRow> Query(ViewQuery query)
 		{
-			Contract.Requires(query != null);
-			Contract.Requires(query.Skip < 10);
-
 			return couchApi.Query(query).WaitForResult();
 		}
 
@@ -80,7 +66,6 @@ namespace CouchDude.Api
 		/// TODO: Add result weight to result
 		public IPagedList<LuceneResultRow> QueryLucene(LuceneQuery query)
 		{
-			Contract.Requires(query != null);
 			return couchApi.QueryLucene(query).WaitForResult();
 		}
 	}

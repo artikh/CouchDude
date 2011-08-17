@@ -19,7 +19,7 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
-using System.Diagnostics.Contracts;
+
 using System.Linq;
 using System.Text;
 using System.Web;
@@ -89,7 +89,7 @@ namespace CouchDude
 					throw new QueryException("View name is required.");
 				if (designDocumentName == null && !SpecialViewNames.Contains(viewName))
 					throw new QueryException("Querying view {0} requires design document name to be specified.", viewName);
-				Contract.EndContractBlock();
+				
 
 				this.designDocumentName = designDocumentName;
 				this.viewName = viewName;

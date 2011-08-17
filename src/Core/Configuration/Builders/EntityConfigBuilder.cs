@@ -18,7 +18,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
+
 using System.Linq;
 using System.Reflection;
 
@@ -66,7 +66,7 @@ namespace CouchDude.Configuration.Builders
 		public TSelf WhenIdMember(Func<Type, MemberInfo> idMemberInfoLookup)
 		{
 			if (idMemberInfoLookup == null) throw new ArgumentNullException("idMemberInfoLookup");
-			Contract.EndContractBlock();
+			
 
 			this.idMemberInfoLookup = idMemberInfoLookup;
 			return (TSelf) this;
@@ -76,7 +76,7 @@ namespace CouchDude.Configuration.Builders
 		public TSelf WhenRevisionMember(Func<Type, MemberInfo> revisionMemberInfoLookup)
 		{
 			if (revisionMemberInfoLookup == null) throw new ArgumentNullException("revisionMemberInfoLookup");
-			Contract.EndContractBlock();
+			
 
 			this.revisionMemberInfoLookup = revisionMemberInfoLookup;
 			return (TSelf) this;

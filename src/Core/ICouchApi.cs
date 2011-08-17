@@ -27,10 +27,10 @@ namespace CouchDude
 		Task<IDocument> RequestDocumentById(string docId);
 
 		/// <summary>Saves new document to CouchDB.</summary>
-		Task<IJsonFragment> SaveDocument(IDocument document);
+		Task<DocumentInfo> SaveDocument(IDocument document);
 
 		/// <summary>Updates document in CouchDB.</summary>
-		Task<IJsonFragment> UpdateDocument(IDocument document);
+		Task<DocumentInfo> UpdateDocument(IDocument document);
 
 		/// <summary>Retrives current document revision from database. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
@@ -38,7 +38,7 @@ namespace CouchDude
 
 		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
 		/// is equal to provided <param name="revision"/>.</summary>
-		Task<IJsonFragment> DeleteDocument(string docId, string revision);
+		Task<DocumentInfo> DeleteDocument(string docId, string revision);
 
 		/// <summary>Queries CouchDB view.</summary>
 		Task<IPagedList<ViewResultRow>> Query(ViewQuery query);
