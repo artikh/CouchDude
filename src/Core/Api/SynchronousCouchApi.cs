@@ -16,7 +16,8 @@
 */
 #endregion
 
-
+using System;
+using System.Collections.Generic;
 using CouchDude.Utils;
 
 namespace CouchDude.Api
@@ -46,9 +47,9 @@ namespace CouchDude.Api
 			return couchApi.SaveDocument(document).WaitForResult();
 		}
 
-		public DocumentInfo UpdateDocument(IDocument document)
+		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder)
 		{
-			return couchApi.UpdateDocument(document).WaitForResult();
+			return couchApi.BulkUpdate(updateCommandBuilder).WaitForResult();
 		}
 
 		public string RequestLastestDocumentRevision(string docId)

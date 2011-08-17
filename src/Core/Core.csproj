@@ -117,6 +117,12 @@
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
     <Compile Include="DocumentInfo.cs" />
+    <Compile Include="Exceptions\InvalidDocumentException.cs">
+      <DependentUpon>InvalidDocumentException.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="IBulkUpdateUnitOfWork.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResultRow.cs" />
@@ -219,6 +225,10 @@
     <None Include="Exceptions\ConfigurationException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ConfigurationException.cs</LastGenOutput>
+    </None>
+    <None Include="Exceptions\InvalidDocumentException.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>InvalidDocumentException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\QueryException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

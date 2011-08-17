@@ -138,7 +138,7 @@ namespace CouchDude.Impl
 				var documentEntity = de;
 				documentEntity.DoMap();
 				var updateTask = couchApi
-					.UpdateDocument(documentEntity.Document)
+					.SaveDocument(documentEntity.Document)
 					.ContinueWith(pt => {
 						var documentInfo = pt.Result;
 					  documentEntity.Revision = documentInfo.Revision;

@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -98,22 +98,9 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<DocumentInfo> UpdateDocument(IDocument document)
+		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder)
 		{
-			if (document == null) throw new ArgumentNullException("document");
-			if (document.Id.HasNoValue())
-				throw new ArgumentException("Document ID should not be empty or noll.", "document");
-			
-
-			var documentUri = GetDocumentUri(document.Id);
-			var request = new HttpRequestMessage(HttpMethod.Put, documentUri);
-			request.SetStringContent(document.ToString());
-			return StartRequest(request).ContinueWith(
-				rt => {
-					var response = rt.Result;
-					ThrowIfNotOk(response);
-					return ReadDocumentInfo(response);
-				});
+			return Task.Factory.StartNew<IDictionary<string, DocumentInfo>>(() => new Dictionary<string, DocumentInfo>());
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string docId)
@@ -188,6 +175,8 @@ namespace CouchDude.Api
 			return new Uri(uriStringBuilder.ToString()).LeaveDotsAndSlashesEscaped();
 		}
 
+		static string ParseErrorResponseBody(HttpResponseMessage response) { return ParseErrorResponseBody(response.Content.GetTextReader()); }
+
 		internal static string ParseErrorResponseBody(TextReader errorTextReader)
 		{
 			if (errorTextReader == null)
@@ -220,12 +209,17 @@ namespace CouchDude.Api
 		{
 			if (response.IsSuccessStatusCode) return;
 
-			if (response.StatusCode == HttpStatusCode.Conflict)
-				throw new StaleObjectStateException("Document update conflict detected");
-			throw new CouchCommunicationException(
-				(ParseErrorResponseBody(response.GetContentTextReader()) ?? "Error returned from CouchDB")
-				+ " "
-				+ (int) response.StatusCode);
+			switch(response.StatusCode)
+			{
+				case HttpStatusCode.Conflict:
+					throw new StaleObjectStateException("Document update conflict detected");
+				case HttpStatusCode.Forbidden:
+					throw new InvalidDocumentException("Document update conflict detected: " + ParseErrorResponseBody(response));
+				default:
+					throw new CouchCommunicationException(
+						string.Concat(ParseErrorResponseBody(response) ?? "Error returned from CouchDB", " ", (int) response.StatusCode)
+					);
+			}
 		}
 
 		private Task<HttpResponseMessage> StartRequest(HttpRequestMessage request)

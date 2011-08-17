@@ -16,6 +16,9 @@
 */
 #endregion
 
+using System;
+using System.Collections.Generic;
+
 namespace CouchDude
 {
 	/// <summary>Represents synchronous version of low-level CouchDB API.</summary>
@@ -27,9 +30,6 @@ namespace CouchDude
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
 		DocumentInfo SaveDocumentSync(IDocument document);
 
-		/// <summary>Updates document in CouchDB and waits for the result of the operation.</summary>
-		DocumentInfo UpdateDocument(IDocument document);
-
 		/// <summary>Retrives current document revision from database and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
 		string RequestLastestDocumentRevision(string docId);
@@ -37,6 +37,9 @@ namespace CouchDude
 		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
 		/// is equal to provided <param name="revision"/> and waits for the result of the operation.</summary>
 		DocumentInfo DeleteDocument(string docId, string revision);
+
+		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
+		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder);
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
 		IPagedList<ViewResultRow> Query(ViewQuery query);

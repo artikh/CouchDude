@@ -33,31 +33,28 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldUpdateChangedDocumentsOnFlush()
 		{
-			IDocument updatedDoc = null;
-			var totalUpdateCount = 0;
+			IDocument lastUpdatedDoc = null;
+			var totalSaveCount = 0;
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.UpdateDocument(It.IsAny<Document>()))
-				.Returns((IDocument doc) =>
-				{
-					updatedDoc = doc;
-					totalUpdateCount++;
-					return new DocumentInfo(entity.Id,"2-1a517022a0c2d4814d51abfedf9bfee7").ToTask();
-				});
-			couchApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
-				.Returns(new DocumentInfo(entity.Id, "1-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
+				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Returns(
+					(IDocument doc) => {
+						lastUpdatedDoc = doc;
+						totalSaveCount++;
+						return new DocumentInfo(entity.Id, "2-1a517022a0c2d4814d51abfedf9bfee7").ToTask();
+					});
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
 			
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Save(entity);
 			entity.Name = "Artem Tikhomirov";
-			session.StartSavingChanges().Wait();
+			session.SaveChanges();
 
-			Assert.Equal(1, totalUpdateCount);
-			Assert.Equal("simpleEntity.doc1", updatedDoc.Id);
+			Assert.Equal(2, totalSaveCount);
+			Assert.Equal("simpleEntity.doc1", lastUpdatedDoc.Id);
 			Assert.Equal(
 				new {
 					_id = "simpleEntity.doc1",
@@ -67,7 +64,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					age = 42,
 					date = "1957-04-10T00:00:00"
 				}.ToDocument(),
-				updatedDoc
+				lastUpdatedDoc
 			);
 		}
 	}

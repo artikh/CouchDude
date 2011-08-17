@@ -64,5 +64,17 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Throws<StaleObjectStateException>(
 				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
 		}
+
+		[Fact]
+		public void ShouldThrowInvalidDocumentExceptionOnForbidden()
+		{
+			var httpMock = new HttpClientMock(new HttpResponseMessage {
+				StatusCode = HttpStatusCode.Forbidden
+			});
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+
+			Assert.Throws<InvalidDocumentException>(
+				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+		}
 	}
 }

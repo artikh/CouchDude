@@ -89,6 +89,32 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
 		}
 
+		[Fact]
+		public void ShouldThrowStaleObjectStateExceptionOnConflict()
+		{
+			var httpMock = new HttpClientMock(
+				new HttpResponseMessage {
+					StatusCode = HttpStatusCode.Conflict
+				});
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+
+			Assert.Throws<StaleObjectStateException>(
+				() => couchApi.Synchronously.SaveDocumentSync(new { _id = "doc1" }.ToDocument()));
+		}
+
+		[Fact]
+		public void ShouldThrowInvalidDocumentExceptionOnForbidden()
+		{
+			var httpMock = new HttpClientMock(
+				new HttpResponseMessage {
+					StatusCode = HttpStatusCode.Forbidden
+				});
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+
+			Assert.Throws<InvalidDocumentException>(
+				() => couchApi.Synchronously.SaveDocumentSync(new { _id = "doc1" }.ToDocument()));
+		}
+
 		private static ICouchApi CreateCouchApi(string response = "{\"_id\":\"doc1\"}")
 		{
 			HttpClientMock httpClientMock;

@@ -78,6 +78,7 @@
     <Compile Include="SampleData\SimpleViewData.cs" />
     <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiConstructorTests.cs" />
     <Compile Include="Unit\Core\Api\LuceneResultsParserTests.cs" />
     <Compile Include="Unit\Core\Api\ViewResultParserTests.cs" />
@@ -94,7 +95,6 @@
     <Compile Include="Unit\Core\Api\CouchApiDeleteDocumentFromDbTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiGetLastestDocumentRevisionTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiQueryTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiUpdateDocumentInDbTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiSaveDocumentToDbTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiParseErrorResponseBodyTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiGetDocumentFromDbByIdTests.cs">

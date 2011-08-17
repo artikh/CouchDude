@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Integration
 			if (existingLucineDesignDocRevision != null)
 			{
 				luceneDoc.Revision = existingLucineDesignDocRevision;
-				couchApi.Synchronously.UpdateDocument(luceneDoc);
+				couchApi.Synchronously.SaveDocumentSync(luceneDoc);
 			}
 			else
 			{

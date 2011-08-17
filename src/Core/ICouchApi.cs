@@ -16,6 +16,8 @@
 */
 #endregion
 
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CouchDude
@@ -28,9 +30,6 @@ namespace CouchDude
 
 		/// <summary>Saves new document to CouchDB.</summary>
 		Task<DocumentInfo> SaveDocument(IDocument document);
-
-		/// <summary>Updates document in CouchDB.</summary>
-		Task<DocumentInfo> UpdateDocument(IDocument document);
 
 		/// <summary>Retrives current document revision from database. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
@@ -45,6 +44,9 @@ namespace CouchDude
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
 		Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query);
+
+		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
+		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder);
 
 		/// <summary>Synchronous version of API.</summary>
 		ISynchronousCouchApi Synchronously { get; }
