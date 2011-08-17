@@ -48,7 +48,7 @@ namespace CouchDude.Tests.Integration
 			{
 				updatingEntity = session.Synchronously.Load<SimpleEntity>(savedEntity.Id);
 				updatingEntity.Name = "Artem Tikhomirov";
-				session.BeginSavingChanges().Wait();
+				session.StartSavingChanges().Wait();
 			}
 
 			using (var session = sessionFactory.CreateSession())

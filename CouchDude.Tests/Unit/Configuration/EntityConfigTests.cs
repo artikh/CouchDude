@@ -28,6 +28,42 @@ namespace CouchDude.Tests.Unit.Configuration
 {
 	public class EntityConfigTests
 	{
+		public class EntityWithoutDefaultConstructor
+		{
+			private readonly int id;
+
+			public EntityWithoutDefaultConstructor(int id)
+			{
+				this.id = id;
+			}
+
+			public int ID
+			{
+				get { return id; }
+			}
+		}
+
+		public class EntityWithPrivateDefaultConstructor : EntityWithoutDefaultConstructor
+		{
+			public EntityWithPrivateDefaultConstructor(int id) : base(id) { }
+
+			// ReSharper disable UnusedMember.Local
+			private EntityWithPrivateDefaultConstructor(): this(42) { }
+			// ReSharper restore UnusedMember.Local
+		}
+
+		[Fact]
+		public void ShouldThrowConfigurationExceptionOnEntityWithoutDefaultConstructor()
+		{
+			Assert.Throws<ConfigurationException>(() => new EntityConfig(typeof(EntityWithoutDefaultConstructor)));
+		}
+
+		[Fact]
+		public void ShouldNotThrowOnEntityWithoutPrivateDefaultConstructor()
+		{
+			Assert.DoesNotThrow(() => new EntityConfig(typeof(EntityWithPrivateDefaultConstructor)));
+		}
+
 		[Fact]
 		public void ShouldDelegateDocumentTypeGeneration()
 		{

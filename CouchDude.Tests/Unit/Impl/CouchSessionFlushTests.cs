@@ -58,7 +58,7 @@ namespace CouchDude.Tests.Unit.Impl
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Save(entity);
 			entity.Name = "Artem Tikhomirov";
-			session.BeginSavingChanges().Wait();
+			session.StartSavingChanges().Wait();
 
 			Assert.Equal(1, totalUpdateCount);
 			Assert.Equal("simpleEntity.doc1", updatedDoc.Id);

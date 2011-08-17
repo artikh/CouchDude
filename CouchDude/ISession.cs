@@ -25,7 +25,7 @@ namespace CouchDude
 	public interface ISession: IDisposable
 	{
 		/// <summary>Attaches entity to the session, assigns it an identifier if needed.</summary>
-		/// <remarks>No changes to databas are made until <see cref="BeginSavingChanges"/> is called.</remarks>
+		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
 		void Save<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
@@ -46,8 +46,8 @@ namespace CouchDude
 		/// <summary>Exposes raw CouchDB APIs.</summary>
 		ICouchApi RawApi { get; }
 
-		/// <summary>Saves all changes to CouchDB returning asynchronously.</summary>
-		Task BeginSavingChanges();
+		/// <summary>Starts "save all changes to CouchDB" process returning immediately.</summary>
+		Task StartSavingChanges();
 		
 		/// <summary>Saves all changes to CouchDB and waites for result.</summary>
 		void SaveChanges();

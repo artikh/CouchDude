@@ -50,6 +50,8 @@ namespace CouchDude.Configuration
 			EntityIdToDocumentIdConvention entityIdToDocumentId = null)
 		{
 			if (entityType == null) throw new ArgumentNullException("entityType");
+			if(!HasDefaultConstructor(entityType))
+				throw new ConfigurationException("Entity {0} should have a default constuctor (public or private)", entityType.FullName);
 			Contract.EndContractBlock();
 
 			idMember                    = idMember                  ?? DefaultEntityConfigConventions.GetIdMember(entityType);
@@ -65,6 +67,16 @@ namespace CouchDude.Configuration
 			this.documentIdToEntityId = documentIdToEntityId;
 			this.entityIdToDocumentId = entityIdToDocumentId;
 			IgnoredMembers = GetIgnoredMemberInfo(idMember, revisionMember);
+		}
+
+		private static readonly ParameterModifier[] EmptyParameterModifiers = new ParameterModifier[0];
+		
+		[Pure]
+		private static bool HasDefaultConstructor(Type entityType)
+		{
+			const BindingFlags flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
+			var parameterlessConsturctor = entityType.GetConstructor(flags, null, Type.EmptyTypes, EmptyParameterModifiers);
+			return parameterlessConsturctor != null;
 		}
 
 		private static IEnumerable<MemberInfo> GetIgnoredMemberInfo(ISpecialMember idMember, ISpecialMember revisionMember)

@@ -130,7 +130,7 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public Task BeginSavingChanges()
+		public Task StartSavingChanges()
 		{
 			var saveTasks = new List<Task>();
 			foreach (var de in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
@@ -152,7 +152,7 @@ namespace CouchDude.Impl
 		/// <inheritdoc/>
 		public void SaveChanges()
 		{
-			BeginSavingChanges().WaitForResult();
+			StartSavingChanges().WaitForResult();
 		}
 		
 		/// <summary>Backup plan finalizer - use Dispose() method!</summary>
