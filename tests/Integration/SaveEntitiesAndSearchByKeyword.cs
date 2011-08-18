@@ -56,11 +56,11 @@ namespace CouchDude.Tests.Integration
 			if (existingLucineDesignDocRevision != null)
 			{
 				luceneDoc.Revision = existingLucineDesignDocRevision;
-				couchApi.Synchronously.SaveDocumentSync(luceneDoc);
+				couchApi.Synchronously.SaveDocument(luceneDoc);
 			}
 			else
 			{
-				couchApi.Synchronously.SaveDocumentSync(luceneDoc);
+				couchApi.Synchronously.SaveDocument(luceneDoc);
 			}
 		}
 

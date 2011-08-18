@@ -16,7 +16,10 @@
 */
 #endregion
 
+using System;
+using System.Diagnostics;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Net.Http;
 
@@ -24,22 +27,42 @@ namespace CouchDude.Http
 {
 	/// <summary><see cref="IHttpClient"/> implementation using 
 	/// <see cref="HttpWebRequest"/>/<see cref="HttpWebResponse"/>.</summary>
-	internal class HttpClientImpl: IHttpClient
+	internal class HttpClientImpl: IHttpClient, IDisposable
 	{
+		public ThreadLocal<HttpClient> HttpClient = new ThreadLocal<HttpClient>(() => new HttpClient()); 
+
 		/// <summary>Makes HTTP request and waits for result.</summary>
 		public HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage)
 		{
-			using (var httpClient = new HttpClient())
-				return httpClient.Send(requestMessage, HttpCompletionOption.ResponseContentRead);
+			return HttpClient.Value.Send(requestMessage, HttpCompletionOption.ResponseContentRead);
 		}
 
 		/// <summary>Starts HTTP request and returs task.</summary>
 		public Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage)
 		{
-			var httpClient = new HttpClient();
-			var getResponseTask = httpClient.SendAsync(requestMessage, HttpCompletionOption.ResponseContentRead);
-			getResponseTask.ContinueWith(sendTask => httpClient.Dispose());
-			return getResponseTask;
+			/*
+			 * Async version sadly throws Exception on none-null return codes at the time of witing. Should revise later.
+			 * return HttpClient.Value.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
+			 */
+			return Task.Factory.StartNew(() => HttpClient.Value.Send(requestMessage, HttpCompletionOption.ResponseContentRead));
+		}
+
+		/// <inheritdoc/>
+		public void Dispose()
+		{
+			Dispose(finalizing: false);
+			GC.SuppressFinalize(this);
+		}
+
+		~HttpClientImpl()
+		{
+			Dispose(true);
+		}
+
+		private void Dispose(bool finalizing)
+		{
+			if(!finalizing)
+				HttpClient.Dispose();
 		}
 	}
 }

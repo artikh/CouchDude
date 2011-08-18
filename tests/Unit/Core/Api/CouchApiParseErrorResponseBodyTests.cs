@@ -29,21 +29,21 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldReturnResultAsIsIfNotAJson()
 		{
 			using (var textReader = new StringReader("Some none-JSON string {{"))
-				Assert.Equal("Some none-JSON string {{", CouchApi.ParseErrorResponseBody(textReader));
+				Assert.Equal("Some none-JSON string {{", Errors.ParseErrorResponseBody(textReader));
 		}
 
 		[Fact]
 		public void ShouldReturnOnlyErrorIfNoReason()
 		{
 			using (var textReader = new StringReader(@"{ ""error"": ""some error name"" }"))
-				Assert.Equal("some error name", CouchApi.ParseErrorResponseBody(textReader));
+				Assert.Equal("some error name", Errors.ParseErrorResponseBody(textReader));
 		}
 
 		[Fact]
 		public void ShouldReturnOnlyReasonIfNoError()
 		{
 			using (var textReader = new StringReader(@"{ ""reason"": ""some reason message"" }"))
-				Assert.Equal("some reason message", CouchApi.ParseErrorResponseBody(textReader));
+				Assert.Equal("some reason message", Errors.ParseErrorResponseBody(textReader));
 		}
 
 		[Fact]
@@ -53,8 +53,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				@"{ ""error"": ""some error name"", ""reason"": ""some reason message"" }"))
 				Assert.Equal(
 					"some error name: some reason message",
-					CouchApi.ParseErrorResponseBody(textReader));
+					Errors.ParseErrorResponseBody(textReader));
 		}
-
 	}
 }

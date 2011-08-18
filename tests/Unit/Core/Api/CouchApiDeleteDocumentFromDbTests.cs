@@ -66,15 +66,26 @@ namespace CouchDude.Tests.Unit.Core.Api
 		}
 
 		[Fact]
-		public void ShouldThrowInvalidDocumentExceptionOnForbidden()
+		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
-			var httpMock = new HttpClientMock(new HttpResponseMessage {
-				StatusCode = HttpStatusCode.Forbidden
-			});
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			var httpClientMock =
+				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "")
+				{
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+				});
 
-			Assert.Throws<InvalidDocumentException>(
-				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+			ICouchApi couchApi = CreateCouchApi(httpClientMock);
+
+			var exception = Assert.Throws<CouchCommunicationException>(
+				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7")
+			);
+
+			Assert.Contains("bad_request: Mock reason", exception.Message);
+		}
+
+		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
+		{
+			return new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

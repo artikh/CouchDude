@@ -13,6 +13,6 @@ namespace CouchDude
 		void Delete(IDocument document);
 
 		/// <summary>Requires document of provided ID and revision to be deleted.</summary>
-		void Delete(string id, string revision);
+		void Delete(string documentId, string revision);
 	}
 }

@@ -133,9 +133,31 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldReturnNullOn404WebExceptionWhenGettingDocument()
 		{
 			var httpMock = new HttpClientMock(new HttpResponseMessage{ StatusCode = HttpStatusCode.NotFound });
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = CreateCouchApi(httpMock);
 
 			Assert.Null(couchApi.Synchronously.RequestDocumentById("doc1"));
+		}
+
+		[Fact]
+		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
+		{
+			var httpClientMock =
+				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "") {
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+				});
+
+			ICouchApi couchApi = CreateCouchApi(httpClientMock);
+
+			var exception = Assert.Throws<CouchCommunicationException>(
+				() => couchApi.Synchronously.RequestDocumentById(docId: "doc1")
+			);
+
+			Assert.Contains("bad_request: Mock reason", exception.Message);
+		}
+
+		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
+		{
+			return new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

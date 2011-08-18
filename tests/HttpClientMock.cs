@@ -53,10 +53,13 @@ namespace CouchDude.Tests
 
 		public Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage)
 		{
-			if (exception != null)
-				throw exception;
 			Request = requestMessage;
-			return Task.Factory.StartNew(() => response);
+			return Task.Factory.StartNew(
+				() => {
+					if (exception != null)
+						throw exception;
+					return response;
+				});
 		}
 
 		public HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage)

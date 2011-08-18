@@ -42,7 +42,7 @@ namespace CouchDude.Api
 			return couchApi.DeleteDocument(docId, revision).WaitForResult();
 		}
 
-		public DocumentInfo SaveDocumentSync(IDocument document)
+		public DocumentInfo SaveDocument(IDocument document)
 		{
 			return couchApi.SaveDocument(document).WaitForResult();
 		}

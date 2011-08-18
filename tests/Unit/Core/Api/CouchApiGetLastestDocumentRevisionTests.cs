@@ -88,7 +88,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			var webExeption = new WebException("Something wrong detected");
 			var httpMock = new HttpClientMock(webExeption);
 
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = CreateCouchApi(httpMock);
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
@@ -96,6 +96,29 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
+		}
+
+		[Fact]
+		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
+		{
+			var httpClientMock =
+				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "")
+				{
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+				});
+
+			ICouchApi couchApi = CreateCouchApi(httpClientMock);
+
+			var exception = Assert.Throws<CouchCommunicationException>(
+				() => couchApi.Synchronously.RequestLastestDocumentRevision(docId: "doc1")
+			);
+
+			Assert.Contains("bad_request: Mock reason", exception.Message);
+		}
+
+		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
+		{
+			return new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

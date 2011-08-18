@@ -18,9 +18,11 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 
 using CouchDude.Api;
+using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
@@ -43,7 +45,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				}
 			}.ToJsonString());
 
-			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
+			var couchApi = CreateCouchApi(httpClientMock);
 			var result = couchApi.Synchronously.Query(new ViewQuery {
 				ViewName = "_all_docs",
 				Key = new object[] { "key", 0 },
@@ -71,7 +73,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				}
 			.ToJsonString());
 
-			ICouchApi couchApi = new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
+			var couchApi = CreateCouchApi(httpClientMock);
 			couchApi.Synchronously.Query(new ViewQuery {
 				DesignDocumentName = "dd",
 				ViewName = "v1",
@@ -89,15 +91,45 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnNullQuery()
 		{
-			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
+			var couchApi = CreateCouchApi();
 			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnSkipMoreThen9()
 		{
-			ICouchApi couchApi = new CouchApi(new HttpClientMock(), new Uri("http://example.com:5984/"), "testdb");
+			var couchApi = CreateCouchApi();
 			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.Query(new ViewQuery { Skip = 10 }));
+		}
+
+		[Fact]
+		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
+		{
+			var httpClientMock =
+				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "")
+				{
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+				});
+
+			var couchApi = CreateCouchApi(httpClientMock);
+
+			var exception = Assert.Throws<CouchCommunicationException>(
+				() => couchApi.Synchronously.Query(
+					new ViewQuery {
+						ViewName = "_all_docs",
+						Key = new object[] {"key", 0},
+						Skip = 1,
+						IncludeDocs = true
+					})
+				);
+
+			Assert.Contains("bad_request: Mock reason", exception.Message);
+		}
+
+		private static ICouchApi CreateCouchApi(IHttpClient httpClientMock = null)
+		{
+			httpClientMock = httpClientMock ?? new HttpClientMock();
+			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

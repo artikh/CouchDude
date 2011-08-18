@@ -68,7 +68,7 @@ namespace CouchDude.Impl
 			documentEntity.DoMap();
 
 			// TODO: Should write to the unit of work insted of DB
-			var documentInfo = couchApi.Synchronously.SaveDocumentSync(documentEntity.Document);
+			var documentInfo = couchApi.Synchronously.SaveDocument(documentEntity.Document);
 			cache.Put(documentEntity);
 
 			documentEntity.Revision = documentInfo.Revision;

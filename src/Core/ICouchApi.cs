@@ -35,9 +35,9 @@ namespace CouchDude
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
 		Task<string> RequestLastestDocumentRevision(string docId);
 
-		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
+		/// <summary>Deletes document of provided <param name="documentId"/> if it's revision
 		/// is equal to provided <param name="revision"/>.</summary>
-		Task<DocumentInfo> DeleteDocument(string docId, string revision);
+		Task<DocumentInfo> DeleteDocument(string documentId, string revision);
 
 		/// <summary>Queries CouchDB view.</summary>
 		Task<IPagedList<ViewResultRow>> Query(ViewQuery query);

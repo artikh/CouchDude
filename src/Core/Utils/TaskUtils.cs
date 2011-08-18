@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
@@ -34,9 +35,7 @@ namespace CouchDude.Utils
 			}
 			catch (AggregateException e)
 			{
-				if (e.InnerExceptions.Count == 1)
-					throw PreserveStackTrace(e);
-				throw;
+				throw Extract(e);
 			}
 		}
 		/// <summary>Waits for result of the task returning it result.</summary>
@@ -49,28 +48,42 @@ namespace CouchDude.Utils
 			}
 			catch (AggregateException e)
 			{
-				if (e.InnerExceptions.Count == 1)
-					throw PreserveStackTrace(e);
-				throw;
+				throw Extract(e);
 			}
 		}
 
-
-		private static Exception PreserveStackTrace(Exception outerException)
+		private static Exception Extract(AggregateException e)
 		{
-			var innerException = outerException.InnerException;
+			var flattenedAggregateException = Fattern(e);
+			if (flattenedAggregateException.InnerExceptions.Count == 1)
+				return flattenedAggregateException.InnerException.PreserveStackTrace();
+			else 
+				return flattenedAggregateException;
+		}
 
-			var streamingContext = new StreamingContext(StreamingContextStates.CrossAppDomain);
-			var objectManager = new ObjectManager(null, streamingContext);
-			var serializationInfo = new SerializationInfo(innerException.GetType(), new FormatterConverter());
+		private static AggregateException Fattern(AggregateException aggregateException)
+		{
+			var exceptions = new List<Exception>();
+			return FatternRecursively(aggregateException, exceptions) 
+				? new AggregateException(exceptions) 
+				: aggregateException;
+		}
 
-			innerException.GetObjectData(serializationInfo, streamingContext);
-			objectManager.RegisterObject(innerException, 1, serializationInfo); // prepare for SetObjectData
-			objectManager.DoFixups(); // ObjectManager calls SetObjectData
-
-			// voila, e is unmodified save for _remoteStackTraceString
-
-			return innerException;
+		private static bool FatternRecursively(AggregateException aggregateException, IList<Exception> exceptions)
+		{
+			bool innerAggregateExceptionPresent = false;
+			foreach (var innerException in aggregateException.InnerExceptions)
+			{
+				var innerAggregateExcoption = innerException as AggregateException;
+				if (innerAggregateExcoption == null) 
+					exceptions.Add(innerException);
+				else
+				{
+					innerAggregateExceptionPresent = true;
+					FatternRecursively(innerAggregateExcoption, exceptions);
+				}
+			}
+			return innerAggregateExceptionPresent;
 		}
 	}
 }

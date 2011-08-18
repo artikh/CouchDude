@@ -28,7 +28,7 @@ namespace CouchDude
 		IDocument RequestDocumentById(string docId);
 		
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
-		DocumentInfo SaveDocumentSync(IDocument document);
+		DocumentInfo SaveDocument(IDocument document);
 
 		/// <summary>Retrives current document revision from database and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
