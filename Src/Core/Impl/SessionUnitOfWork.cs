@@ -21,9 +21,9 @@ using System.Collections.Generic;
 
 namespace CouchDude.Impl
 {
-	/// <summary>Document and entity cache.</summary>
+	/// <summary>Session Unit of Work cache.</summary>
 	/// <remarks>Instance methods are not guaranteed to be thread-safe.</remarks>
-	internal class DocumentEntityCache
+	internal class SessionUnitOfWork
 	{
 		private readonly IDictionary<object, DocumentEntity> instanceSet = new Dictionary<object, DocumentEntity>();
 		private readonly IDictionary<string, DocumentEntity> idMap = new Dictionary<string, DocumentEntity>();
@@ -98,6 +98,12 @@ namespace CouchDude.Impl
 		{
 			return idMap.ContainsKey(documentEntity.DocumentId) 
 			       || instanceSet.ContainsKey(documentEntity.Entity);
+		}
+
+		/// <summary>Marks <see cref="DocumentEntity"/> as deleted form the unit of work.</summary>
+		public void MarkAsDeleted(DocumentEntity documentEntity)
+		{
+			
 		}
 
 		/// <summary>Returs all cached documents.</summary>

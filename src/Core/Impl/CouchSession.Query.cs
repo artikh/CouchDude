@@ -85,7 +85,7 @@ namespace CouchDude.Impl
 
 			foreach (var documentEntity in documentEntities)
 				if (documentEntity != null)
-					cache.PutOrReplace(documentEntity);
+					unitOfWork.PutOrReplace(documentEntity);
 
 			return from documentEntity in documentEntities
 						 select documentEntity == null ? default(T) : (T)documentEntity.Entity;

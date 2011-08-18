@@ -196,7 +196,7 @@
       <AutoGen>True</AutoGen>
     </Compile>
     <Compile Include="Impl\DocumentEntity.cs" />
-    <Compile Include="Impl\DocumentEntityCache.cs" />
+    <Compile Include="Impl\SessionUnitOfWork.cs" />
     <Compile Include="ICouchApi.cs" />
     <Compile Include="Configuration\Builders\EntityConfigBuilder.cs" />
     <Compile Include="Configuration\Builders\EntityListConfigBuilder.cs" />

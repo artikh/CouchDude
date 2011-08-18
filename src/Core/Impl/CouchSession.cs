@@ -30,7 +30,7 @@ namespace CouchDude.Impl
 	{
 		private readonly Settings settings;
 		private readonly ICouchApi couchApi;
-		private readonly DocumentEntityCache cache = new DocumentEntityCache();
+		private readonly SessionUnitOfWork unitOfWork = new SessionUnitOfWork();
 
 		/// <constructor />
 		public CouchSession(Settings settings, ICouchApi couchApi)
@@ -59,7 +59,7 @@ namespace CouchDude.Impl
 
 			var documentEntity = DocumentEntity.FromEntity(entity, settings);
 
-			if (cache.Contains(documentEntity))
+			if (unitOfWork.Contains(documentEntity))
 				throw new ArgumentException("Instance is already in cache.", "entity");
 			
 			if(documentEntity.Revision != null)
@@ -69,7 +69,7 @@ namespace CouchDude.Impl
 
 			// TODO: Should write to the unit of work insted of DB
 			var documentInfo = couchApi.Synchronously.SaveDocument(documentEntity.Document);
-			cache.Put(documentEntity);
+			unitOfWork.Put(documentEntity);
 
 			documentEntity.Revision = documentInfo.Revision;
 		}
@@ -77,25 +77,23 @@ namespace CouchDude.Impl
 		/// <summary>Deletes provided entity form CouchDB.</summary>
 		public void Delete<TEntity>(TEntity entity) where TEntity : class
 		{
-			var documentEntity = cache.TryGet(entity);
+			var documentEntity = unitOfWork.TryGet(entity);
 			if (documentEntity != null)
 			{
 				if (!typeof (TEntity).IsAssignableFrom(documentEntity.EntityType))
 					throw new EntityTypeMismatchException(documentEntity.EntityType, typeof(TEntity));
-				cache.Remove(documentEntity);
+				unitOfWork.Remove(documentEntity);
 			}
 			else
 				documentEntity = DocumentEntity.FromEntity(entity, settings);
 
 			if (documentEntity.Revision == null)
 				throw new ArgumentException(
-					"No revision property found on entity and no revision information" 
-						+ " found in first level cache.", 
-					"entity");
+					"No revision property found on entity and no revision information found in first level cache.",  "entity");
 
 			// TODO: Should delete from the unit of work insted of DB
 			couchApi.Synchronously.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
-			cache.Remove(documentEntity);
+			unitOfWork.Remove(documentEntity);
 		}
 
 		/// <inheritdoc/>
@@ -105,7 +103,7 @@ namespace CouchDude.Impl
 				throw new ArgumentNullException("entityId");
 			
 
-			var cachedEntity = cache.TryGet(entityId, typeof(TEntity));
+			var cachedEntity = unitOfWork.TryGet(entityId, typeof(TEntity));
 			if (cachedEntity != null)
 			{
 				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))
@@ -123,7 +121,7 @@ namespace CouchDude.Impl
 				if (document == null)
 					return null;
 				var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
-				cache.Put(documentEntity);
+				unitOfWork.Put(documentEntity);
 
 				return (TEntity)documentEntity.Entity;                                                		
 			});
@@ -133,7 +131,7 @@ namespace CouchDude.Impl
 		public Task StartSavingChanges()
 		{
 			var saveTasks = new List<Task>();
-			foreach (var de in cache.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
+			foreach (var de in unitOfWork.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
 			{
 				var documentEntity = de;
 				documentEntity.DoMap();
@@ -170,7 +168,7 @@ namespace CouchDude.Impl
 		private void Dispose(bool disposing)
 		{
 			if (disposing)
-				cache.Clear();
+				unitOfWork.Clear();
 		}
 	}
 }
