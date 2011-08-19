@@ -132,6 +132,7 @@
     </Compile>
     <Compile Include="IBulkUpdateUnitOfWork.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
+    <Compile Include="Impl\UoW.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResultRow.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />

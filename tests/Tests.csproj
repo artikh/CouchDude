@@ -88,6 +88,7 @@
     <Compile Include="Unit\Core\Configuration\EntityRegistryTests.cs" />
     <Compile Include="Unit\Core\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
     <Compile Include="Unit\Core\Configuration\SequentialUuidIdGeneratorTests.cs" />
+    <Compile Include="Unit\Core\Impl\SessionUnitOfWorkTests.cs" />
     <Compile Include="Unit\Core\Utils\ExceptionUtilsTests.cs" />
     <Compile Include="Unit\Core\Utils\TaskUtilsTasks.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentAssemblerTests.cs" />
