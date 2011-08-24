@@ -43,10 +43,10 @@ namespace CouchDude
 		Task<IPagedList<ViewResultRow>> Query(ViewQuery query);
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
-		Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query);
+		Task<IPagedList<LuceneResultRow>> QueryLucene(FullTextQuery query);
 
 		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
-		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder);
+		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Synchronous version of API.</summary>
 		ISynchronousCouchApi Synchronously { get; }

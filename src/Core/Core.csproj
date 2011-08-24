@@ -81,14 +81,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Common.Logging">
-      <HintPath>..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
+      <HintPath>..\..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Net.Http">
-      <HintPath>..\packages\HttpClient.0.3.0\lib\40\Microsoft.Net.Http.dll</HintPath>
+      <HintPath>..\..\packages\HttpClient.0.3.0\lib\40\Microsoft.Net.Http.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.0.2.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.4.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\packages\Newtonsoft.Json.4.0.2\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -99,11 +98,11 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\BulkUpdateUnitOfWork.cs" />
+    <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\Errors.cs" />
     <Compile Include="Api\JsonContent.cs" />
     <Compile Include="Api\SynchronousCouchApi.cs" />
-    <Compile Include="Api\LuceneResultParser.cs" />
+    <Compile Include="Api\FullTextSearchResultParser.cs" />
     <Compile Include="Api\RequestResultBase.cs" />
     <Compile Include="Api\ViewResultParser.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
@@ -130,9 +129,8 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="IBulkUpdateUnitOfWork.cs" />
+    <Compile Include="IBulkUpdateBatch.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
-    <Compile Include="Impl\UoW.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResultRow.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
@@ -212,7 +210,7 @@
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Configuration\Builders\SettingsBuilder.cs" />
     <Compile Include="IPagedList.cs" />
-    <Compile Include="LuceneQuery.cs" />
+    <Compile Include="FullTextQuery.cs" />
     <Compile Include="ViewQuery.cs" />
     <Compile Include="Api\ViewResult.cs" />
     <Compile Include="Settings.cs" />

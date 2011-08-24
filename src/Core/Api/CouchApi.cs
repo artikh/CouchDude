@@ -111,15 +111,16 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder)
+		private static readonly IDictionary<string, DocumentInfo> EmptyDictionary = new Dictionary<string, DocumentInfo>(0);
+
+		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
 			if (updateCommandBuilder == null) throw new ArgumentNullException("updateCommandBuilder");
-			var unitOfWork = new BulkUpdateUnitOfWork();
+			var unitOfWork = new BulkUpdateBatch();
 			updateCommandBuilder(unitOfWork);
-			if(unitOfWork.IsEmpty)
-				throw new ArgumentException("Builder should invoke at least one method on unit of work", "updateCommandBuilder");
-
-			return unitOfWork.Execute(httpClient, StartRequest, databaseUri);
+			return unitOfWork.IsEmpty 
+				? Task.Factory.StartNew(() => EmptyDictionary) 
+				: unitOfWork.Execute(httpClient, StartRequest, databaseUri);
 		}
 		
 		public Task<string> RequestLastestDocumentRevision(string docId)
@@ -166,7 +167,7 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<IPagedList<LuceneResultRow>> QueryLucene(LuceneQuery query)
+		public Task<IPagedList<LuceneResultRow>> QueryLucene(FullTextQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			
@@ -174,7 +175,7 @@ namespace CouchDude.Api
 				rt => {
 					var response = rt.Result;
 					Errors.ThrowIfFulltextIndexRequestWasUnsuccessful(query, response);
-					return LuceneResultParser.Parse(rt.Result.GetContentTextReader(), query);
+					return FullTextSearchResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
 		}
 

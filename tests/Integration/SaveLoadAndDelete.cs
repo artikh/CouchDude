@@ -32,7 +32,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var savedEntity = new SimpleEntity {
+			var savedEntity = new Entity {
 				Id = Guid.NewGuid().ToString(),
 				Name = "John Smith",
 				Age = 42,
@@ -42,12 +42,13 @@ namespace CouchDude.Tests.Integration
 			using (var session = sessionFactory.CreateSession())
 			{
 				session.Save(savedEntity);
+				session.SaveChanges();
 				Assert.NotNull(savedEntity.Revision);
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var loadedEntity = session.Synchronously.Load<SimpleEntity>(savedEntity.Id);
+				var loadedEntity = session.Synchronously.Load<Entity>(savedEntity.Id);
 
 				Assert.NotNull(loadedEntity);
 				Assert.Equal(savedEntity.Id, loadedEntity.Id);
@@ -58,7 +59,10 @@ namespace CouchDude.Tests.Integration
 			}
 
 			using (var session = sessionFactory.CreateSession())
+			{
 				session.Delete(savedEntity);
+				session.SaveChanges();
+			}
 		}
 
 		[Fact]
@@ -66,7 +70,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var savedEntity = new SimpleEntityWithoutRevision
+			var savedEntity = new EntityWithoutRevision
 			                  	{
 			                  		Id = Guid.NewGuid().ToString(),
 			                  		Name = "John Smith",
@@ -75,11 +79,14 @@ namespace CouchDude.Tests.Integration
 			                  	};
 
 			using (var session = sessionFactory.CreateSession())
+			{
 				session.Save(savedEntity);
+				session.SaveChanges();
+			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var loadedEntity = session.Synchronously.Load<SimpleEntityWithoutRevision>(savedEntity.Id);
+				var loadedEntity = session.Synchronously.Load<EntityWithoutRevision>(savedEntity.Id);
 
 				Assert.Equal(savedEntity.Id, loadedEntity.Id);
 				Assert.Equal(savedEntity.Name, loadedEntity.Name);
@@ -87,6 +94,7 @@ namespace CouchDude.Tests.Integration
 				Assert.Equal(savedEntity.Date, loadedEntity.Date);
 
 				session.Delete(loadedEntity);
+				session.SaveChanges();
 			}
 		}
 	}

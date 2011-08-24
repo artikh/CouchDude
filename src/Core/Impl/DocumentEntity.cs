@@ -21,6 +21,7 @@ using System.Diagnostics;
 using System.IO;
 using CouchDude.Api;
 using CouchDude.Configuration;
+using CouchDude.Utils;
 
 namespace CouchDude.Impl
 {
@@ -74,6 +75,12 @@ namespace CouchDude.Impl
 		/// <summary>Entity instance.</summary>
 		public object Entity { get; private set; }
 
+		/// <summary>Idicates if entity have been persisted.</summary>
+		public bool HavePersisted { get { return Revision.HasValue(); } }
+
+		/// <summary>Idicates if entity have been deleted.</summary>
+		public bool HaveRemoved { get; set; }
+
 		/// <summary>Return entity casted to specified type.</summary>
 		public TEntity GetEntity<TEntity>() where TEntity: class
 		{
@@ -92,36 +99,24 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Creates instance from entity.</summary>
-		public static DocumentEntity FromEntity<TEntity>(TEntity entity, Settings settings)
-			where TEntity: class
+		public static DocumentEntity FromEntity(object entity, IEntityConfigRepository configRepository)
 		{
-			var entityConfiguration = settings.GetConfig(typeof(TEntity));
+			var entityType = entity.GetType();
+			var entityConfiguration = configRepository.GetConfig(entityType);
 			if (entityConfiguration == null)
-				throw new ConfigurationException("Entity type {0} have not been registred.", typeof(TEntity));
-			GenerateIdIfNeeded(entity, entityConfiguration, settings.IdGenerator);
+				throw new ConfigurationException("Entity type {0} have not been registred.", entityType);
+			
 
 			return new DocumentEntity(entityConfiguration, entity);
 		}
 
-		private static void GenerateIdIfNeeded(
-			object entity, IEntityConfig entityConfiguration, IIdGenerator idGenerator) 
-		{
-			var id = entityConfiguration.GetId(entity);
-			if(id == null)
-			{
-				var generatedId = idGenerator.GenerateId();
-				Debug.Assert(!string.IsNullOrEmpty(generatedId));
-				entityConfiguration.SetId(entity, generatedId);
-			}
-		}
-
 		/// <summary>Creates entity/document pair from CouchDB document. If any error does occur returns <c>null</c>.</summary>
-		public static DocumentEntity TryFromDocument<TEntity>(IDocument document, IEntityConfigRepository settings)
+		public static DocumentEntity TryFromDocument(IDocument document, IEntityConfigRepository settings)
 		{
 			if (document != null && !string.IsNullOrWhiteSpace(document.Type))
 			{
 				var entityConfiguration = settings.GetConfig(document.Type);
-				if (entityConfiguration != null && entityConfiguration.IsCompatibleWith<TEntity>())
+				if (entityConfiguration != null)
 				{
 					var entity = document.TryDeserialize(entityConfiguration);
 					if (entity != null)
@@ -133,22 +128,20 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document.</summary>
-		public static DocumentEntity FromDocument<TEntity>(IDocument document, IEntityConfigRepository settings) 
-			where TEntity : class
+		public static DocumentEntity FromDocument(
+			IDocument document, IEntityConfigRepository entityConfigRepository) 
 		{
 			if(string.IsNullOrWhiteSpace(document.Type))
 				throw new DocumentTypeMissingException(document);
 
-			var entityConfiguration = settings.GetConfig(document.Type);
+			var entityConfiguration = entityConfigRepository.GetConfig(document.Type);
 			if (entityConfiguration == null)
 				throw new DocumentTypeNotRegistredException(document.Type);
-
-			if (!entityConfiguration.IsCompatibleWith<TEntity>())
-				throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
 
 			var entity = document.Deserialize(entityConfiguration);
 			return new DocumentEntity(entityConfiguration, entity, document); 
 		}
+
 		/// <summary>Maps entity to the JSON document.</summary>
 		public void DoMap()
 		{
@@ -156,9 +149,13 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Activly checks if entity is differ then JSON document.</summary>
-		public bool CheckIfChanged()
+		public bool MapIfChanged()
 		{
-			return Document != null &&  !Document.Equals(SerializeToDocument());
+			var updatedDocument = SerializeToDocument();
+			var changed = Document == null || !Document.Equals(updatedDocument);
+			if (changed)
+				Document = updatedDocument;
+			return changed;
 		}
 		
 		private DocumentEntity(
@@ -169,7 +166,6 @@ namespace CouchDude.Impl
 			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
 			
-
 			Entity = entity;
 			Document = document;
 			this.entityConfiguration = entityConfiguration;

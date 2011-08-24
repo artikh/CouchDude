@@ -28,7 +28,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
-			Func<Action<IBulkUpdateUnitOfWork>, IDictionary<string, DocumentInfo>> bulkUpdate = couchApi.Synchronously.BulkUpdate;
+			Func<Action<IBulkUpdateBatch>, IDictionary<string, DocumentInfo>> bulkUpdate = couchApi.Synchronously.BulkUpdate;
 
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Create(null)));
 			// Save of the document with revision 
@@ -49,7 +49,15 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowOnNullArguments() 
 		{
 			Assert.Throws<ArgumentNullException>(() => CreateCouchApi().BulkUpdate(null));
-			Assert.Throws<ArgumentException>(() => CreateCouchApi().BulkUpdate(x => { }));
+		}
+
+		[Fact]
+		public void ShouldNotDoNetworkingIfNoWorkToDo()
+		{
+			var httpClient = new HttpClientMock();
+			CreateCouchApi(httpClient).BulkUpdate(x => { });
+
+			Assert.Null(httpClient.Request);
 		}
 
 		[Fact]
@@ -71,11 +79,13 @@ namespace CouchDude.Tests.Unit.Core.Api
 				x.Delete("doc4", "1-1a517022a0c2d4814d51abfedf9bfee0");
 			});
 
-			var expectedDescriptor = new object[] {
-				new {_id = "doc1", name = "John", age = 42},
-				new {_id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42},
-				new {_id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", _deleted = true},
-				new {_id = "doc4", _rev = "1-1a517022a0c2d4814d51abfedf9bfee0", _deleted = true}
+			var expectedDescriptor = new {
+				docs = new object[] {
+					new {_id = "doc1", name = "John", age = 42},
+					new {_id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42},
+					new {_id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", _deleted = true},
+					new {_id = "doc4", _rev = "1-1a517022a0c2d4814d51abfedf9bfee0", _deleted = true}
+				}
 			}.ToJsonString();
 
 			var sendDescriptor = httpClientMock.Request.Content.ReadAsString();

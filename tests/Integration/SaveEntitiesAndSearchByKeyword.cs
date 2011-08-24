@@ -69,14 +69,14 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var entityA = new SimpleEntity
+			var entityA = new Entity
 			{
 				Name = "John Smith stas",
 				Age = 42,
 				Date = DateTime.Now
 			};
 
-			var entityB = new SimpleEntity
+			var entityB = new Entity
 			{
 				Name = "Stas Girkin stas",
 				Age = 24,
@@ -87,11 +87,12 @@ namespace CouchDude.Tests.Integration
 			{
 				session.Save(entityA);
 				session.Save(entityB);
+				session.SaveChanges();
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.FulltextQuery(new LuceneQuery<SimpleEntity> { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
+				var result = session.Synchronously.FulltextQuery(new FullTextQuery<Entity> { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
 				Assert.True(result.RowCount >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);
@@ -114,6 +115,7 @@ namespace CouchDude.Tests.Integration
 			{
 				session.Delete(entityA);
 				session.Delete(entityB);
+				session.SaveChanges();
 			}
 		}
 	}

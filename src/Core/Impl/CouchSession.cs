@@ -18,9 +18,11 @@
 
 using System;
 using System.Collections.Generic;
-
-using System.Linq;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using Common.Logging;
+using CouchDude.Configuration;
 using CouchDude.Utils;
 
 namespace CouchDude.Impl
@@ -28,9 +30,13 @@ namespace CouchDude.Impl
 	/// <summary>Session implementation.</summary>
 	public partial class CouchSession : ISession
 	{
+		private const int UnitOfWorkFlashInProgressTimeout = 30000;
+		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
+		
 		private readonly Settings settings;
 		private readonly ICouchApi couchApi;
-		private readonly SessionUnitOfWork unitOfWork = new SessionUnitOfWork();
+		private readonly SessionUnitOfWork unitOfWork;
+		private readonly ManualResetEventSlim unitOfWorkFlashInProgressEvent = new ManualResetEventSlim(true);
 
 		/// <constructor />
 		public CouchSession(Settings settings, ICouchApi couchApi)
@@ -42,6 +48,7 @@ namespace CouchDude.Impl
 
 			this.settings = settings;
 			this.couchApi = couchApi;
+			unitOfWork = new SessionUnitOfWork(settings);
 			Synchronously = new SynchronousSessionMethods(this);
 		}
 
@@ -55,96 +62,124 @@ namespace CouchDude.Impl
 		public void Save<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
+
+			WaitForFlushIfInProgress();
 			
+			var entityConfig = settings.GetConfig(typeof(TEntity));
+			if (entityConfig == null)
+				throw new EntityTypeNotRegistredException(typeof(TEntity));
+			GenerateIdIfNeeded(entity, entityConfig, settings.IdGenerator);
 
-			var documentEntity = DocumentEntity.FromEntity(entity, settings);
+			lock(unitOfWork)
+				unitOfWork.AddNew(entity);
+		}
 
-			if (unitOfWork.Contains(documentEntity))
-				throw new ArgumentException("Instance is already in cache.", "entity");
-			
-			if(documentEntity.Revision != null)
-				throw new ArgumentException("Saving entity should not contain revision.", "entity");
-			
-			documentEntity.DoMap();
-
-			// TODO: Should write to the unit of work insted of DB
-			var documentInfo = couchApi.Synchronously.SaveDocument(documentEntity.Document);
-			unitOfWork.Put(documentEntity);
-
-			documentEntity.Revision = documentInfo.Revision;
+		private void WaitForFlushIfInProgress()
+		{
+			Log.Info("Wating on session flush event");
+			if(!unitOfWorkFlashInProgressEvent.Wait(UnitOfWorkFlashInProgressTimeout))
+				throw new InvalidOperationException(
+					string.Format(
+						"Operation was aborted due session.SaveChanges() operation takes over {0} milliseconds to complete",
+						UnitOfWorkFlashInProgressTimeout));
+			Log.Info("Session flush event set - proceeding");
 		}
 
 		/// <summary>Deletes provided entity form CouchDB.</summary>
 		public void Delete<TEntity>(TEntity entity) where TEntity : class
 		{
-			var documentEntity = unitOfWork.TryGet(entity);
-			if (documentEntity != null)
-			{
-				if (!typeof (TEntity).IsAssignableFrom(documentEntity.EntityType))
-					throw new EntityTypeMismatchException(documentEntity.EntityType, typeof(TEntity));
-				unitOfWork.Remove(documentEntity);
-			}
-			else
-				documentEntity = DocumentEntity.FromEntity(entity, settings);
+			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
+			
+			WaitForFlushIfInProgress();
 
-			if (documentEntity.Revision == null)
-				throw new ArgumentException(
-					"No revision property found on entity and no revision information found in first level cache.",  "entity");
-
-			// TODO: Should delete from the unit of work insted of DB
-			couchApi.Synchronously.DeleteDocument(documentEntity.DocumentId, documentEntity.Revision);
-			unitOfWork.Remove(documentEntity);
+			lock (unitOfWork)
+				unitOfWork.MarkAsRemoved(entity);
 		}
 
 		/// <inheritdoc/>
 		public Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
 		{
-			if (string.IsNullOrWhiteSpace(entityId)) 
+			if (string.IsNullOrWhiteSpace(entityId))
 				throw new ArgumentNullException("entityId");
+
+			WaitForFlushIfInProgress();
 			
-
-			var cachedEntity = unitOfWork.TryGet(entityId, typeof(TEntity));
-			if (cachedEntity != null)
+			// Attempt to use cache
+			lock (unitOfWork)
 			{
-				if (!typeof (TEntity).IsAssignableFrom(cachedEntity.EntityType))
-					throw new EntityTypeMismatchException(cachedEntity.EntityType, typeof (TEntity));
-				return Task.Factory.StartNew(() => (TEntity) cachedEntity.Entity);
+				object cachedEntity;
+				if (unitOfWork.TryGetByEntityIdAndType(entityId, typeof(TEntity), out cachedEntity))
+				{
+					if (cachedEntity != null && !(cachedEntity is TEntity))
+						throw new EntityTypeMismatchException(cachedEntity.GetType(), typeof(TEntity));
+					return Task.Factory.StartNew(() => (TEntity)cachedEntity);
+				}
 			}
-
+			
 			var entityConfig = settings.GetConfig(typeof (TEntity));
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-
 			return couchApi.RequestDocumentById(docId).ContinueWith(rt => {
 				var document = rt.Result;
 				if (document == null)
-					return null;
-				var documentEntity = DocumentEntity.FromDocument<TEntity>(document, settings);
-				unitOfWork.Put(documentEntity);
+					return default(TEntity);
+				lock (unitOfWork)
+				{
+					unitOfWork.UpdateWithDocument(document);
+					object freshlyUpdatedEntity;
+					unitOfWork.TryGetByEntityIdAndType(entityId, typeof (TEntity), out freshlyUpdatedEntity);
 
-				return (TEntity)documentEntity.Entity;                                                		
+					if(freshlyUpdatedEntity != null && !(freshlyUpdatedEntity is TEntity))
+						throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
+
+					return (TEntity)freshlyUpdatedEntity;
+				}
 			});
 		}
 
 		/// <inheritdoc/>
 		public Task StartSavingChanges()
 		{
-			var saveTasks = new List<Task>();
-			foreach (var de in unitOfWork.DocumentEntities.Where(documentEntity => documentEntity.CheckIfChanged()))
-			{
-				var documentEntity = de;
-				documentEntity.DoMap();
-				var updateTask = couchApi
-					.SaveDocument(documentEntity.Document)
-					.ContinueWith(pt => {
-						var documentInfo = pt.Result;
-					  documentEntity.Revision = documentInfo.Revision;
+			return Task.Factory
+				.StartNew(
+					() => {
+						WaitForFlushIfInProgress();
+						Log.Info("Reseting session flush event");
+						unitOfWorkFlashInProgressEvent.Reset();
+						
+						couchApi
+							.BulkUpdate(bulk => unitOfWork.ApplyChanges(bulk))
+							.ContinueWith(HandleChangesSaveCompleted, TaskContinuationOptions.AttachedToParent);
 					});
+		}
 
-				saveTasks.Add(updateTask);
+		private void HandleChangesSaveCompleted(Task<IDictionary<string, DocumentInfo>> saveChangesTask)
+		{
+			// releasing mutex before locking on unitOfWork to prevent dead lock
+			Log.Info("Setting session flush event due save operation completion");
+			unitOfWorkFlashInProgressEvent.Set();
+
+			if (saveChangesTask.IsFaulted)
+			{
+				var aggregateException = saveChangesTask.Exception;
+				if (aggregateException != null)
+					throw aggregateException.Flatten();
 			}
-			return Task.Factory.ContinueWhenAll(saveTasks.ToArray(), tasks => { });
+			lock (unitOfWork)
+				unitOfWork.UpdateRevisions(saveChangesTask.Result.Values);
+		}
+
+		private static void GenerateIdIfNeeded(
+			object entity, IEntityConfig entityConfiguration, IIdGenerator idGenerator)
+		{
+			var id = entityConfiguration.GetId(entity);
+			if (id == null)
+			{
+				var generatedId = idGenerator.GenerateId();
+				Debug.Assert(!string.IsNullOrEmpty(generatedId));
+				entityConfiguration.SetId(entity, generatedId);
+			}
 		}
 
 		/// <inheritdoc/>

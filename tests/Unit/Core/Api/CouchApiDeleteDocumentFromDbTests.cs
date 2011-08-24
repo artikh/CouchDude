@@ -17,11 +17,7 @@
 #endregion
 
 using System;
-using System.Net;
-using System.Net.Http;
-
 using CouchDude.Api;
-using CouchDude.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
@@ -51,41 +47,6 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: null));
 			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.DeleteDocument(docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
-		}
-
-		[Fact]
-		public void ShouldThrowStaleObjectStateExceptionOnConflict()
-		{
-			var httpMock = new HttpClientMock(new HttpResponseMessage {
-				StatusCode = HttpStatusCode.Conflict
-			});
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-
-			Assert.Throws<StaleObjectStateException>(
-				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
-		}
-
-		[Fact]
-		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
-		{
-			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "")
-				{
-					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
-				});
-
-			ICouchApi couchApi = CreateCouchApi(httpClientMock);
-
-			var exception = Assert.Throws<CouchCommunicationException>(
-				() => couchApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7")
-			);
-
-			Assert.Contains("bad_request: Mock reason", exception.Message);
-		}
-
-		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
-		{
-			return new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
 		}
 	}
 }

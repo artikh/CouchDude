@@ -1,104 +1,269 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
+using CouchDude.Api;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
+using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit.Core.Impl
 {
-	class SessionUnitOfWork
-	{
-		private object lockHandle = new object();
-		private bool locked;
-
-		private readonly HashSet<DocumentEntity> documentEntities	 = new HashSet<DocumentEntity>();
-
-		/// <summary>Attaches already persisted document entity to the unit.</summary>
-		public DocumentEntity Attach(DocumentEntity documentEntity)
-		{
-			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
- 
-			return documentEntity;
-		}
-
-		/// <summary>Adds new document entity (without document part actually) to the unit.</summary>
-		public DocumentEntity AddNew(DocumentEntity documentEntity)
-		{
-			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
-			documentEntities.Add(documentEntity);
-			return documentEntity;
-		}
-
-		/// <summary>Marks document entity as deleted from the store forsing other <see cref="SessionUnitOfWork"/> methods
-		/// to behave as if it have been already removed.</summary>
-		public DocumentEntity MarkAsRemoved(DocumentEntity documentEntity)
-		{
-			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
- 
-			return documentEntity;
-		}
-
-		public void LockOrThrowIfAlreadyLocked(Func<Exception> exceptionFactory)
-		{
-			if (exceptionFactory == null) throw new ArgumentNullException("exceptionFactory");
-
-			lock (lockHandle)
-				if (locked)
-				{
-					var exception = exceptionFactory();
-					if (exception == null)
-						throw new ArgumentException("Exception should always return not-null exception");
-					throw exception;
-				}
-				else
-					locked = true;
-		}
-
-		public void Unlok()
-		{
-			lock (lockHandle)
-				locked = false;
-		}
-
-		/// <summary>Translates session unit of work to CouchApi bulk update unit of work.</summary>
-		public void ApplyChanges(IBulkUpdateUnitOfWork work)
-		{
-			if (work == null) throw new ArgumentNullException("work");
-
-			foreach (var documentEntity in documentEntities)
-			{
-				if(documentEntity.Document == null) // It's a new document entity
-				{
-					documentEntity.
-					work.Create(documentEntity);
-				}
-			}
-		}
-	}
-
 	public class SessionUnitOfWorkTests
 	{
-		SessionUnitOfWork unitOfWork = new SessionUnitOfWork();
+		readonly SessionUnitOfWork unitOfWork = new SessionUnitOfWork(Default.Settings);
 
 		[Fact]
-		public void ShouldSaveNewDocuments() 
+		public void ShouldIdicateEmptyIfNoWorkDone() 
 		{
-			var entity = new SimpleEntity { Age = 42, Id = "user1" };
-			var documentEntity = DocumentEntity.FromEntity(entity, Default.Settings);
-			unitOfWork.AddNew(documentEntity);
-
-			IDocument savedDoc = null;
-			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateUnitOfWork>(MockBehavior.Strict);
-			bulkUpdateUnitOfWorkMock.Setup(u => u.Create(It.IsAny<IDocument>())).Callback<IDocument>(d => { savedDoc = d; });
-
-			Assert.Equal(new { _id = "user1", age = 42 }.ToJsonString(), savedDoc.ToString());
+			var bulkUpdateBatch = new BulkUpdateBatch();
+			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
+			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
 
+		[Fact]
+		public void ShouldIdicateEmptyEvenIfSeveralEntitiesHaveAttached() 
+		{
+			unitOfWork.Attach(SimpleEntity.CreateStandard(), markAsUnchanged: true);
+			unitOfWork.Attach(Entity.CreateStandard(), markAsUnchanged: true);
+
+			var bulkUpdateBatch = new BulkUpdateBatch();
+			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
+			Assert.True(bulkUpdateBatch.IsEmpty);
+		}
+
+		[Fact]
+		public void ShouldNotIndicateEmptyIfDelete() 
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(entity);
+			unitOfWork.MarkAsRemoved(entity);
+
+			var bulkUpdateBatch = new BulkUpdateBatch();
+			Assert.True(unitOfWork.ApplyChanges(bulkUpdateBatch));
+			Assert.False(bulkUpdateBatch.IsEmpty);
+		}
+
+		[Fact]
+		public void ShouldBeEmptyAfterUpdatingRevision()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(entity);
+			unitOfWork.MarkAsRemoved(entity);
+			unitOfWork.AddNew(EntityWithoutRevision.CreateStandard());
+
+			unitOfWork.ApplyChanges(new BulkUpdateBatch()); // Starting saving changes
+			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
+				new [] {
+					new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968"), 
+					new DocumentInfo(EntityWithoutRevision.StandardDocId, EntityWithoutRevision.StandardRevision), 
+				}
+			);
+
+			var bulkUpdateBatch = new BulkUpdateBatch();
+			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
+			Assert.True(bulkUpdateBatch.IsEmpty);
+		}
+
+		[Fact]
+		public void ShouldBeEmptyAfterUpdatingRevisionForDeletion()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(entity, markAsUnchanged: true);
+			unitOfWork.MarkAsRemoved(entity);
+
+			unitOfWork.ApplyChanges(new BulkUpdateBatch()); // Starting saving changes
+			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
+				new[] { new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968"), });
+			
+			var bulkUpdateBatch = new BulkUpdateBatch();
+			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
+			Assert.True(bulkUpdateBatch.IsEmpty);
+		}
+		
+		[Fact]
+		public void ShouldSaveNewDocuments()
+		{
+			unitOfWork.AddNew(SimpleEntity.CreateStandardWithoutRevision());
+
+			IDocument savedDoc = null;
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			bulkUpdateUnitOfWorkMock
+				.Setup(u => u.Create(It.IsAny<IDocument>()))
+				.Callback<IDocument>(d => { savedDoc = d; });
+				
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
+
+			Assert.NotNull(savedDoc);
+			Assert.Equal(SimpleEntity.CreateDocumentWithoutRevision(), savedDoc);
+		}
+
+		[Fact]
+		public void ShouldUpdatePersistedDocumens()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			entity.Age = 24;
+			unitOfWork.Attach(entity);
+
+			IDocument savedDoc = null;
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			bulkUpdateUnitOfWorkMock
+				.Setup(u => u.Update(It.IsAny<IDocument>()))
+				.Callback<IDocument>(d => { savedDoc = d; });
+			
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
+
+			Assert.NotNull(savedDoc);
+			var expectedDoc = new {
+				_id = SimpleEntity.StandardDocId, _rev = SimpleEntity.StandardRevision, type = SimpleEntity.DocType, age = 24
+			}.ToDocument();
+			Assert.Equal(expectedDoc, savedDoc);
+		}
+
+		[Fact]
+		public void ShouldNotUpdateIfPersistedDocumentHaveNotChanged()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(entity, markAsUnchanged: true);
+
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object); // Mock will throw on any call
+		}
+
+		[Fact]
+		public void ShouldDeleteEntitiesDocument()
+		{
+			unitOfWork.MarkAsRemoved(SimpleEntity.CreateStandard());
+
+			string deletedDocId = null;
+			string deletedDocRevision = null;
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			bulkUpdateUnitOfWorkMock
+				.Setup(u => u.Delete(It.IsAny<string>(), It.IsAny<string>()))
+				.Callback<string, string>(
+					(id, rev) => {
+						deletedDocId = id;
+						deletedDocRevision = rev;
+					});
+
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
+
+			Assert.Equal(SimpleEntity.StandardDocId, deletedDocId);
+			Assert.Equal(SimpleEntity.StandardRevision, deletedDocRevision);
+		}
+
+		[Fact]
+		public void ShouldDeleteDocumentOnlyOnce()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.MarkAsRemoved(entity);
+			unitOfWork.MarkAsRemoved(entity);
+
+			int callTimes = 0;
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			bulkUpdateUnitOfWorkMock
+				.Setup(u => u.Delete(It.IsAny<string>(), It.IsAny<string>()))
+				.Callback<string, string>(
+					(id, rev) => {
+						callTimes++;
+					});
+
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
+
+			Assert.Equal(1, callTimes);
+		}
+
+		[Fact]
+		public void ShouldNotCallCreateOrUpdateIfDocumentEntityHaveDeleted()
+		{
+			var persistedEntity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(persistedEntity);
+			var trancientEntity = SimpleEntity.CreateStandardWithoutRevision();
+			unitOfWork.AddNew(trancientEntity);
+
+			unitOfWork.MarkAsRemoved(trancientEntity);
+			unitOfWork.MarkAsRemoved(persistedEntity);
+
+			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
+			bulkUpdateUnitOfWorkMock
+				.Setup(u => u.Delete(It.IsAny<string>(), It.IsAny<string>())).Callback<string, string>((id, rev) => { });
+
+			//Should throw if methods other than Delete() have been called
+			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object); 
+		}
+
+		[Fact]
+		public void ShouldThrowIfTransientDocumentEntityAttached()
+		{
+			Assert.Throws<ArgumentException>(() => unitOfWork.Attach(SimpleEntity.CreateStandardWithoutRevision()));
+		}
+		
+		[Fact]
+		public void ShouldThrowIfPersistedDocumentEntityAddedAsNew()
+		{
+			Assert.Throws<ArgumentException>(() => unitOfWork.AddNew(SimpleEntity.CreateStandard()));
+		}
+
+		[Fact]
+		public void ShouldReturnCachedEntityByIdAndExactType() 
+		{
+			var entity = SimpleEntity.CreateStandard();
+			unitOfWork.Attach(entity);
+
+			object cachedEntity;
+			Assert.True(unitOfWork.TryGetByEntityIdAndType(entity.Id, typeof(SimpleEntity), out cachedEntity));
+			Assert.Same(entity, cachedEntity);
+		}
+
+		[Fact]
+		public void ShouldReturnCachedEntityByIdAndBaseType() 
+		{
+			var entity = SimpleDerivedEntity.CreateStandard();
+			unitOfWork.Attach(entity);
+
+			object cachedEntity;
+			Assert.True(unitOfWork.TryGetByEntityIdAndType(entity.Id, typeof (SimpleEntity), out cachedEntity));
+			Assert.Same(entity, cachedEntity);
+		}
+
+		[Fact]
+		public void ShouldAddDocumentEntityToTheCacheIfDoesNotPresent() 
+		{
+			unitOfWork.UpdateWithDocument(SimpleEntity.CreateDocument());
+
+			object cachedEntity;
+			Assert.True(unitOfWork.TryGetByEntityIdAndType(SimpleEntity.StandardId, typeof (SimpleEntity), out cachedEntity));
+			Assert.NotNull(cachedEntity);
+			Assert.Equal(42, ((SimpleEntity)cachedEntity).Age);
+		}
+
+		[Fact]
+		public void ShouldNotUpdateEntitesUnderUser()
+		{
+			var entity = SimpleEntity.CreateStandard();
+			entity.Age = 43;
+			unitOfWork.Attach(entity);
+
+			unitOfWork.UpdateWithDocument(SimpleEntity.CreateDocument());
+
+			object cachedEntity;
+			Assert.True(unitOfWork.TryGetByDocumentId(SimpleEntity.StandardDocId, out cachedEntity));
+			Assert.IsType<SimpleEntity>(cachedEntity);
+			Assert.NotNull(cachedEntity);
+			Assert.Equal(43, ((SimpleEntity)cachedEntity).Age);
+		}
+
+
+		[Fact]
+		public void ShouldRetriveCachedEntitesByDocumentId() 
+		{
+			unitOfWork.UpdateWithDocument(SimpleEntity.CreateDocument());
+
+			object cachedEntity;
+			Assert.True(unitOfWork.TryGetByDocumentId(SimpleEntity.StandardDocId, out cachedEntity));
+			Assert.IsType<SimpleEntity>(cachedEntity);
+			Assert.NotNull(cachedEntity);
+			Assert.Equal(42, ((SimpleEntity)cachedEntity).Age);
+		}
 
 		[Fact]
 		public void ShouldCheckNullArguments() 
@@ -106,35 +271,21 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			Assert.Throws<ArgumentNullException>(() => unitOfWork.Attach(null));
 			Assert.Throws<ArgumentNullException>(() => unitOfWork.AddNew(null));
 			Assert.Throws<ArgumentNullException>(() => unitOfWork.MarkAsRemoved(null));
-			Assert.Throws<ArgumentNullException>(() => unitOfWork.LockOrThrowIfAlreadyLocked(null));
 			Assert.Throws<ArgumentNullException>(() => unitOfWork.ApplyChanges(null));
 		}
 
-		[Fact]
-		public void ShouldThrowProvidedExceptionIfAlreadyLocked() 
+		
+		[Theory]
+		[InlineData(@"{}")]
+		[InlineData(@"{""_id"": ""entity.doc1""}")]
+		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7""}")]
+		[InlineData(@"{""_id"": ""entity.doc1"", ""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7""}")]
+		[InlineData(@"{""_id"": ""entity.doc1"", ""type"": ""entity""}")]
+		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7"", ""type"": ""entity""}")]
+		public void ShouldNotThrowOnIncorrectDocumentUpdate(string documentString)
 		{
-			unitOfWork.LockOrThrowIfAlreadyLocked(() => new Exception());
-
-			var exception = new InvalidOperationException(Guid.NewGuid().ToString());
-			var thrownException =
-				Assert.Throws<InvalidOperationException>(() => unitOfWork.LockOrThrowIfAlreadyLocked(() => exception));
-			
-			Assert.Same(exception, thrownException);
-		}
-
-		[Fact]
-		public void ShouldThrowArgumentExceptionOnNullReturningFactory() 
-		{
-			unitOfWork.LockOrThrowIfAlreadyLocked(() => new Exception());
-			Assert.Throws<ArgumentException>(() => unitOfWork.LockOrThrowIfAlreadyLocked(() => null));
-		}
-
-		[Fact]
-		public void ShouldNotThrowIfUnlocked() 
-		{
-			unitOfWork.LockOrThrowIfAlreadyLocked(() => new Exception());
-			unitOfWork.Unlok();
-			Assert.DoesNotThrow(() => unitOfWork.LockOrThrowIfAlreadyLocked(() => new Exception()));	
+			IDocument doc = new Document(documentString);
+			Assert.DoesNotThrow(() => unitOfWork.UpdateWithDocument(doc));
 		}
 	}
 }

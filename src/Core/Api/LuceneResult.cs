@@ -21,10 +21,10 @@ using System.Collections.Generic;
 namespace CouchDude.Api
 {
 	/// <summary>Result of CouchDB-lucene query.</summary>
-	public class LuceneResult : RequestResultBase<LuceneResultRow, LuceneQuery, LuceneResult>
+	public class LuceneResult : RequestResultBase<LuceneResultRow, FullTextQuery, LuceneResult>
 	{
 		/// <constructor />
-		public LuceneResult(IEnumerable<LuceneResultRow> rows, int totalRowCount, int offset, LuceneQuery query) 
+		public LuceneResult(IEnumerable<LuceneResultRow> rows, int totalRowCount, int offset, FullTextQuery query) 
 			: base(rows, totalRowCount, offset, query) { }
 	}
 }

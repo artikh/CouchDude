@@ -37,7 +37,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			public string Id { get; set; }
 		}
 
-		public class Entity
+		public class TestEntity
 		{
 			public string Name { get; [UsedImplicitly] private set; }
 			public DateTime Birthday { get; set; }
@@ -45,10 +45,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 			public string Type { get; set; }
 			public Composite CompositeProperty { get; set; }
 			public string Field;
-			public ChildEntity Child;
+			public ChildTestEntity Child;
 		}
 
-		public class ChildEntity : Entity { }
+		public class ChildTestEntity : TestEntity { }
 
 		private IEntityConfig config;
 
@@ -57,7 +57,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			config = MockEntityConfig();
 		}
 
-		private IEntityConfig MockEntityConfig(Action<Mock<IEntityConfig>> additionalActions = null)
+		private static IEntityConfig MockEntityConfig(Action<Mock<IEntityConfig>> additionalActions = null)
 		{
 			var configMock = new Mock<IEntityConfig>();
 			configMock
@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			configMock
 				.Setup(ec => ec.ConvertDocumentIdToEntityId(It.IsAny<string>()))
 				.Returns<string>(docId => "E" + docId);
-			configMock.Setup(ec => ec.EntityType).Returns(typeof (Entity));
+			configMock.Setup(ec => ec.EntityType).Returns(typeof (TestEntity));
 			configMock.Setup(ec => ec.DocumentType).Returns("entity");
 			if (additionalActions != null)
 				additionalActions(configMock);
@@ -89,7 +89,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowOnIncompatibleDocumentType()
 		{
 			Assert.Throws<InvalidOperationException>(
-				() => SimpleEntity.DocWithRevision.Deserialize(new EntityConfig(typeof (SimpleEntityWithoutRevision))));
+				() => Entity.CreateDocWithRevision().Deserialize(new EntityConfig(typeof (EntityWithoutRevision))));
 		}
 
 		[Fact]
@@ -128,11 +128,11 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Throws<DocumentIdMissingException>(
 				() => new {
 						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						type = "simpleEntity",
+						type = "entity",
 						name = "John Smith"
 					}
 					.ToDocument()
-					.Deserialize(Default.Settings.GetConfig(typeof (SimpleEntity))
+					.Deserialize(Default.Settings.GetConfig(typeof (Entity))
 				)
 			);
 		}
@@ -142,8 +142,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutRevision()
 		{
 			Assert.Throws<DocumentRevisionMissingException>(
-				() => new { _id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith" }.ToDocument()
-					.Deserialize(Default.Settings.GetConfig(typeof (SimpleEntity))
+				() => new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToDocument()
+					.Deserialize(Default.Settings.GetConfig(typeof (Entity))
 				)
 			);
 		}
@@ -151,15 +151,15 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowParseExceptionOnDeserializationError()
 		{
-			var obj = new Document(@"{ ""_id"": ""simpleEntity.doc1"", ""_rev"": ""123"", ""type"": ""simpleEntity"", ""age"": ""not an integer"" }");
-			Assert.Throws<ParseException>(() => obj.Deserialize(Default.Settings.GetConfig(typeof (SimpleEntity))));
+			var obj = new Document(@"{ ""_id"": ""entity.doc1"", ""_rev"": ""123"", ""type"": ""entity"", ""age"": ""not an integer"" }");
+			Assert.Throws<ParseException>(() => obj.Deserialize(Default.Settings.GetConfig(typeof (Entity))));
 		}
 		
 		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{
 			var document = CreateDoc();
-			var entity = (Entity) document.Deserialize(config);
+			var entity = (TestEntity) document.Deserialize(config);
 			Assert.Null(entity.Type);
 		}
 
@@ -167,7 +167,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldSetTypePropertyOnSubobjects()
 		{
 			var document = CreateDoc();
-			var entity = (Entity) document.Deserialize(config);
+			var entity = (TestEntity) document.Deserialize(config);
 			Assert.NotNull(entity.Child.Type);
 		}
 	}

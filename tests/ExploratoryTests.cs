@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 using CouchDude.Utils;
 using Newtonsoft.Json.Linq;
@@ -112,6 +113,29 @@ namespace CouchDude.Tests
 			uri.LeaveDotsAndSlashesEscaped();
 
 			Assert.Equal("http://www.example.com/value%2fvalue", uri.ToString());
+		}
+
+		[Fact]
+		public void ShouldWaitTillChildTaskFinishes()
+		{
+			var stopwatch = new System.Diagnostics.Stopwatch();
+			stopwatch.Start();
+			Thread.Sleep(1);
+			long innerTaskContinuationFishTime = 0;
+			var task = Task.Factory.StartNew(
+				() => {
+					Task.Factory
+						.StartNew(() => Thread.Sleep(1000))
+						.ContinueWith(
+							_ => {
+								Thread.Sleep(1000);
+								innerTaskContinuationFishTime = stopwatch.ElapsedTicks;
+							},
+							TaskContinuationOptions.AttachedToParent);
+				});
+			task.Wait();
+
+			Assert.True(innerTaskContinuationFishTime > 0);
 		}
 	}
 

@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CouchDude.Configuration;
@@ -133,6 +133,21 @@ namespace CouchDude
 		public IEntityConfig GetConfig(string documentType)
 		{
 			return entityRegistry[documentType];
+		}
+
+		/// <inheritdoc />
+		public IEnumerable<Type> GetAllRegistredBaseTypes(Type entityType)
+		{
+			if (entityType == null) 
+				yield break;
+
+			var currentType = entityType;
+
+			while (entityRegistry.Contains(currentType))
+			{
+				yield return currentType;
+				currentType = currentType.BaseType;
+			}
 		}
 	}
 }

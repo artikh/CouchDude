@@ -76,19 +76,22 @@
     <Compile Include="HttpClientMock.cs" />
     <Compile Include="SampleData\Default.cs" />
     <Compile Include="SampleData\IEntity.cs" />
-    <Compile Include="SampleData\SimpleViewData.cs" />
-    <Compile Include="SampleData\SimpleEntityWithoutRevision.cs" />
-    <Compile Include="SampleData\SimpleEntity.cs" />
+    <Compile Include="SampleData\SimpleDerivedEntity.cs" />
+    <Compile Include="SampleData\ViewData.cs" />
+    <Compile Include="SampleData\EntityWithoutRevision.cs" />
+    <Compile Include="SampleData\Entity.cs" />
     <Compile Include="Unit\Core\Api\CouchApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiConstructorTests.cs" />
-    <Compile Include="Unit\Core\Api\LuceneResultsParserTests.cs" />
+    <Compile Include="Unit\Core\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Core\Api\ViewResultParserTests.cs" />
     <Compile Include="Unit\Core\Configuration\DefaultEntityConfigConventionsTests.cs" />
     <Compile Include="Unit\Core\Configuration\EntityConfigTests.cs" />
     <Compile Include="Unit\Core\Configuration\EntityRegistryTests.cs" />
     <Compile Include="Unit\Core\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
     <Compile Include="Unit\Core\Configuration\SequentialUuidIdGeneratorTests.cs" />
+    <Compile Include="Unit\Core\Impl\CouchSessionSaveChangesTests.cs" />
     <Compile Include="Unit\Core\Impl\SessionUnitOfWorkTests.cs" />
+    <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Core\Utils\ExceptionUtilsTests.cs" />
     <Compile Include="Unit\Core\Utils\TaskUtilsTasks.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentAssemblerTests.cs" />
@@ -110,7 +113,6 @@
     <Compile Include="Unit\Core\Impl\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Core\Impl\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Core\Impl\CouchSessionQueryTests.cs" />
-    <Compile Include="Unit\Core\Impl\CouchSessionFlushTests.cs" />
     <Compile Include="Unit\Core\Impl\CouchSessionLoadTests.cs">
       <SubType>Code</SubType>
     </Compile>

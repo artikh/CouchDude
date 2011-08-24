@@ -117,6 +117,9 @@ namespace CouchDude.Api
 						propertyGettersInOrder: new Func<JProperty>[] {GetIdProperty, GetRevisionProperty, GetTypeProperty});
 			}
 		}
+
+		/// <inheritdoc />
+		public new IDocument DeepClone() { return new Document((JObject) jsonObject.DeepClone()); }
 		
 		/// <inheritdoc />
 		public override bool Equals(object obj)

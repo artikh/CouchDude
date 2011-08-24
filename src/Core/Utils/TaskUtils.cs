@@ -35,7 +35,7 @@ namespace CouchDude.Utils
 			}
 			catch (AggregateException e)
 			{
-				throw Extract(e);
+				throw e.Extract();
 			}
 		}
 		/// <summary>Waits for result of the task returning it result.</summary>
@@ -48,42 +48,8 @@ namespace CouchDude.Utils
 			}
 			catch (AggregateException e)
 			{
-				throw Extract(e);
+				throw e.Extract();
 			}
-		}
-
-		private static Exception Extract(AggregateException e)
-		{
-			var flattenedAggregateException = Fattern(e);
-			if (flattenedAggregateException.InnerExceptions.Count == 1)
-				return flattenedAggregateException.InnerException.PreserveStackTrace();
-			else 
-				return flattenedAggregateException;
-		}
-
-		private static AggregateException Fattern(AggregateException aggregateException)
-		{
-			var exceptions = new List<Exception>();
-			return FatternRecursively(aggregateException, exceptions) 
-				? new AggregateException(exceptions) 
-				: aggregateException;
-		}
-
-		private static bool FatternRecursively(AggregateException aggregateException, IList<Exception> exceptions)
-		{
-			bool innerAggregateExceptionPresent = false;
-			foreach (var innerException in aggregateException.InnerExceptions)
-			{
-				var innerAggregateExcoption = innerException as AggregateException;
-				if (innerAggregateExcoption == null) 
-					exceptions.Add(innerException);
-				else
-				{
-					innerAggregateExceptionPresent = true;
-					FatternRecursively(innerAggregateExcoption, exceptions);
-				}
-			}
-			return innerAggregateExceptionPresent;
 		}
 	}
 }

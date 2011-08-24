@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 
 namespace CouchDude.Utils
@@ -17,6 +18,16 @@ namespace CouchDude.Utils
 			objectManager.RegisterObject(exception, 1, serializationInfo); // prepare for SetObjectData
 			objectManager.DoFixups(); // ObjectManager calls SetObjectData
 			return exception;
+		}
+
+		/// <summary>Extracts single inner exception or flatterned <see cref="AggregateException"/>.</summary>
+		public static Exception Extract(this AggregateException e)
+		{
+			var flattenedAggregateException = e.Flatten();
+			if (flattenedAggregateException.InnerExceptions.Count == 1)
+				return PreserveStackTrace(flattenedAggregateException.InnerException);
+			
+			return flattenedAggregateException;
 		}
 	}
 }

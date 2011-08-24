@@ -28,7 +28,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 	{
 		readonly EntityRegistry registry = new EntityRegistry();
 		readonly IEntityConfig entityConifg = Mock.Of<IEntityConfig>(
-			c => c.DocumentType == "simpleEntity" && c.EntityType == typeof(SimpleEntity));
+			c => c.DocumentType == "simpleEntity" && c.EntityType == typeof(Entity));
 		
 		[Fact]
 		public void ShouldStoreEntityConfigAndRetriveByDocumentType()
@@ -42,7 +42,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			registry.Register(entityConifg);
 
-			Assert.Equal(entityConifg, registry[typeof(SimpleEntity)]);
+			Assert.Equal(entityConifg, registry[typeof(Entity)]);
 		}
 
 		[Fact]
@@ -54,7 +54,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				() =>
 				registry.Register(
 					Mock.Of<IEntityConfig>(
-						c => c.DocumentType == "simpleEntity" && c.EntityType == typeof (SimpleEntityWithoutRevision))));
+						c => c.DocumentType == "simpleEntity" && c.EntityType == typeof (EntityWithoutRevision))));
 		}
 
 		[Fact]
@@ -65,14 +65,14 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Assert.Throws<ConfigurationException>(
 				() =>
 				registry.Register(
-					Mock.Of<IEntityConfig>(c => c.DocumentType == "simpleEntity2" && c.EntityType == typeof (SimpleEntity))));
+					Mock.Of<IEntityConfig>(c => c.DocumentType == "simpleEntity2" && c.EntityType == typeof (Entity))));
 		}
 
 		[Fact]
 		public void ShouldThrowOnUnknownEntityType()
 		{
-			var exception = Assert.Throws<EntityTypeNotRegistredException>(() => registry[typeof(SimpleEntity)]);
-			Assert.Contains(typeof(SimpleEntity).FullName, exception.Message);
+			var exception = Assert.Throws<EntityTypeNotRegistredException>(() => registry[typeof(Entity)]);
+			Assert.Contains(typeof(Entity).FullName, exception.Message);
 		}
 
 		[Fact]

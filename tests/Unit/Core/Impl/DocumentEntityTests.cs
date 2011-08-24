@@ -37,7 +37,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			// ReSharper restore ValueParameterNotUsed
 		}
 
-		private SimpleEntity entity = SimpleEntity.CreateStdWithoutRevision();
+		private Entity entity = Entity.CreateStandardWithoutRevision();
 
 		[Fact]
 		public void ShouldSetRevisionOnUnmappedDocumentEntity()
@@ -61,20 +61,20 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldReturnDocumentRevisionIfThereIsNoRevisionPropertyOnDocument()
 		{
-			var documentEntity = DocumentEntity.FromDocument<SimpleEntityWithoutRevision>(
-				SimpleEntityWithoutRevision.DocWithRevision, Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument(
+				EntityWithoutRevision.DocWithRevision, Default.Settings);
 			documentEntity.DoMap();
 
-			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
+			Assert.Equal(EntityWithoutRevision.StandardRevision, documentEntity.Revision);
 		}
 
 		[Fact]
 		public void ShouldReturnDocumentRevisionIfThereIsNoEntityCreatedYet()
 		{
-			var documentEntity = DocumentEntity.FromDocument<SimpleEntityWithoutRevision>(
-				SimpleEntityWithoutRevision.DocWithRevision, Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument(
+				EntityWithoutRevision.DocWithRevision, Default.Settings);
 
-			Assert.Equal(SimpleEntityWithoutRevision.StandardRevision, documentEntity.Revision);
+			Assert.Equal(EntityWithoutRevision.StandardRevision, documentEntity.Revision);
 		}
 
 		[Fact]
@@ -84,8 +84,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			Assert.Equal("doc1", documentEntity.EntityId);
 			Assert.Null(documentEntity.Revision);
-			Assert.Equal(typeof(SimpleEntity), documentEntity.EntityType);
-			Assert.Equal("simpleEntity", documentEntity.DocumentType);
+			Assert.Equal(typeof(Entity), documentEntity.EntityType);
+			Assert.Equal("entity", documentEntity.DocumentType);
 			Assert.Same(entity, documentEntity.Entity);
 		}
 
@@ -103,19 +103,19 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			}
 
 			Assert.Equal(
-				new { _id = "simpleEntity.doc1", type = "simpleEntity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00" }.ToJsonString(), 
+				new { _id = "entity.doc1", type = "entity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00" }.ToJsonString(), 
 				writtenString,
 				new JTokenStringCompairer());
 		}
 
 		[Fact]
-		public void ShouldNotDetectDifferenceIfJsonDocumentIsNull()
+		public void ShouldDetectDifferenceIfJsonDocumentIsNull()
 		{
 			var documentEntity = DocumentEntity.FromEntity(entity, Default.Settings);
 			entity.Name = "Joe Fox";
 
 			Assert.Null(documentEntity.Document);
-			Assert.False(documentEntity.CheckIfChanged());
+			Assert.True(documentEntity.MapIfChanged());
 		}
 
 		[Fact]
@@ -126,28 +126,22 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			entity.Name = "Joe Fox";
 
 			Assert.NotNull(documentEntity.Document);
-			Assert.True(documentEntity.CheckIfChanged());
+			Assert.True(documentEntity.MapIfChanged());
 		}
 
 		[Fact]
 		public void ShouldAutodeserializeEntityWhenCreatingFromJson()
 		{
-			var documentEntity = DocumentEntity.FromDocument<SimpleEntity>(new {
-				_id = "simpleEntity.doc1",
-				_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-				type = "simpleEntity",
-				name = "John Smith",
-				age = 42
-			}.ToDocument(),
-			Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument(
+				Entity.CreateDocWithRevision(), Default.Settings);
 
 			Assert.NotNull(documentEntity);
 			Assert.NotNull(documentEntity.Entity);
-			Assert.Equal(typeof(SimpleEntity), documentEntity.EntityType);
+			Assert.Equal(typeof(Entity), documentEntity.EntityType);
 
-			entity = (SimpleEntity)documentEntity.Entity;
-			Assert.Equal("doc1", entity.Id);
-			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", entity.Revision);
+			entity = (Entity)documentEntity.Entity;
+			Assert.Equal(Entity.StandardEntityId, entity.Id);
+			Assert.Equal(Entity.StandardRevision, entity.Revision);
 			Assert.Equal("John Smith", entity.Name);
 			Assert.Equal(42, entity.Age);
 		}
@@ -155,66 +149,22 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldSetDocumentWhenCreatingFromJson()
 		{
-			var documentEntity = DocumentEntity.FromDocument<SimpleEntity>(new {
-				_id = "simpleEntity.doc1",
-				_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-				type = "simpleEntity",
-				name = "John Smith",
-				age = 42
-			}.ToDocument(),
-			Default.Settings);
+			var documentEntity = DocumentEntity.FromDocument(
+				Entity.CreateDocWithRevision(), Default.Settings);
 
 			Assert.NotNull(documentEntity);
 			Assert.NotNull(documentEntity.Document);
-			Assert.Equal(
-				new {
-					_id = "simpleEntity.doc1",
-					_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-					type = "simpleEntity",
-					name = "John Smith",
-					age = 42
-				}.ToDocument(),
-				documentEntity.Document);
+			Assert.Equal(Entity.CreateDocWithRevision(), documentEntity.Document);
 		}
 		
 		[Fact]
 		public void ShouldThrowCouchResponseParseExceptionOnDocumentWithoutType()
 		{
 			Assert.Throws<DocumentTypeMissingException>(
-				() => DocumentEntity.FromDocument<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), 
+				() => DocumentEntity.FromDocument(
+					new { _id = "entity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), 
 					Default.Settings
 			));
-		}
-
-		[Fact]
-		public void ShouldThrowEntityTypeMismatchExceptionOnWrongDocumentType()
-		{
-			var ex = Assert.Throws<EntityTypeMismatchException>(
-				() => DocumentEntity.FromDocument<SimpleEntity>(
-					new { _id = "simpleEntity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", type = "simpleEntityWithoutRevision", name = "John Smith" }.ToDocument(), 
-					Default.Settings
-			));
-
-			Assert.Contains("SimpleEntity", ex.Message);
-						Assert.Contains("simpleEntityWithoutRevision", ex.Message);
-		}
-
-		[Fact]
-		public void ShouldSetIdIfNoneWasSetBefore()
-		{
-			var savingEntity = new SimpleEntity
-			{
-				Name = "John Smith",
-				Age = 42
-			};
-			var settings1 = Default.Settings;
-			settings1.IdGenerator = Mock.Of<IIdGenerator>(g => g.GenerateId() == "generated_id");
-
-			var documentEntity = DocumentEntity.FromEntity(savingEntity, settings1);
-
-			Assert.Equal("generated_id", documentEntity.EntityId);
-			Assert.Equal("generated_id", savingEntity.Id);
 		}
 	}
 }

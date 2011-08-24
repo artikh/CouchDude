@@ -43,5 +43,8 @@ namespace CouchDude
 		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/> returning
 		/// <c>null</c> if deserialization was unsuccessful..</summary>
 		object TryDeserialize(Type type);
+		
+		/// <summary>Creates new copy of the JSON fragment.</summary>
+		IJsonFragment DeepClone();
 	}
 }

@@ -8,7 +8,7 @@ using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
-	internal class BulkUpdateUnitOfWork: IBulkUpdateUnitOfWork
+	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
 		private enum OperationType
 		{

@@ -19,7 +19,6 @@ namespace CouchDude
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 			if (revision.HasNoValue()) throw new ArgumentNullException("id");
 			
-
 			Id = id;
 			Revision = revision;
 		}

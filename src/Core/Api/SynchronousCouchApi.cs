@@ -47,7 +47,7 @@ namespace CouchDude.Api
 			return couchApi.SaveDocument(document).WaitForResult();
 		}
 
-		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder)
+		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
 			return couchApi.BulkUpdate(updateCommandBuilder).WaitForResult();
 		}
@@ -65,7 +65,7 @@ namespace CouchDude.Api
 
 		/// <inheritdoc/>
 		/// TODO: Add result weight to result
-		public IPagedList<LuceneResultRow> QueryLucene(LuceneQuery query)
+		public IPagedList<LuceneResultRow> QueryLucene(FullTextQuery query)
 		{
 			return couchApi.QueryLucene(query).WaitForResult();
 		}

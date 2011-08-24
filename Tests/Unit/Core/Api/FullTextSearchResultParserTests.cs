@@ -25,7 +25,7 @@ using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class LuceneResultsParserTests
+	public class FullTextSearchResultParserTests
 	{
 		private static readonly string TestData =
 			new {
@@ -77,7 +77,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			LuceneResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = LuceneResultParser.Parse(stringReader, new LuceneQuery());
+				viewResult = FullTextSearchResultParser.Parse(stringReader, new FullTextQuery());
 
 			Assert.Equal(42, viewResult.TotalRowCount);
 			Assert.Equal(3, viewResult.RowCount);
@@ -92,7 +92,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidJson(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() => LuceneResultParser.Parse(stringReader, new LuceneQuery()));
+				Assert.Throws<ParseException>(() => FullTextSearchResultParser.Parse(stringReader, new FullTextQuery()));
 		}
 
 		[Theory]
@@ -103,7 +103,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidResponse(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() => LuceneResultParser.Parse(stringReader, new LuceneQuery()));
+				Assert.Throws<ParseException>(() => FullTextSearchResultParser.Parse(stringReader, new FullTextQuery()));
 		}
 
 		[Fact]
@@ -111,7 +111,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			LuceneResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = LuceneResultParser.Parse(stringReader, new LuceneQuery());
+				viewResult = FullTextSearchResultParser.Parse(stringReader, new FullTextQuery());
 
 			LuceneResultRow secondRow = viewResult.Skip(1).First();
 

@@ -1,6 +1,6 @@
 ﻿#region Licence Info 
 /*
-	Copyright 2011 · Artem Tikhomirov																					
+	Copyright 2011 � Artem Tikhomirov																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -18,102 +18,195 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using CouchDude.Utils;
 
 namespace CouchDude.Impl
 {
-	/// <summary>Session Unit of Work cache.</summary>
-	/// <remarks>Instance methods are not guaranteed to be thread-safe.</remarks>
-	internal class SessionUnitOfWork
+	/// <summary>Unit of work for CRUD implementation for <see cref="ISession"/>.</summary>
+	/// <remarks>Instance methods are not thread safe. Instance should be protected before 
+	/// accessing in parallel.</remarks>
+	class SessionUnitOfWork
 	{
-		private readonly IDictionary<object, DocumentEntity> instanceSet = new Dictionary<object, DocumentEntity>();
-		private readonly IDictionary<string, DocumentEntity> idMap = new Dictionary<string, DocumentEntity>();
+		private readonly IDictionary<object, DocumentEntity> entityMap = new Dictionary<object, DocumentEntity>();
+		private readonly IDictionary<Tuple<string, Type>, DocumentEntity> entityIdAndTypeMap = 
+			new Dictionary<Tuple<string, Type>, DocumentEntity>();
+		private readonly IDictionary<string, DocumentEntity> documentIdMap = new Dictionary<string, DocumentEntity>();
 
-		private DocumentEntity this[string entityId, Type entityType]
+		private readonly IEntityConfigRepository entityConfigRepository;
+
+		/// <constructor />
+		public SessionUnitOfWork(IEntityConfigRepository entityConfigRepository)
 		{
-			get
+			this.entityConfigRepository = entityConfigRepository;
+		}
+
+
+		/// <summary>Attaches already persisted document entity to the unit.</summary>
+		public void Attach(object entity, bool markAsUnchanged = false)
+		{
+			if (entity == null) throw new ArgumentNullException("entity");
+			var documentEntity = GetDocumentEntity(entity);
+			if (!documentEntity.HavePersisted) throw new ArgumentException("Persisted document entity expected", "entity");
+
+			if (markAsUnchanged)
+				documentEntity.MapIfChanged();
+			RegisterDocumentEntity(documentEntity);
+		}
+
+		/// <summary>Adds new document entity (without document part actually) to the unit.</summary>
+		public void AddNew(object entity)
+		{
+			if (entity == null) throw new ArgumentNullException("entity");
+			var documentEntity = GetDocumentEntity(entity);
+			if (documentEntity.HavePersisted) throw new ArgumentException("Transient document entity expected", "entity");
+			RegisterDocumentEntity(documentEntity);
+		}
+
+		/// <summary>Marks document entity as deleted from the store forsing other <see cref="SessionUnitOfWork"/> methods
+		/// to behave as if it have been already removed.</summary>
+		public void MarkAsRemoved(object entity)
+		{
+			if (entity == null) throw new ArgumentNullException("entity");
+			var documentEntity = GetDocumentEntity(entity);
+			documentEntity.HaveRemoved = true;
+			RegisterDocumentEntity(documentEntity);
+		}
+
+		/// <summary>Translates session unit of work to CouchApi bulk update unit of work.</summary>
+		public bool ApplyChanges(IBulkUpdateBatch work)
+		{
+			if (work == null) throw new ArgumentNullException("work");
+
+			bool haveChanged = false;
+			foreach (var documentEntity in entityMap.Values)
 			{
-				var entityKey = GetEntityKey(entityId, entityType);
-				DocumentEntity documentEntity;
-				idMap.TryGetValue(entityKey, out documentEntity);
-				return documentEntity;
+				if (documentEntity.HaveRemoved)
+				{
+					if (documentEntity.HavePersisted)
+					{
+						work.Delete(documentEntity.DocumentId, documentEntity.Revision);
+						haveChanged = true;
+					}
+				}
+				else
+				{
+					var changed = documentEntity.MapIfChanged();
+					if (!documentEntity.HavePersisted)
+					{
+						work.Create(documentEntity.Document);
+						haveChanged = true;
+					}
+					else if (changed)
+					{
+						work.Update(documentEntity.Document);
+						haveChanged = true;
+					}
+				}
 			}
-			set { idMap[GetEntityKey(entityId, entityType)] = value; }
+			return haveChanged;
 		}
 
-		private DocumentEntity this[object instance]
+		public bool TryGetByEntityIdAndType(string entityId, Type type, out object cachedEntity)
 		{
-			get
+			DocumentEntity documentEntity;
+			cachedEntity = null;
+			if(entityIdAndTypeMap.TryGetValue(new Tuple<string, Type>(entityId, type), out documentEntity))
 			{
-				DocumentEntity documentEntity;
-				instanceSet.TryGetValue(instance, out documentEntity);
-				return documentEntity;
+				if (!documentEntity.HaveRemoved) 
+					cachedEntity = documentEntity.Entity;
+				return true;
 			}
-			set { instanceSet[instance] = value; }
+			return false;
 		}
 
-		private static string GetEntityKey(string entityId, Type entityType)
+		/// <summary>Attempts to retrive cached entity by it's documentID (withch shoud be unique)</summary>
+		public bool TryGetByDocumentId(string documentId, out object cachedEntity)
 		{
-			return string.Concat(entityType.FullName, "::", entityId);
+			DocumentEntity documentEntity;
+			cachedEntity = null;
+			if (documentIdMap.TryGetValue(documentId, out documentEntity) && !documentEntity.HaveRemoved)
+			{
+				if (!documentEntity.HaveRemoved)
+					cachedEntity = documentEntity.Entity;
+				return true;
+			}
+			
+			return false;
 		}
 
-		/// <summary>Tries to get document entity form the cache via ID.</summary>
-		public DocumentEntity TryGet(string entityId, Type entityType)
+		/// <summary>Updates cache with provided document.</summary>
+		public void UpdateWithDocument(IDocument document)
 		{
-			return this[entityId, entityType];
+			if(document == null || document.Id == null) return;
+
+			DocumentEntity documentEntity;
+			if (!documentIdMap.TryGetValue(document.Id, out documentEntity) && document.Revision.HasValue())
+			{
+				documentEntity = DocumentEntity.TryFromDocument(document, entityConfigRepository);
+				if (documentEntity != null)
+					RegisterDocumentEntity(documentEntity);
+			}
 		}
 
-		/// <summary>Tries to get document entity form the cache via entity reverence.</summary>
-		public DocumentEntity TryGet(object entity)
+		public void Clear()
 		{
-			return this[entity];
+			entityIdAndTypeMap.Clear();
+			entityMap.Clear();
 		}
 
-		/// <summary>Places provided document entity to the cache or if there is 
-		/// entity of same ID in cache already replaces it with one from cache.</summary>
-		public DocumentEntity PutOrReplace(DocumentEntity documentEntity)
+		/// <summary>Maps entity to document entity using unit of work cache.</summary>
+		internal DocumentEntity GetDocumentEntity(object entity)
 		{
-			if (documentEntity == null) throw new ArgumentNullException("documentEntity");
-
-			var cachedDocumentEntity = this[documentEntity.EntityId, documentEntity.EntityType];
-			return cachedDocumentEntity ?? Put(documentEntity);
-		}
-
-		/// <summary>Places provided document entity to the cache.</summary>
-		public DocumentEntity Put(DocumentEntity documentEntity)
-		{
-			this[documentEntity.Entity] = documentEntity;
-			this[documentEntity.EntityId, documentEntity.EntityType] = documentEntity;
+			DocumentEntity documentEntity;
+			if (!entityMap.TryGetValue(entity, out documentEntity))
+				documentEntity = RegisterDocumentEntity(
+					DocumentEntity.FromEntity(entity, entityConfigRepository));
 			return documentEntity;
 		}
 
-		public void Remove(DocumentEntity documentEntity)
+		public void UpdateRevisions(IEnumerable<DocumentInfo> updatedDocumentInfo) 
 		{
-			instanceSet.Remove(documentEntity.Entity);
-			if(documentEntity.DocumentId != null)
-				idMap.Remove(documentEntity.DocumentId);
+			foreach (var documentInfo in updatedDocumentInfo)
+			{
+				DocumentEntity documentEntity;
+				if (documentIdMap.TryGetValue(documentInfo.Id, out documentEntity))
+				{
+					if (documentEntity.HaveRemoved)
+						RemoveDocumentEntity(documentEntity);
+
+					documentEntity.Revision = documentInfo.Revision;
+				}
+			}
 		}
 
-		/// <summary>Determines if paticular instance is in the cache.</summary>
-		public bool Contains(DocumentEntity documentEntity)
+		private DocumentEntity RegisterDocumentEntity(DocumentEntity documentEntity)
 		{
-			return idMap.ContainsKey(documentEntity.DocumentId) 
-			       || instanceSet.ContainsKey(documentEntity.Entity);
+			entityMap[documentEntity.Entity] = documentEntity;
+
+			foreach (var identity in GetDocumentEntityIdentities(documentEntity))
+				entityIdAndTypeMap[identity] = documentEntity;
+
+			documentIdMap[documentEntity.DocumentId] = documentEntity;
+
+			return documentEntity;
 		}
 
-		/// <summary>Marks <see cref="DocumentEntity"/> as deleted form the unit of work.</summary>
-		public void MarkAsDeleted(DocumentEntity documentEntity)
+		private void RemoveDocumentEntity(DocumentEntity documentEntity)
 		{
+			entityMap.Remove(documentEntity.Entity);
 			
+			foreach (var identity in GetDocumentEntityIdentities(documentEntity))
+				entityIdAndTypeMap.Remove(identity);
+
+			documentIdMap.Remove(documentEntity.DocumentId);
 		}
 
-		/// <summary>Returs all cached documents.</summary>
-		public IEnumerable<DocumentEntity> DocumentEntities { get { return idMap.Values; } }
-
-		/// <summary>Clears the cache.</summary>
-		public void Clear()
+		private IEnumerable<Tuple<string, Type>> GetDocumentEntityIdentities(DocumentEntity documentEntity)
 		{
-			instanceSet.Clear();
-			idMap.Clear();
+			return entityConfigRepository
+				.GetAllRegistredBaseTypes(documentEntity.EntityType)
+				.Select(type => new Tuple<string, Type>(documentEntity.EntityId, type));
 		}
 	}
 }

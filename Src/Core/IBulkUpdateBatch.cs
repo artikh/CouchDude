@@ -1,7 +1,7 @@
 namespace CouchDude
 {
-	/// <summary>Bulk update unit of work interface.</summary>
-	public interface IBulkUpdateUnitOfWork
+	/// <summary>Bulk update changes summary interface.</summary>
+	public interface IBulkUpdateBatch
 	{
 		/// <summary>Requires provided document to be updated.</summary>
 		void Update(IDocument document);

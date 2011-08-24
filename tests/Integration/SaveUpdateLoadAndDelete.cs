@@ -31,35 +31,40 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var savedEntity = new SimpleEntity {
+			var savedEntity = new Entity {
 				Id = Guid.NewGuid().ToString(),
 				Name = "John Smith",
 				Age = 42,
 				Date = DateTime.Now
 			};
-			SimpleEntity updatingEntity;
-			SimpleEntity loadedEntity;
+			Entity updatingEntity;
+			Entity loadedEntity;
 
 			using (var session = sessionFactory.CreateSession())
 			{
 				session.Save(savedEntity);
+				session.SaveChanges();
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				updatingEntity = session.Synchronously.Load<SimpleEntity>(savedEntity.Id);
+				updatingEntity = session.Synchronously.Load<Entity>(savedEntity.Id);
 				updatingEntity.Name = "Artem Tikhomirov";
-				session.StartSavingChanges().Wait();
+				session.SaveChanges();
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				loadedEntity = session.Synchronously.Load<SimpleEntity>(updatingEntity.Id);
+				loadedEntity = session.Synchronously.Load<Entity>(updatingEntity.Id);
 				Assert.Equal("Artem Tikhomirov", loadedEntity.Name);
 			}
 			
 			using (var session = sessionFactory.CreateSession())
+			{
 				session.Delete(loadedEntity);
+				session.SaveChanges();
+			}
+
 		}
 	}
 }

@@ -24,7 +24,7 @@ using System.Text;
 namespace CouchDude
 {
 	/// <summary>Typed lucene-couchdb query.</summary>
-	public class LuceneQuery<T> : LuceneQuery, IQuery<LuceneResultRow, T>
+	public class FullTextQuery<T> : FullTextQuery, IQuery<LuceneResultRow, T>
 	{
 		/// <summary>Processes raw query result producing meningfull results.</summary>
 		public Func<IEnumerable<LuceneResultRow>, IEnumerable<T>> ProcessRows { get; set; }

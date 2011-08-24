@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using CouchDude.Utils;
@@ -39,10 +40,10 @@ namespace CouchDude.Tests.Unit.Core.Utils
 			var exception = Assert.Throws<AggregateException>(() => task.WaitForResult());
 
 			Assert.Equal(4, exception.InnerExceptions.Count);
-			Assert.Equal("one", exception.InnerExceptions[0].Message);
-			Assert.Equal("two", exception.InnerExceptions[1].Message);
-			Assert.Equal("three", exception.InnerExceptions[2].Message);
-			Assert.Equal("four", exception.InnerExceptions[3].Message);
+			Assert.True(exception.InnerExceptions.Any(e => e.Message == "one"));
+			Assert.True(exception.InnerExceptions.Any(e => e.Message == "two"));
+			Assert.True(exception.InnerExceptions.Any(e => e.Message == "three"));
+			Assert.True(exception.InnerExceptions.Any(e => e.Message == "four"));
 		}
 
 		[Fact]
@@ -63,7 +64,7 @@ namespace CouchDude.Tests.Unit.Core.Utils
 			var exception = Assert.Throws<InvalidOperationException>(() => task.WaitForResult());
 			Assert.Equal("inner inner inner exception", exception.Message);
 			Assert.Contains("ShouldRethrowSingleInnerExceptionOfAggregateException", exception.StackTrace);
-			Assert.Contains("54", exception.StackTrace);
+			Assert.Contains("55", exception.StackTrace);
 		}
 
 		[Fact]
@@ -89,7 +90,7 @@ namespace CouchDude.Tests.Unit.Core.Utils
 
 			Assert.IsType<InvalidOperationException>(innerException);
 			Assert.Equal("inner inner inner exception", innerException.Message);
-			Assert.Contains("75", innerException.StackTrace);
+			Assert.Contains("76", innerException.StackTrace);
 		}
 	}
 }

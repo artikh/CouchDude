@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldDelegateDocumentTypeGeneration()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), entityTypeToDocumentType: entityType => "docType1");
+			var entityConfig = new EntityConfig(typeof(Entity), entityTypeToDocumentType: entityType => "docType1");
 			Assert.Equal("docType1", entityConfig.DocumentType);
 		}
 
@@ -88,9 +88,9 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				.Setup(m => m.SetValue(It.IsAny<object>(), It.IsAny<string>()))
 				.Callback<object, string>((e, id) => { setId = id; settingEntity = e; });
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), idMember: idMemberMock.Object); 
+			var entityConfig = new EntityConfig(typeof(Entity), idMember: idMemberMock.Object); 
 
-			object entity = SimpleEntity.CreateStd();
+			object entity = Entity.CreateStandard();
 			entityConfig.SetId(entity, "doc1");
 
 			Assert.Equal("doc1", setId);
@@ -101,11 +101,11 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldThrowOnNullInputToSetId()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(null, "entity1"));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(SimpleEntity.CreateStd(), null));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(SimpleEntity.CreateStd(), string.Empty));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(Entity.CreateStandard(), null));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetId(Entity.CreateStandard(), string.Empty));
 		}
 
 		[Fact]
@@ -118,9 +118,9 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				.Setup(m => m.GetValue(It.IsAny<object>()))
 				.Returns<object>(e => { gettingEntity = e; return "doc1"; });
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), idMember: idMemberMock.Object);
+			var entityConfig = new EntityConfig(typeof(Entity), idMember: idMemberMock.Object);
 
-			object entity = SimpleEntity.CreateStd();
+			object entity = Entity.CreateStandard();
 			string id = entityConfig.GetId(entity);
 
 			Assert.Equal("doc1", id);
@@ -130,7 +130,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldThrowOnNullInputToGetId()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.GetId(null));
 		} 
@@ -146,9 +146,9 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			.Setup(m => m.SetValue(It.IsAny<object>(), It.IsAny<string>()))
 			.Callback<object, string>((e, rev) => { setRev = rev; settingEntity = e; });
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), revisionMember: revisionMemberMock.Object);
+			var entityConfig = new EntityConfig(typeof(Entity), revisionMember: revisionMemberMock.Object);
 
-			object entity = SimpleEntity.CreateStd();
+			object entity = Entity.CreateStandard();
 			entityConfig.SetRevision(entity, "rev1");
 
 			Assert.Equal("rev1", setRev);
@@ -158,11 +158,11 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldThrowOnNullInputToSetEnityRevision()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.SetRevision(null, "rev1"));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.SetRevision(SimpleEntity.CreateStd(), null));
-			Assert.Throws<ArgumentNullException>(() => entityConfig.SetRevision(SimpleEntity.CreateStd(), string.Empty));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetRevision(Entity.CreateStandard(), null));
+			Assert.Throws<ArgumentNullException>(() => entityConfig.SetRevision(Entity.CreateStandard(), string.Empty));
 		}
 
 		[Fact]
@@ -175,9 +175,9 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				.Setup(m => m.GetValue(It.IsAny<object>()))
 				.Returns<object>(e => { gettingEntity = e; return "rev1"; });
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), revisionMember: revisionMemberMock.Object);
+			var entityConfig = new EntityConfig(typeof(Entity), revisionMember: revisionMemberMock.Object);
 
-			object entity = SimpleEntity.CreateStd();
+			object entity = Entity.CreateStandard();
 			var revision = entityConfig.GetRevision(entity);
 
 			Assert.Equal("rev1", revision);
@@ -187,7 +187,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldThrowOnNullInputToGetRevision()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.GetRevision(null));
 		}
@@ -195,12 +195,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldThrowOnIncorrectEntityTypeOnSetterAndGetterMethods()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
-			Assert.Throws<ArgumentException>(() => entityConfig.GetRevision(new SimpleEntityWithoutRevision()));
-			Assert.Throws<ArgumentException>(() => entityConfig.GetId(new SimpleEntityWithoutRevision()));
-			Assert.Throws<ArgumentException>(() => entityConfig.SetRevision(new SimpleEntityWithoutRevision(), "rev1"));
-			Assert.Throws<ArgumentException>(() => entityConfig.SetId(new SimpleEntityWithoutRevision(), "entity1"));
+			Assert.Throws<ArgumentException>(() => entityConfig.GetRevision(new EntityWithoutRevision()));
+			Assert.Throws<ArgumentException>(() => entityConfig.GetId(new EntityWithoutRevision()));
+			Assert.Throws<ArgumentException>(() => entityConfig.SetRevision(new EntityWithoutRevision(), "rev1"));
+			Assert.Throws<ArgumentException>(() => entityConfig.SetId(new EntityWithoutRevision(), "entity1"));
 		}
 
 		[Fact]
@@ -210,7 +210,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Type providedEntityType = null;
 
 			var entityConfig = new EntityConfig(
-				typeof(SimpleEntity),
+				typeof(Entity),
 				entityIdToDocumentId: (entityId, entityType, documentType) => {
 					providedEntityId = entityId;
 					providedEntityType = entityType;
@@ -222,13 +222,13 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 
 			Assert.Equal(returnedDocId, "doc1");
 			Assert.Equal("entity1", providedEntityId);
-			Assert.Equal(typeof(SimpleEntity), providedEntityType);
+			Assert.Equal(typeof(Entity), providedEntityType);
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullInputToConvertEntityIdToDocumentId()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.ConvertEntityIdToDocumentId(null));
 			Assert.Throws<ArgumentNullException>(() => entityConfig.ConvertEntityIdToDocumentId(string.Empty));
@@ -241,7 +241,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Type providedEntityType = null;
 
 			var entityConfig = new EntityConfig(
-				typeof(SimpleEntity),
+				typeof(Entity),
 				documentIdToEntityId: (documentId, documentType, entityType) => {
 					providedDocumentId = documentId;
 					providedEntityType = entityType;
@@ -253,13 +253,13 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 
 			Assert.Equal(returnedEntityId, "entity1");
 			Assert.Equal("doc1", providedDocumentId);
-			Assert.Equal(typeof(SimpleEntity), providedEntityType);
+			Assert.Equal(typeof(Entity), providedEntityType);
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullInputToConvertDocumentIdToEntityId()
 		{
-			var entityConfig = new EntityConfig(typeof(SimpleEntity));
+			var entityConfig = new EntityConfig(typeof(Entity));
 
 			Assert.Throws<ArgumentNullException>(() => entityConfig.ConvertEntityIdToDocumentId(null));
 			Assert.Throws<ArgumentNullException>(() => entityConfig.ConvertEntityIdToDocumentId(string.Empty));
@@ -272,7 +272,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			var idMember = Mock.Of<ISpecialMember>(sm => sm.IsDefined == true && sm.RawMemberInfo == thisMethodInfo);
 			var revMember = Mock.Of<ISpecialMember>(sm => sm.IsDefined == false);
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), idMember: idMember, revisionMember: revMember);
+			var entityConfig = new EntityConfig(typeof(Entity), idMember: idMember, revisionMember: revMember);
 
 			Assert.Contains(thisMethodInfo, entityConfig.IgnoredMembers);
 		}
@@ -283,7 +283,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			var idMember = Mock.Of<ISpecialMember>(sm => sm.IsDefined == true && sm.RawMemberInfo == null);
 			var revMember = Mock.Of<ISpecialMember>(sm => sm.IsDefined == true && sm.RawMemberInfo == null);
 
-			var entityConfig = new EntityConfig(typeof(SimpleEntity), idMember: idMember, revisionMember: revMember);
+			var entityConfig = new EntityConfig(typeof(Entity), idMember: idMember, revisionMember: revMember);
 			Assert.NotNull(entityConfig.IgnoredMembers);
 			Assert.Equal(0, entityConfig.IgnoredMembers.Count());
 		}

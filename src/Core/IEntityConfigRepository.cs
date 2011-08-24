@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using CouchDude.Configuration;
 
 namespace CouchDude
@@ -32,5 +33,9 @@ namespace CouchDude
 
 		/// <summary>Retrives entity configuration by document type.</summary>
 		IEntityConfig GetConfig(string documentType);
+
+		/// <summary>Retrunes all registred base type of provided one plus the 
+		/// type itself.</summary>
+		IEnumerable<Type> GetAllRegistredBaseTypes(Type entityType);
 	}
 }

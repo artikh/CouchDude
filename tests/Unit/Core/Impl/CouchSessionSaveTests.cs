@@ -18,7 +18,6 @@
 
 using System;
 
-using CouchDude.Api;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
@@ -28,28 +27,13 @@ namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class CouchSessionSaveTests
 	{
-		private readonly SimpleEntity entity = new SimpleEntity {
-			Id = "doc1",
-			Name = "John Smith"
-		};
-
-		[Fact]
-		public void ShouldThrowOnSameInstanseSave()
-		{
-			var couchApiMock = MockCouchApi();
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			session.Save(entity);
-			Assert.Throws<ArgumentException>(() => session.Save(entity));
-		}
-
 		[Fact]
 		public void ShouldThrowOnSaveWithRevision()
 		{
-			var couchApiMock = MockCouchApi();
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			ISession session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
 			Assert.Throws<ArgumentException>(() => 
 				session.Save(
-					new SimpleEntity {
+					new Entity {
 						Id = "doc1",
 						Revision = "42-1a517022a0c2d4814d51abfedf9bfee7",
 						Name = "John Smith"
@@ -61,51 +45,30 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldThrowOnNullEntity()
 		{
-			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
-			Assert.Throws<ArgumentNullException>(() => session.Save<SimpleEntity>(null));
+			ISession session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
+			Assert.Throws<ArgumentNullException>(() => session.Save<Entity>(null));
 		}
 
 		[Fact]
-		public void ShouldReturnFillRevisionPropertyOnEntity()
+		public void ShouldGenerateIdIfNoneSet()
 		{
-			var couchApiMock = MockCouchApi();
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			session.Save(entity);
-			Assert.Equal("42-1a517022a0c2d4814d51abfedf9bfee7", entity.Revision);
-		}
-
-		[Fact]
-		public void ShouldAssignOnSaveIfNoneWasAssignedBefore()
-		{
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
-				.Returns(
-					(IDocument doc) => new DocumentInfo(doc.Id, "1-1a517022a0c2d4814d51abfedf9bfee7").ToTask()
-				);
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
-
-			var savingEntity = new SimpleEntity
-			{
-				Name = "John Smith"
-			};
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			var savingEntity = new Entity { Name = "John Smith" };
+			ISession session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
 			session.Save(savingEntity);
 
 			Assert.NotNull(savingEntity.Id);
 			Assert.NotEqual(string.Empty, savingEntity.Id);
 		}
 
-		private static Mock<ICouchApi> MockCouchApi()
+		[Fact]
+		public void ShouldCacheFreashlySavedInstance() 
 		{
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
-				.Returns(new DocumentInfo(SimpleEntity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
-			return couchApiMock;
+			var savingEntity = Entity.CreateStandardWithoutRevision();
+			ISession session = new CouchSession(Default.Settings, new Mock<ICouchApi>(MockBehavior.Strict).Object);
+			session.Save(savingEntity);
+
+			var loadedInstance = session.Synchronously.Load<Entity>(savingEntity.Id);
+			Assert.Same(savingEntity, loadedInstance);
 		}
 	}
 }

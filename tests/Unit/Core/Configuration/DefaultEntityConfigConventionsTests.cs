@@ -112,7 +112,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldConvertEntityTypeShortNameToCamelCaseWhenTransformingItToDocumnetType()
 		{
-			Assert.Equal("simpleEntity", DefaultEntityConfigConventions.EntityTypeToDocumentType(typeof(SimpleEntity)));
+			Assert.Equal("entity", DefaultEntityConfigConventions.EntityTypeToDocumentType(typeof(Entity)));
 		}
 	}
 }

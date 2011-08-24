@@ -1,6 +1,6 @@
-#region Licence Info 
+﻿#region Licence Info 
 /*
-	Copyright 2011 � Artem Tikhomirov																					
+	Copyright 2011 · Artem Tikhomirov																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -16,18 +16,10 @@
 */
 #endregion
 
-namespace CouchDude
+namespace CouchDude.Tests.SampleData
 {
-	/// <summary>CouchDB session synchronous methods interface.</summary>
-	public interface ISynchronousSessionMethods
+	public class ViewData
 	{
-		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items waiting for result.</summary>
-		IPagedList<T> Query<T>(ViewQuery<T> query);
-
-		/// <summary>Queries lucene-couchdb index waiting for the result.</summary>
-		IPagedList<T> FulltextQuery<T>(FullTextQuery<T> query) where T : class;
-
-		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
-		TEntity Load<TEntity>(string entityId) where TEntity : class;
+		public string Title { get; set; }
 	}
 }

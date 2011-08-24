@@ -38,7 +38,7 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<T> FulltextQuery<T>(LuceneQuery<T> query) where T : class
+		public IPagedList<T> FulltextQuery<T>(FullTextQuery<T> query) where T : class
 		{
 			return session.FulltextQuery(query).WaitForResult();
 		}

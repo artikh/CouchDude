@@ -39,12 +39,12 @@ namespace CouchDude
 		DocumentInfo DeleteDocument(string docId, string revision);
 
 		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
-		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateUnitOfWork> updateCommandBuilder);
+		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
 		IPagedList<ViewResultRow> Query(ViewQuery query);
 
 		/// <summary>Queries CouchDB view.</summary>
-		IPagedList<LuceneResultRow> QueryLucene(LuceneQuery query);
+		IPagedList<LuceneResultRow> QueryLucene(FullTextQuery query);
 	}
 }

@@ -52,12 +52,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com").DatabaseName("db1")
 				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
+					.FromAssemblyOf<Entity>()
 					.Implementing<IEntity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
 			Assert.NotNull(simpleEntityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
@@ -69,12 +69,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com").DatabaseName("db1")
 				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
-					.InheritedFrom<SimpleEntity>()
+					.FromAssemblyOf<Entity>()
+					.InheritedFrom<Entity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
 			Assert.NotNull(simpleEntityConfig);
 			Assert.Null(simpleEntityWithoutRevisionConfig);
@@ -85,11 +85,11 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Settings settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com").DatabaseName("db1")
-				.MappingEntitiy<SimpleEntity>()
+				.MappingEntitiy<Entity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
 			Assert.NotNull(simpleEntityConfig);
 			Assert.Null(simpleEntityWithoutRevisionConfig);
@@ -101,12 +101,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com").DatabaseName("db1")
 				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
-					.Where(t => t.Name.StartsWith("SimpleEntity"))
+					.FromAssemblyOf<Entity>()
+					.Where(t => t.Name.StartsWith("Entity"))
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 
 			Assert.NotNull(simpleEntityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
@@ -122,8 +122,8 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.Where(t => t.GetInterfaces().Any(i => i.Name == "IEntity"))
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(SimpleEntityWithoutRevision));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 
 			Assert.NotNull(simpleEntityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
@@ -133,17 +133,17 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldDirectlySetCustomEntityConfig()
 		{
 			var customConfig = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
+				c => c.EntityType == typeof(Entity) && c.DocumentType == "simpleEntity");
 
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
-					 .InheritedFrom<SimpleEntity>()
+					 .FromAssemblyOf<Entity>()
+					 .InheritedFrom<Entity>()
 					 .WithCustomConfig(t => customConfig)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
 
 			Assert.Same(customConfig, simpleEntityConfig);
 		}
@@ -154,13 +154,13 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
+					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
 					 .WhenDocumentType(t => "_" + Char.ToLower(t.Name[0]) + t.Name.Substring(1))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			Assert.Equal("_simpleEntity", simpleEntityConfig.DocumentType);
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			Assert.Equal("_entity", simpleEntityConfig.DocumentType);
 		}
 
 		[Fact]
@@ -169,12 +169,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
+					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
 					 .TranslatingEntityIdToDocumentIdAs((entityId, entityType, documentType) => "Entity#" + entityId)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
 			Assert.Equal("Entity#42", simpleEntityConfig.ConvertEntityIdToDocumentId("42"));
 		}
 
@@ -184,12 +184,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
+					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
 					 .TranslatingDocumentIdToEntityIdAs((documentId, documentType, entityType) => "Document#" + documentId)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
 			Assert.Equal("Document#42", simpleEntityConfig.ConvertDocumentIdToEntityId("42"));
 		}
 
@@ -199,13 +199,13 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
-					 .Implementing<IEntity>()
+					 .FromAssemblyOf<Entity>()
+					 .InheritedFrom<Entity>()
 					 .WhenIdMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntity = new SimpleEntity {Name = "Alex"};
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntity = new Entity {Name = "Alex"};
 
 			Assert.True(simpleEntityConfig.IsIdMemberPresent);
 			Assert.Equal("Alex", simpleEntityConfig.GetId(simpleEntity));
@@ -220,8 +220,8 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
-						.Implementing<IEntity>()
+						.FromAssemblyOf<Entity>()
+						.InheritedFrom<Entity>()
 						.WhenIdMember(entityType => (MemberInfo)entityType.GetField("OkResponse"))
 					.CreateSettings()
 			);
@@ -234,7 +234,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
+						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
 						.WhenIdMember(entityType => (MemberInfo)entityType.GetMethod("DoStuff"))
 					.CreateSettings());
@@ -247,7 +247,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 						.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
+						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
 						.WhenIdMember(entityType => null)
 					.CreateSettings());
@@ -259,13 +259,13 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			Settings settings = ConfigureCouchDude.With()
 				 .ServerUri("http://example.com").DatabaseName("db1")
 				 .MappingEntities()
-					 .FromAssemblyOf<SimpleEntity>()
+					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
 					 .WhenRevisionMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(SimpleEntity));
-			var simpleEntity = new SimpleEntity { Name = "Alex" };
+			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var simpleEntity = new Entity { Name = "Alex" };
 
 			Assert.True(simpleEntityConfig.IsRevisionPresent);
 			Assert.Equal("Alex", simpleEntityConfig.GetRevision(simpleEntity));
@@ -280,7 +280,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
+						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
 						.WhenRevisionMember(entityType => (MemberInfo)entityType.GetField("OkResponse"))
 					.CreateSettings()
@@ -294,7 +294,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 					.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
+						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
 						.WhenRevisionMember(entityType => (MemberInfo)entityType.GetMethod("DoStuff"))
 					.CreateSettings());
@@ -307,7 +307,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				ConfigureCouchDude.With()
 					.ServerUri("http://example.com").DatabaseName("db1")
 						.MappingEntities()
-						.FromAssemblyOf<SimpleEntity>()
+						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
 						.WhenRevisionMember(entityType => null)
 					.CreateSettings());
@@ -317,23 +317,23 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldPickLastEntityConfigIfMultiplyHaveRegistred()
 		{
 			var customConfigA = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
+				c => c.EntityType == typeof(Entity) && c.DocumentType == "simpleEntity");
 			var customConfigB = Mock.Of<IEntityConfig>(
-				c => c.EntityType == typeof(SimpleEntity) && c.DocumentType == "simpleEntity");
+				c => c.EntityType == typeof(Entity) && c.DocumentType == "simpleEntity");
 
 			var settings = ConfigureCouchDude.With()
 				.ServerUri("http://example.com").DatabaseName("db1")
 				.MappingEntities()
-					.FromAssemblyOf<SimpleEntity>()
-					.Where(t => t.Name == "SimpleEntity")
+					.FromAssemblyOf<Entity>()
+					.Where(t => t.Name == "Entity")
 					.WithCustomConfig(t => customConfigA)
 				.MappingEntities()
 					.FromAssembly("CouchDude.Tests")
-					.InheritedFrom<SimpleEntity>()
+					.InheritedFrom<Entity>()
 					.WithCustomConfig(t => customConfigB)
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.GetConfig(typeof (SimpleEntity));
+			var simpleEntityConfig = settings.GetConfig(typeof (Entity));
 			Assert.Same(customConfigB, simpleEntityConfig);
 		}
 	}

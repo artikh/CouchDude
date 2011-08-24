@@ -38,7 +38,7 @@ namespace CouchDude
 		Task<IPagedList<T>> Query<T>(ViewQuery<T> query);
 
 		/// <summary>Queries lucene-couchdb index.</summary>
-		Task<IPagedList<T>> FulltextQuery<T>(LuceneQuery<T> query) where T : class;
+		Task<IPagedList<T>> FulltextQuery<T>(FullTextQuery<T> query) where T : class;
 
 		/// <summary>Synchronous session methods.</summary>
 		ISynchronousSessionMethods Synchronously { get; }

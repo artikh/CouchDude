@@ -26,7 +26,7 @@ using Newtonsoft.Json.Linq;
 namespace CouchDude.Api
 {
 	/// <summary>Loads couchdb-lucene request result from provided <see cref="TextReader"/>.</summary>
-	public class LuceneResultParser
+	public class FullTextSearchResultParser
 	{
 		private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonFragment.CreateSerializerSettings());
 		
@@ -54,7 +54,7 @@ namespace CouchDude.Api
 #pragma warning restore 0649
 
 		/// <summary>Loads view request result from provided <see cref="TextReader"/>.</summary>
-		public static LuceneResult Parse(TextReader textReader, LuceneQuery query)
+		public static LuceneResult Parse(TextReader textReader, FullTextQuery query)
 		{
 			RawViewResult rawResult;
 			try

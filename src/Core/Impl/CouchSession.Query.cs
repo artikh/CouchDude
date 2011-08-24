@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CouchDude.Utils;
 
 namespace CouchDude.Impl
 {
@@ -27,12 +28,12 @@ namespace CouchDude.Impl
 	public partial class CouchSession
 	{
 		/// <inheritdoc/>
-		public Task<IPagedList<T>> FulltextQuery<T>(LuceneQuery<T> query) where T : class
+		public Task<IPagedList<T>> FulltextQuery<T>(FullTextQuery<T> query) where T : class
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 
-			return QueryInternal<T, LuceneQuery<T>, LuceneResultRow>(query, (api, q) => api.QueryLucene(q));
+			return QueryInternal<T, FullTextQuery<T>, LuceneResultRow>(query, (api, q) => api.QueryLucene(q));
 		}
 
 		/// <inheritdoc/>
@@ -55,6 +56,8 @@ namespace CouchDude.Impl
 			if (isEntityType && !query.IncludeDocs)
 				throw new QueryException("You should use IncludeDocs query option when querying for entities.");
 
+			WaitForFlushIfInProgress();
+
 			return queryTask(couchApi, query).ContinueWith<IPagedList<T>>(
 				qt =>{
 					var rawQueryResult = qt.Result;
@@ -62,7 +65,7 @@ namespace CouchDude.Impl
 					if (query.ProcessRows != null)
 						queryResultRows = query.ProcessRows(rawQueryResult);
 					else if (isEntityType)
-						queryResultRows = DeserializeEntitiesAndCache<T, TRow>(rawQueryResult);
+						queryResultRows = DeserializeEntitiesAndCache<T, TRow>(rawQueryResult, rawQueryResult.RowCount);
 					else
 						queryResultRows = DeserializeViewData<T, TRow>(rawQueryResult);
 
@@ -78,17 +81,30 @@ namespace CouchDude.Impl
 						 select value == null ? default(T) : (T)value.TryDeserialize(typeof(T));
 		}
 
-		private IEnumerable<T> DeserializeEntitiesAndCache<T, TRow>(IEnumerable<TRow> queryResult) where TRow : IQueryResultRow
+		private IEnumerable<T> DeserializeEntitiesAndCache<T, TRow>(IEnumerable<TRow> queryResult, int rowCount) where TRow : IQueryResultRow
 		{
-			var documentEntities =
-				queryResult.Select(row => DocumentEntity.TryFromDocument<T>(row.Document, settings)).ToArray();
+			lock (unitOfWork)
+			{
+				var entities = new List<T>(rowCount);
+				foreach (var row in queryResult)
+					entities.Add(DeserializeEntity<T>(unitOfWork, row.Document, row.DocumentId));
 
-			foreach (var documentEntity in documentEntities)
-				if (documentEntity != null)
-					unitOfWork.PutOrReplace(documentEntity);
+				return entities;
+			}
+		}
 
-			return from documentEntity in documentEntities
-						 select documentEntity == null ? default(T) : (T)documentEntity.Entity;
+		private static T DeserializeEntity<T>(SessionUnitOfWork unitOfWork, IDocument document, string documentId)
+		{
+			if (documentId.HasValue())
+			{
+				if (document != null)
+					unitOfWork.UpdateWithDocument(document);
+				object entity;
+				if (unitOfWork.TryGetByDocumentId(documentId, out entity) && entity is T)
+					return (T) entity;
+			}
+			
+			return default(T);
 		}
 	}
 }

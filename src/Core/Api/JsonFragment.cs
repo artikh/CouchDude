@@ -253,6 +253,9 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc />
+		public IJsonFragment DeepClone() { return new JsonFragment(JsonToken.DeepClone()); }
+
+		/// <inheritdoc />
 		public bool Equals(JsonFragment other)
 		{
 			if (ReferenceEquals(null, other)) return false;

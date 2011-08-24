@@ -24,7 +24,7 @@ using System.Web;
 
 namespace CouchDude
 {
-	/// <summary>Converts <see cref="LuceneQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
+	/// <summary>Converts <see cref="FullTextQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class LuceneQueryUriConverter : TypeConverter
 	{
 		/// <inheritdoc/>
@@ -40,10 +40,10 @@ namespace CouchDude
 			ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
 			if (destinationType == typeof (string))
-				return ToUriString((LuceneQuery)value);
+				return ToUriString((FullTextQuery)value);
 			else if (destinationType == typeof (Uri))
 			{
-				var uriString = ToUriString((LuceneQuery)value);
+				var uriString = ToUriString((FullTextQuery)value);
 				Uri uri;
 				return Uri.TryCreate(uriString, UriKind.Relative, out uri) ? uri : null;
 			}
@@ -51,7 +51,7 @@ namespace CouchDude
 				return base.ConvertTo(context, culture, value, destinationType);
 		}
 
-		internal static string ToUriString(LuceneQuery viewQuery)
+		internal static string ToUriString(FullTextQuery viewQuery)
 		{
 			var uriBuilder = new StringBuilder();
 			uriBuilder.Append("_fti/_design/" + viewQuery.DesignDocumentName + "/");

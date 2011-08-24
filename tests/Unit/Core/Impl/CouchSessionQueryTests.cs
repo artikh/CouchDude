@@ -1,4 +1,5 @@
 #region Licence Info 
+
 /*
 	Copyright 2011 · Artem Tikhomirov																					
 																																					
@@ -14,20 +15,20 @@
 	See the License for the specific language governing permissions and			
 	limitations under the License.																						
 */
+
 #endregion
 
 using System;
 using System.Linq;
-
 using CouchDude.Api;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
+using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit.Core.Impl
 {
-
 	public class CouchSessionQueryTests
 	{
 		[Fact]
@@ -39,62 +40,62 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			couchApiMock
 				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(ViewQuery query) =>
-					{
+					(ViewQuery query) => {
 						sendQuery = query;
 						return new ViewResult(
-							new []{
+							new[] {
 								new ViewResultRow(
-									SimpleEntity.StandardEntityId.ToJsonFragment(), 
-									new { rev = SimpleEntity.StandardRevision}.ToJsonFragment(),
-									SimpleEntity.StandardEntityId,
-									SimpleEntity.DocWithRevision
-								)
+									Entity.StandardDocId.ToJsonFragment(),
+									new {rev = Entity.StandardRevision}.ToJsonFragment(),
+									Entity.StandardDocId,
+									Entity.CreateDocWithRevision()
+									)
 							},
 							1,
 							offset: 0,
 							query: query
-						).ToTask<IPagedList<ViewResultRow>>();
+							).ToTask<IPagedList<ViewResultRow>>();
 					});
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			var viewQuery = new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true };
+			var viewQuery = new ViewQuery<Entity> {ViewName = "_all_docs", IncludeDocs = true};
 			session.Synchronously.Query(viewQuery);
 
 			Assert.Same(sendQuery, viewQuery);
 		}
-		
+
 		[Fact]
 		public void ShouldBindDocumentsCorrectly()
 		{
-			var entity = SimpleEntity.CreateStd();
+			Entity entity = Entity.CreateStandard();
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
 				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					query => new ViewResult(
-						new [] {
+						new[] {
 							new ViewResultRow(
-								SimpleEntity.StandardEntityId.ToJsonFragment(),
-								new { rev = SimpleEntity.StandardRevision }.ToJsonFragment(),
-								SimpleEntity.StandardEntityId,
-								SimpleEntity.DocWithRevision
-							)
+								Entity.StandardDocId.ToJsonFragment(),
+								new {rev = Entity.StandardRevision}.ToJsonFragment(),
+								Entity.StandardDocId,
+								Entity.CreateDocWithRevision()
+								)
 						},
 						totalRowCount: 1,
 						offset: 0,
 						query: query
-					).ToTask<IPagedList<ViewResultRow>>()
-			);
+						).ToTask<IPagedList<ViewResultRow>>()
+				);
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
-			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
+			IPagedList<Entity> queryResult =
+				session.Synchronously.Query(new ViewQuery<Entity> {ViewName = "_all_docs", IncludeDocs = true});
 
-			var firstRow = queryResult.First();
+			Entity firstRow = queryResult.First();
 			Assert.NotNull(firstRow);
-			Assert.Equal(SimpleEntity.StandardEntityId, firstRow.Id);
-			Assert.Equal(SimpleEntity.StandardRevision, firstRow.Revision);
+			Assert.Equal(Entity.StandardEntityId, firstRow.Id);
+			Assert.Equal(Entity.StandardRevision, firstRow.Revision);
 			Assert.Equal(entity.Age, firstRow.Age);
 			Assert.Equal(entity.Date, firstRow.Date);
 			Assert.Equal(entity.Name, firstRow.Name);
@@ -104,14 +105,17 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldThrowQueryExceptionIfNoIncludeDocsOptionAndEntityTypeParameter()
 		{
 			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
-			Assert.Throws<QueryException>(() => session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs" }));
+			Assert.Throws<QueryException>(
+				() => session.Synchronously.Query(new ViewQuery<Entity> {ViewName = "_all_docs"}));
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullQuery()
 		{
 			Assert.Throws<ArgumentNullException>(
-				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Query<SimpleEntity>(query: null));
+				() =>
+					new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Query<Entity>(
+						query: null));
 		}
 
 		[Fact]
@@ -120,35 +124,37 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-					new ViewResult(
-						new[] { 
-							new ViewResultRow (
-								new object[] {"key1", 0}.ToJsonFragment(),
-								new {
-									Title = "Object title",
-									Subject = "some"
-								}.ToJsonFragment(),
-								SimpleEntity.StandardDocId,
-								SimpleEntity.DocWithRevision
-							)
-						},
-						totalRowCount: 1,
-						offset: 0,
-						query: q
-					).ToTask<IPagedList<ViewResultRow>>()
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									new {
+										Title = "Object title",
+										Subject = "some"
+									}.ToJsonFragment(),
+									Entity.StandardDocId,
+									Entity.CreateDocWithRevision()
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true });
+			IPagedList<Entity> queryResult =
+				session.Synchronously.Query(new ViewQuery<Entity> {IncludeDocs = true});
 
 			Assert.NotNull(queryResult);
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.TotalRowCount);
 
-			var row = queryResult.First();
+			Entity row = queryResult.First();
 			Assert.NotNull(row);
-			Assert.Equal(SimpleEntity.StandardEntityId, row.Id);
-			Assert.Equal(SimpleEntity.StandardRevision, row.Revision);
+			Assert.Equal(Entity.StandardEntityId, row.Id);
+			Assert.Equal(Entity.StandardRevision, row.Revision);
 		}
 
 		[Fact]
@@ -157,25 +163,27 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-					new ViewResult(
-						new[] { 
-							new ViewResultRow (
-								new object[] {"key1", 0}.ToJsonFragment(),
-								null,
-								SimpleEntity.StandardDocId,
-								SimpleEntity.DocWithRevision
-							)
-						},
-						totalRowCount: 1,
-						offset: 0,
-						query: q
-					).ToTask<IPagedList<ViewResultRow>>()
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									null,
+									Entity.StandardDocId,
+									Entity.CreateDocWithRevision()
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
-			var queriedEntity = session.Synchronously.Query(new ViewQuery<SimpleEntity> { IncludeDocs = true }).First();
-			var loadedEntity = session.Synchronously.Load<SimpleEntity>(SimpleEntity.StandardEntityId);
+			Entity queriedEntity =
+				session.Synchronously.Query(new ViewQuery<Entity> {IncludeDocs = true}).First();
+			var loadedEntity = session.Synchronously.Load<Entity>(Entity.StandardEntityId);
 			Assert.Same(queriedEntity, loadedEntity);
 		}
 
@@ -185,23 +193,62 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-					new ViewResult(
-						new[] { 
-							new ViewResultRow (
-								new object[] {"key1", 0}.ToJsonFragment(),
-								new { Title = "Object title", Subject = "some" }.ToJsonFragment(),
-								null,
-								null
-							)
-						},
-						totalRowCount: 1,
-						offset: 0,
-						query: q
-					).ToTask<IPagedList<ViewResultRow>>()
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+									null,
+									null
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleEntity> {IncludeDocs = true});
+			IPagedList<Entity> queryResult =
+				session.Synchronously.Query(new ViewQuery<Entity> {IncludeDocs = true});
+
+			Assert.Equal(1, queryResult.RowCount);
+			Assert.Equal(1, queryResult.Count());
+			Assert.Null(queryResult.First());
+		}
+
+		[Theory]
+		[InlineData(@"{}")]
+		[InlineData(@"{""_id"": ""entity.doc1""}")]
+		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7""}")]
+		[InlineData(@"{""_id"": ""entity.doc1"", ""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7""}")]
+		[InlineData(@"{""_id"": ""entity.doc1"", ""type"": ""entity""}")]
+		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7"", ""type"": ""entity""}")]
+		public void ShouldNotFailOnIncorrectDocumentFromCouchDb(string docString)
+		{
+			var couchApi = new Mock<ICouchApi>();
+			couchApi
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+									Entity.StandardDocId,
+									new Document(docString)
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
+				);
+			var session = new CouchSession(Default.Settings, couchApi.Object);
+			IPagedList<Entity> queryResult =
+				session.Synchronously.Query(new ViewQuery<Entity> {IncludeDocs = true});
 
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.Count());
@@ -214,23 +261,24 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-					new ViewResult(
-						new[] { 
-							new ViewResultRow (
-								new object[] {"key1", 0}.ToJsonFragment(),
-								null,
-								SimpleEntity.StandardDocId,
-								SimpleEntity.DocWithRevision
-							)
-						},
-						totalRowCount: 1,
-						offset: 0,
-						query: q
-					).ToTask<IPagedList<ViewResultRow>>()
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									null,
+									Entity.StandardDocId,
+									Entity.CreateDocWithRevision()
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleViewData>());
+			IPagedList<ViewData> queryResult = session.Synchronously.Query(new ViewQuery<ViewData>());
 
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.Count());
@@ -243,29 +291,30 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(q =>
-					new ViewResult(
-						new[] { 
-							new ViewResultRow (
-								new object[] {"key1", 0}.ToJsonFragment(),
-								new { Title = "Object title", Subject = "some" }.ToJsonFragment(),
-								SimpleEntity.StandardDocId,
-								SimpleEntity.DocWithRevision
-							)
-						},
-						totalRowCount: 1,
-						offset: 0,
-						query: q
-					).ToTask<IPagedList<ViewResultRow>>()
+				.Returns<ViewQuery>(
+					q =>
+						new ViewResult(
+							new[] {
+								new ViewResultRow(
+									new object[] {"key1", 0}.ToJsonFragment(),
+									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+									Entity.StandardDocId,
+									Entity.CreateDocWithRevision()
+									)
+							},
+							totalRowCount: 1,
+							offset: 0,
+							query: q
+							).ToTask<IPagedList<ViewResultRow>>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
-			var queryResult = session.Synchronously.Query(new ViewQuery<SimpleViewData>());
+			IPagedList<ViewData> queryResult = session.Synchronously.Query(new ViewQuery<ViewData>());
 
 			Assert.NotNull(queryResult);
 			Assert.Equal(1, queryResult.RowCount);
 			Assert.Equal(1, queryResult.TotalRowCount);
 
-			var row = queryResult.First();
+			ViewData row = queryResult.First();
 			Assert.NotNull(row);
 			Assert.Equal("Object title", row.Title);
 		}

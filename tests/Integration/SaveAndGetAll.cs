@@ -32,14 +32,14 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = new CouchSessionFactory(Default.Settings);
 
-			var entityA = new SimpleEntity
+			var entityA = new Entity
 			{
 				Name = "John Smith",
 				Age = 42,
 				Date = DateTime.Now
 			};
 
-			var entityB = new SimpleEntity
+			var entityB = new Entity
 			{
 				Name = "Stas Girkin",
 				Age = 42,
@@ -50,11 +50,12 @@ namespace CouchDude.Tests.Integration
 			{
 				session.Save(entityA);
 				session.Save(entityB);
+				session.SaveChanges();
 			}
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.Query(new ViewQuery<SimpleEntity> { ViewName = "_all_docs", IncludeDocs = true });
+				var result = session.Synchronously.Query(new ViewQuery<Entity> { ViewName = "_all_docs", IncludeDocs = true });
 				Assert.True(result.RowCount >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);
@@ -77,6 +78,7 @@ namespace CouchDude.Tests.Integration
 			{
 				session.Delete(entityA);
 				session.Delete(entityB);
+				session.SaveChanges();
 			}
 		}
 	}

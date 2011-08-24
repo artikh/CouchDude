@@ -88,8 +88,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldSerializeSpecialPropertiesFirst()
 		{
-			var document = Document.Serialize(SimpleEntity.CreateStd(), Default.Settings.GetConfig(typeof (SimpleEntity)));
-			Assert.Equal(SimpleEntity.DocWithRevision, document);
+			var document = Document.Serialize(Entity.CreateStandard(), Default.Settings.GetConfig(typeof (Entity)));
+			Assert.Equal(Entity.CreateDocWithRevision(), document);
 		}
 		
 		[Fact]
@@ -196,7 +196,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			entity = new User();
 			config = MockEntityConfig(
 				documentType: "simpleEntity",
-				entityType: typeof(SimpleEntity)
+				entityType: typeof(Entity)
 			);
 			Assert.Throws<InvalidOperationException>(() => Document.Serialize(entity, config));
 		}
