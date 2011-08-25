@@ -37,13 +37,5 @@ namespace CouchDude.Configuration.Builders
 			Predicates.Add(t => t == entityType);
 			AssembliesToScan.Add(entityType.Assembly);
 		}
-
-		/// <summary>Registers custom <see cref="IEntityConfig"/> factory and returs user to parent builder.</summary>
-		/// <remarks>This discards all previous <see cref="IEntityConfig"/> settings.</remarks>
-		public SettingsBuilder WithCustomConfig(Func<Type, IEntityConfig> configFactory)
-		{
-			RegisterNewScanDescriptor(configFactory);
-			return Parent;
-		}
 	}
 }

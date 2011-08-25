@@ -19,9 +19,11 @@
 using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
-
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 using CouchDude.Api;
 
@@ -30,6 +32,32 @@ namespace CouchDude
 	/// <summary>Converts <see cref="ViewQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class ViewQueryUriConverter: TypeConverter
 	{
+		private static readonly string[] SpecialViewNames = new[] { "_all_docs" };
+
+		/// <inheritdoc/>
+		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+		{
+			if (sourceType == typeof(string) || sourceType == typeof(Uri))
+				return true;
+			return base.CanConvertFrom(context, sourceType);
+		}
+
+		/// <inheritdoc/>
+		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+		{
+			var uri = value as Uri;
+			if (uri == null)
+			{
+				var uriString = value as string;
+				if (uriString != null)
+					Uri.TryCreate(uriString, UriKind.RelativeOrAbsolute, out uri);
+			}
+			if (uri != null)
+				return FromUri(uri);
+
+			return base.ConvertFrom(context, culture, value);
+		}
+
 		/// <inheritdoc/>
 		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
 		{
@@ -39,7 +67,7 @@ namespace CouchDude
 		}
 
 		/// <inheritdoc/>
-		public override object ConvertTo(ITypeDescriptorContext context, System.Globalization.CultureInfo culture, object value, Type destinationType)
+		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
 			if (destinationType == typeof(string))
 				return ToUriString((ViewQuery)value);
@@ -53,6 +81,123 @@ namespace CouchDude
 				return base.ConvertTo(context, culture, value, destinationType);
 		}
 
+		private static ViewQuery FromUri(Uri uri)
+		{
+			if (uri.IsAbsoluteUri) return null;
+
+			var viewQuery = new ViewQuery();
+
+			var match = Regex.Match(
+				uri.ToString(), "^(?:(?<specialView>_all_docs)|_design/(?<designDocName>.*?)/_view/(?<viewName>.*?))(?:\\?(?<queryString>.*))?$");
+			if(match.Success)
+			{
+				var specialViewGroup = match.Groups["specialView"];
+				if (specialViewGroup.Success)
+					viewQuery.ViewName = specialViewGroup.Value;
+				else
+				{
+					viewQuery.DesignDocumentName = match.Groups["designDocName"].Value;
+					viewQuery.ViewName = match.Groups["viewName"].Value;
+				}
+
+				var queryStringGroup = match.Groups["queryString"];
+				if(queryStringGroup.Success)
+				{
+					var queryString = queryStringGroup.Value;
+					ParseQueryString(viewQuery, queryString);
+				}
+
+				return viewQuery;
+			}
+			
+			return null;
+		}
+
+		private static dynamic TryParseKey(string keyString)
+		{
+			try
+			{
+				return new JsonFragment(keyString);
+			}
+			catch
+			{
+				return null;
+			}
+		}
+
+		private static int? TryParseInt(string intString)
+		{
+			int limit;
+			return int.TryParse(intString, NumberStyles.Integer, CultureInfo.InvariantCulture, out limit)
+				? limit
+				: (int?)null;
+		}
+		
+		private static void ParseQueryString(ViewQuery viewQuery, string queryString)
+		{
+			var values = HttpUtility.ParseQueryString(queryString);
+			foreach (string key in values)
+			{
+				var value = values[key];
+				switch (key)
+				{
+					case "key":
+						viewQuery.Key = TryParseKey(value);
+						break;
+					case "startkey":
+						viewQuery.StartKey = TryParseKey(value);
+						break;
+					case "startkey_docid":
+						viewQuery.StartDocumentId = value;
+						break;
+					case "endkey":
+						viewQuery.EndKey = TryParseKey(value);
+						break;
+					case "endkey_docid":
+						viewQuery.EndDocumentId = value;
+						break;
+					case "limit":
+						viewQuery.Limit = TryParseInt(value);
+						break;
+					case "skip":
+						viewQuery.Skip = TryParseInt(value);
+						break;
+					case "stale":
+						if (value == "update_after")
+						{
+							viewQuery.UpdateIfStale = true;
+							viewQuery.StaleViewIsOk = true;
+						}
+						else if (value == "ok") 
+							viewQuery.StaleViewIsOk = true;
+						break;
+					case "descending":
+						if (value == "true") 
+							viewQuery.FetchDescending = true;
+						break;
+					case "reduce":
+						if (value == "false")
+							viewQuery.SuppressReduce = true;
+						break;
+					case "include_docs":
+						if (value == "true")
+							viewQuery.IncludeDocs = true;
+						break;
+					case "inclusive_end":
+						if (value == "false")
+							viewQuery.DoNotIncludeEndKey = true;
+						break;
+					case "group":
+						if (value == "true")
+							viewQuery.Group = true;
+						break;
+					case "group_level":
+						viewQuery.GroupLevel = TryParseInt(value);
+						break;
+				}
+			}
+		}
+
 		internal static string ToUriString(ViewQuery viewQuery)
 		{
 			// http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options
@@ -64,8 +209,7 @@ namespace CouchDude
 			uriBuilder.AddIfNotNull    (viewQuery.EndDocumentId,      "endkey_docid"           );
 			uriBuilder.AddIfHasValue   (viewQuery.Limit,              "limit"                  );
 			uriBuilder.AddIfHasValue   (viewQuery.Skip,               "skip"                   );
-			uriBuilder.AddIfTrue       (viewQuery.StaleViewIsOk,      "stale",         "ok"    );
-			uriBuilder.AddIfTrue       (viewQuery.UpdateIfStale,      "update_after",  "ok"    );
+			uriBuilder.AddIfTrue       (viewQuery.StaleViewIsOk,      "stale",					viewQuery.UpdateIfStale? "update_after": "ok"    );
 			uriBuilder.AddIfTrue       (viewQuery.FetchDescending,    "descending",    "true"  );
 			uriBuilder.AddIfTrue       (viewQuery.SuppressReduce,     "reduce",        "false" );
 			uriBuilder.AddIfTrue       (viewQuery.IncludeDocs,        "include_docs",  "true"  );
@@ -77,15 +221,13 @@ namespace CouchDude
 
 		private class ViewUriBuilder
 		{
-			private static readonly string[] SpecialViewNames = new[] { "_all_docs" }; 
-
 			private readonly NameValueCollection querySring = new NameValueCollection();
 			private readonly string designDocumentName;
 			private readonly string viewName;
 
 			public ViewUriBuilder(string designDocumentName, string viewName)
 			{
-				if(string.IsNullOrEmpty(viewName))
+				if(String.IsNullOrEmpty(viewName))
 					throw new QueryException("View name is required.");
 				if (designDocumentName == null && !SpecialViewNames.Contains(viewName))
 					throw new QueryException("Querying view {0} requires design document name to be specified.", viewName);
@@ -104,7 +246,10 @@ namespace CouchDude
 			public void AddIfNotNull(object value, string key)
 			{
 				if (value != null)
-					querySring[key] = JsonFragment.Serialize(value).ToString();
+				{
+					var jsonFragment = value as IJsonFragment ?? JsonFragment.Serialize(value);
+					querySring[key] = jsonFragment.ToString();
+				}
 			}
 
 			public void AddIfHasValue<TValue>(TValue? value, string key) where TValue: struct 
@@ -122,7 +267,7 @@ namespace CouchDude
 			public string ToUri()
 			{
 				var uri = new StringBuilder();
-				if (!string.IsNullOrEmpty(designDocumentName))
+				if (!String.IsNullOrEmpty(designDocumentName))
 					uri.Append("_design/").Append(designDocumentName).Append("/_view/");
 				uri.Append(viewName);
 
@@ -133,7 +278,7 @@ namespace CouchDude
 				{
 					var stringValue = querySring[key];
 					uri.Append(key);
-					if (!string.IsNullOrEmpty(stringValue))
+					if (!String.IsNullOrEmpty(stringValue))
 						uri.Append("=").Append(HttpUtility.UrlEncode(stringValue));
 					uri.Append("&");
 				}

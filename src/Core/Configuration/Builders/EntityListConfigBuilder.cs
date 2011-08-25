@@ -19,7 +19,6 @@
 using System;
 
 using System.Reflection;
-using CouchDude.Configuration;
 
 namespace CouchDude.Configuration.Builders
 {
@@ -85,14 +84,6 @@ namespace CouchDude.Configuration.Builders
 
 			Predicates.Add(predicate);
 			return (TSelf) this;
-		}
-
-		/// <summary>Registers custom <see cref="IEntityConfig"/> factory and returs user to parent builder.</summary>
-		/// <remarks>This discards all previous <see cref="IEntityConfig"/> settings.</remarks>
-		public SettingsBuilder WithCustomConfig(Func<Type, IEntityConfig> configFactory)
-		{
-			RegisterNewScanDescriptor(configFactory);
-			return Parent;
 		}
 	}
 }

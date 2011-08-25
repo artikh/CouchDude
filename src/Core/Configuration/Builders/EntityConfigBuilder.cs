@@ -33,10 +33,11 @@ namespace CouchDude.Configuration.Builders
 		protected ISet<Assembly> AssembliesToScan = new HashSet<Assembly>();
 
 		private EntityTypeToDocumentTypeConvention entityTypeToDocumentType;
-		private Func<Type, MemberInfo> idMemberInfoLookup;
-		private Func<Type, MemberInfo> revisionMemberInfoLookup = _ => null;
-		private DocumentIdToEntityIdConvention documentIdToEntityId;
+		private Func<Type, MemberInfo>             idMemberInfoLookup;
+		private Func<Type, MemberInfo>             revisionMemberInfoLookup = _ => null;
+		private DocumentIdToEntityIdConvention     documentIdToEntityId;
 		private EntityIdToDocumentIdConvention entityIdToDocumentId;
+		private Func<Type, IEntityConfig> customConfigFactory;
 
 		/// <constructor />
 		public EntityConfigBuilder(SettingsBuilder parent): base(parent) { }
@@ -82,38 +83,33 @@ namespace CouchDude.Configuration.Builders
 			return (TSelf) this;
 		}
 
+		/// <summary>Registers custom <see cref="IEntityConfig"/> factory and returs user to parent builder.</summary>
+		/// <remarks>This discards all previous <see cref="IEntityConfig"/> settings.</remarks>
+		public TSelf WithCustomConfig(Func<Type, IEntityConfig> customConfigFactory)
+		{
+			this.customConfigFactory = customConfigFactory;
+			return (TSelf)this;
+		}
+
 		/// <inheritdoc/>
 		protected override void Flush()
 		{
-			RegisterNewScanDescriptor(CreateEntityConfig);
-		}
-
-		private IEntityConfig CreateEntityConfig(Type entityType)
-		{
-			PropertyOrPubilcFieldSpecialMember idMember;
-			if (idMemberInfoLookup != null)
-			{
-				var idMemberInfo = idMemberInfoLookup(entityType);
-				if (idMemberInfo == null)
-					throw new ConfigurationException("ID member lookup convention returned null for {0}", entityType);
-				idMember = new PropertyOrPubilcFieldSpecialMember(entityType, idMemberInfo);
-			}
-			else
-				idMember = null;
-
-			var revisionMemberInfo = revisionMemberInfoLookup(entityType);
-			var revisionMember = revisionMemberInfo == null? null: new PropertyOrPubilcFieldSpecialMember(entityType, revisionMemberInfo);
-
-			return new EntityConfig(entityType, entityTypeToDocumentType, idMember, revisionMember, documentIdToEntityId, entityIdToDocumentId);
-		}
-
-		/// <summary>Saves current state as <see cref="ScanDescriptor"/> to parent builder.</summary>
-		protected void RegisterNewScanDescriptor(Func<Type, IEntityConfig> configFactory)
-		{
 			var scanDescriptor = new ScanDescriptor(
-				type => Predicates.All(p => p(type)), configFactory);
+				type => Predicates.All(p => p(type)), CreateEntityConfigSettings());
 			foreach (var assembly in AssembliesToScan)
 				Parent.RegisterScanDescriptor(assembly, scanDescriptor);
+		}
+
+		internal virtual EntityConfigSettings CreateEntityConfigSettings()
+		{
+			return new EntityConfigSettings {
+				EntityTypeToDocumentType	= entityTypeToDocumentType,
+				IDMemberInfoLookup	= idMemberInfoLookup,
+				RevisionMemberInfoLookup	= revisionMemberInfoLookup,
+				DocumentIdToEntityId	= documentIdToEntityId,
+				EntityIdToDocumentId	= entityIdToDocumentId,
+				CustomEntityConfigFactory = customConfigFactory
+			};
 		}
 	}
 }

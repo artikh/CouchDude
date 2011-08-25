@@ -56,10 +56,10 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.Implementing<IEntity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
-			Assert.NotNull(simpleEntityConfig);
+			Assert.NotNull(entityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
 		}
 
@@ -73,10 +73,10 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.InheritedFrom<Entity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
-			Assert.NotNull(simpleEntityConfig);
+			Assert.NotNull(entityConfig);
 			Assert.Null(simpleEntityWithoutRevisionConfig);
 		}
 
@@ -88,10 +88,10 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				.MappingEntitiy<Entity>()
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 			
-			Assert.NotNull(simpleEntityConfig);
+			Assert.NotNull(entityConfig);
 			Assert.Null(simpleEntityWithoutRevisionConfig);
 		}
 
@@ -105,10 +105,10 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.Where(t => t.Name.StartsWith("Entity"))
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 
-			Assert.NotNull(simpleEntityConfig);
+			Assert.NotNull(entityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
 		}
 
@@ -122,10 +122,10 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.Where(t => t.GetInterfaces().Any(i => i.Name == "IEntity"))
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntityWithoutRevisionConfig = settings.TryGetConfig(typeof(EntityWithoutRevision));
 
-			Assert.NotNull(simpleEntityConfig);
+			Assert.NotNull(entityConfig);
 			Assert.NotNull(simpleEntityWithoutRevisionConfig);
 		}
 
@@ -143,9 +143,9 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .WithCustomConfig(t => customConfig)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 
-			Assert.Same(customConfig, simpleEntityConfig);
+			Assert.Same(customConfig, entityConfig);
 		}
 
 		[Fact]
@@ -159,8 +159,8 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .WhenDocumentType(t => "_" + Char.ToLower(t.Name[0]) + t.Name.Substring(1))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
-			Assert.Equal("_entity", simpleEntityConfig.DocumentType);
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
+			Assert.Equal("_entity", entityConfig.DocumentType);
 		}
 
 		[Fact]
@@ -174,8 +174,8 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .TranslatingEntityIdToDocumentIdAs((entityId, entityType, documentType) => "Entity#" + entityId)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
-			Assert.Equal("Entity#42", simpleEntityConfig.ConvertEntityIdToDocumentId("42"));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
+			Assert.Equal("Entity#42", entityConfig.ConvertEntityIdToDocumentId("42"));
 		}
 
 		[Fact]
@@ -189,8 +189,8 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .TranslatingDocumentIdToEntityIdAs((documentId, documentType, entityType) => "Document#" + documentId)
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
-			Assert.Equal("Document#42", simpleEntityConfig.ConvertDocumentIdToEntityId("42"));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
+			Assert.Equal("Document#42", entityConfig.ConvertDocumentIdToEntityId("42"));
 		}
 
 		[Fact]
@@ -204,12 +204,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .WhenIdMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntity = new Entity {Name = "Alex"};
 
-			Assert.True(simpleEntityConfig.IsIdMemberPresent);
-			Assert.Equal("Alex", simpleEntityConfig.GetId(simpleEntity));
-			simpleEntityConfig.SetId(simpleEntity, "John");
+			Assert.True(entityConfig.IsIdMemberPresent);
+			Assert.Equal("Alex", entityConfig.GetId(simpleEntity));
+			entityConfig.SetId(simpleEntity, "John");
 			Assert.Equal("John", simpleEntity.Name);
 		}
 
@@ -264,12 +264,12 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					 .WhenRevisionMember(entityType => (MemberInfo)entityType.GetProperty("Name"))
 				 .CreateSettings();
 
-			var simpleEntityConfig = settings.TryGetConfig(typeof(Entity));
+			var entityConfig = settings.TryGetConfig(typeof(Entity));
 			var simpleEntity = new Entity { Name = "Alex" };
 
-			Assert.True(simpleEntityConfig.IsRevisionPresent);
-			Assert.Equal("Alex", simpleEntityConfig.GetRevision(simpleEntity));
-			simpleEntityConfig.SetRevision(simpleEntity, "John");
+			Assert.True(entityConfig.IsRevisionPresent);
+			Assert.Equal("Alex", entityConfig.GetRevision(simpleEntity));
+			entityConfig.SetRevision(simpleEntity, "John");
 			Assert.Equal("John", simpleEntity.Name);
 		}
 
@@ -333,8 +333,38 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 					.WithCustomConfig(t => customConfigB)
 				.CreateSettings();
 
-			var simpleEntityConfig = settings.GetConfig(typeof (Entity));
-			Assert.Same(customConfigB, simpleEntityConfig);
+			var entityConfig = settings.GetConfig(typeof (Entity));
+			Assert.Same(customConfigB, entityConfig);
+		}
+
+		[Fact]
+		public void ShouldSemiInheritAspectsOfConfigurationFromPreviousDeclaration()
+		{
+			var settings = ConfigureCouchDude.With()
+				.ServerUri("http://example.com").DatabaseName("db1")
+				.MappingEntities()
+					.FromAssembly("CouchDude.Tests")
+					.Implementing<IEntity>()
+					.WhenDocumentType(t => "__" + t.Name.ToLower())
+				.MappingEntities()
+					.FromAssembly("CouchDude.Tests")
+					.Where(t => t.Name.StartsWith("Entity"))
+					.WhenDocumentType(t => "__" + t.Name.ToLower() + "[{}]")
+				.MappingEntities()
+					.FromAssemblyOf<Entity>()
+					.Where(t => t.Name == "Entity")
+					.WhenIdMember(t => t.GetProperty("Name"))
+				.MappingEntities()
+					.FromAssembly("CouchDude.Tests")
+					.InheritedFrom<Entity>()
+					.WhenRevisionMember(t => t.GetProperty("Id"))
+				.CreateSettings();
+
+			var entityConfig = settings.GetConfig(typeof (Entity));
+
+			Assert.Equal("__entity[{}]", entityConfig.DocumentType);
+			Assert.Equal("e0b8400a23158b046a", entityConfig.GetId(new Entity { Name = "e0b8400a23158b046a" }));
+			Assert.Equal("4a227e99a2de41689", entityConfig.GetRevision(new Entity { Id = "4a227e99a2de41689" }));
 		}
 	}
 }

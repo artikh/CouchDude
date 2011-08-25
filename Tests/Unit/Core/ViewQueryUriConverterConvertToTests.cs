@@ -17,12 +17,12 @@
 #endregion
 
 using System.ComponentModel;
-
+using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core
 {
-	public class ViewQueryUriConverterTests
+	public class ViewQueryUriConverterConvertToTests
 	{
 		private static string ConvertToString(ViewQuery viewQuery)
 		{
@@ -42,6 +42,33 @@ namespace CouchDude.Tests.Unit.Core
 					ViewName = "pointOfView",
 					StartKey = new object[]{ "first key", 0 },
 					EndKey = new object[]{ "second key", 9 }
+				})
+			);
+		}
+
+		[Fact]
+		public void ShouldCorrectlyGenerateKeyRangeUriIfRangeKeysAreJsonFragments()
+		{
+			Assert.Equal(
+				"_design/dd/_view/pointOfView?startkey=%5b%22first+key%22%2c0%5d&endkey=%5b%22second+key%22%2c9%5d",
+				ConvertToString(new ViewQuery {
+					DesignDocumentName = "dd",
+					ViewName = "pointOfView",
+					StartKey = new JsonFragment("[\"first key\",0]"),
+					EndKey = new JsonFragment("[\"second key\",9]")
+				})
+			);
+		}
+
+		[Fact]
+		public void ShouldCorrectlyGenerateKeySingleKeyUriIfKeyIsJsonFragment()
+		{
+			Assert.Equal(
+				"_design/dd/_view/pointOfView?key=%5b%22key%22%2c0%5d",
+				ConvertToString(new ViewQuery {
+					DesignDocumentName = "dd",
+					ViewName = "pointOfView",
+					Key = new JsonFragment("[\"key\",0]")
 				})
 			);
 		}
@@ -69,6 +96,35 @@ namespace CouchDude.Tests.Unit.Core
 					ViewName = "pointOfView",
 					Key = "key",
 					IncludeDocs = true
+				})
+			);
+		}
+
+		[Fact]
+		public void ShouldEmitStaleOk()
+		{
+			Assert.Equal(
+				"_design/dd/_view/pointOfView?key=%22key%22&stale=ok",
+				ConvertToString(new ViewQuery {
+					DesignDocumentName = "dd",
+					ViewName = "pointOfView",
+					Key = "key",
+					StaleViewIsOk = true
+				})
+			);
+		}
+
+		[Fact]
+		public void ShouldEmitStaleOkUpdateAfter()
+		{
+			Assert.Equal(
+				"_design/dd/_view/pointOfView?key=%22key%22&stale=update_after",
+				ConvertToString(new ViewQuery {
+					DesignDocumentName = "dd",
+					ViewName = "pointOfView",
+					Key = "key",
+					StaleViewIsOk = true,
+					UpdateIfStale = true
 				})
 			);
 		}

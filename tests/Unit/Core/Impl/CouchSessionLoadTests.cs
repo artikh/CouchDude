@@ -75,7 +75,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldLoadDataCorrectlyIfNoRevisionPropertyFound()
 		{
 			var couchApi = Mock.Of<ICouchApi>(
-				api => api.RequestDocumentById(It.IsAny<string>()) == EntityWithoutRevision.DocWithRevision.ToTask()
+				api => api.RequestDocumentById(It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
 			);
 
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Synchronously.Load<EntityWithoutRevision>("doc1");

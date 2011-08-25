@@ -62,7 +62,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnDocumentRevisionIfThereIsNoRevisionPropertyOnDocument()
 		{
 			var documentEntity = DocumentEntity.FromDocument(
-				EntityWithoutRevision.DocWithRevision, Default.Settings);
+				EntityWithoutRevision.CreateDocumentWithRevision(), Default.Settings);
 			documentEntity.DoMap();
 
 			Assert.Equal(EntityWithoutRevision.StandardRevision, documentEntity.Revision);
@@ -72,7 +72,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnDocumentRevisionIfThereIsNoEntityCreatedYet()
 		{
 			var documentEntity = DocumentEntity.FromDocument(
-				EntityWithoutRevision.DocWithRevision, Default.Settings);
+				EntityWithoutRevision.CreateDocumentWithRevision(), Default.Settings);
 
 			Assert.Equal(EntityWithoutRevision.StandardRevision, documentEntity.Revision);
 		}

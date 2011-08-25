@@ -19,7 +19,6 @@
 using System;
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Tests.SampleData
 {
@@ -32,16 +31,6 @@ namespace CouchDude.Tests.SampleData
 
 		public static DocumentInfo OkResponse = new DocumentInfo(StandardDocId, StandardRevision);
 
-		public static IDocument DocWithRevision = new
-		{
-			_id = StandardDocId,
-			_rev = StandardRevision,
-			type = DocType,
-			name = "John Smith",
-			age = 42,
-			date = "1959-04-10T00:00:00"
-		}.ToDocument();
-
 		public static EntityWithoutRevision CreateStandard()
 		{
 			return new EntityWithoutRevision
@@ -53,10 +42,25 @@ namespace CouchDude.Tests.SampleData
 				};
 		}
 
+		public static IDocument CreateDocumentWithRevision()
+		{
+			return new {
+				_id = StandardDocId,
+				_rev = StandardRevision,
+				type = DocType,
+				name = "John Smith",
+				age = 42,
+				date = "1959-04-10T00:00:00"
+			}.ToDocument();
+		}
+
 		[JsonIgnore]
 		public string Id { get; set; }
+
 		public string Name { get; set; }
+
 		public int Age { get; set; }
+
 		public DateTime Date { get; set; }
 	}
 }

@@ -76,7 +76,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					});
 			couchApiMock
 				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns(EntityWithoutRevision.DocWithRevision.ToTask());
+				.Returns(EntityWithoutRevision.CreateDocumentWithRevision().ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
 

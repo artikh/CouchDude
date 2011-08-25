@@ -17,19 +17,18 @@
 #endregion
 
 using System;
-using CouchDude.Configuration;
 
 namespace CouchDude.Configuration.Builders
 {
 	internal struct ScanDescriptor
 	{
 		public readonly Predicate<Type> Predicate;
-		public readonly Func<Type, IEntityConfig> ConfigFactory;
+		public readonly EntityConfigSettings EntityConfigSettings;
 
-		public ScanDescriptor(Predicate<Type> predicate, Func<Type, IEntityConfig> configFactory)
+		public ScanDescriptor(Predicate<Type> predicate, EntityConfigSettings entityConfigSettings)
 		{
 			Predicate = predicate;
-			ConfigFactory = configFactory;
+			EntityConfigSettings = entityConfigSettings;
 		}
 	}
 }

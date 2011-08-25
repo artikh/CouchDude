@@ -105,6 +105,7 @@
     <Compile Include="Api\FullTextSearchResultParser.cs" />
     <Compile Include="Api\RequestResultBase.cs" />
     <Compile Include="Api\ViewResultParser.cs" />
+    <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
     <Compile Include="Configuration\EntityConfig.cs" />
     <Compile Include="Configuration\EntityConfigUtils.cs" />

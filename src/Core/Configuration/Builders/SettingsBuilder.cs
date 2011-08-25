@@ -112,12 +112,20 @@ namespace CouchDude.Configuration.Builders
 				where globalEntityPredicate(type)
 				from descriptor in descriptors
 				where descriptor.Predicate(type)
-				let config = descriptor.ConfigFactory(type)
-				where config != null
-				group config by type;
+				let configSettings = descriptor.EntityConfigSettings
+				where configSettings != null
+				group configSettings by type;
 
-			foreach (var entityConfigGroup in entitySettingsToRegister)
-				settings.Register(entityConfigGroup.Last());
+			foreach (var configSettingsGroup in entitySettingsToRegister)
+			{
+				var configSettingsList = configSettingsGroup.Reverse().ToArray();
+				var configSettings = new EntityConfigSettings();
+				foreach (var setting in configSettingsList)
+					configSettings.Merge(setting);
+				var entityConfig = configSettings.Create(configSettingsGroup.Key);
+				if (entityConfig != null)
+					settings.Register(entityConfig);
+			}
 
 			if (settings.Incomplete)
 				throw new ConfigurationException("You shoud provide database name and server URL before creating settings.");

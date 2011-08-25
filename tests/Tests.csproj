@@ -94,6 +94,7 @@
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Core\Utils\ExceptionUtilsTests.cs" />
     <Compile Include="Unit\Core\Utils\TaskUtilsTasks.cs" />
+    <Compile Include="Unit\Core\ViewQueryUriConverterConvertFromTests.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentExtractorTest.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentTests.cs" />
@@ -127,7 +128,7 @@
     <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Unit\Core\ViewQueryUriConverterTests.cs" />
+    <Compile Include="Unit\Core\ViewQueryUriConverterConvertToTests.cs" />
     <Compile Include="Unit\Core\Configuration\SettingsBuilderTests.cs" />
     <Compile Include="Unit\Core\SettingsTests.cs" />
     <Compile Include="TestBase.cs" />

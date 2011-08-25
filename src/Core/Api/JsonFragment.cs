@@ -74,7 +74,6 @@ namespace CouchDude.Api
 		{
 			if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
 			
-
 			JToken jsonToken;
 			try
 			{
