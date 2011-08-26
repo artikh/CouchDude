@@ -18,13 +18,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace CouchDude
 {
 	/// <summary>Describes typed CouchDB view query.</summary>
 	public class ViewQuery<T> : ViewQuery, IQuery<ViewResultRow, T>
 	{
+		/// <summary>Restores view query from provided URI ignoring it if malformed.</summary>
+		public ViewQuery(Uri uri) : base(uri) {}
+
+		/// <summary>Restores view query from provided URI string ignoring it if malformed.</summary>
+		public ViewQuery(string uriString) : base(uriString) {}
+
+		/// <constructor />
+		public ViewQuery() {}
+
 		/// <summary>Processes raw query result producing meningfull results.</summary>
 		public Func<IEnumerable<ViewResultRow>, IEnumerable<T>> ProcessRows { get; set; }
 	}

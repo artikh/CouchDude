@@ -30,6 +30,6 @@ namespace CouchDude
 		int RowCount { get; }
 
 		/// <summary>First returned row in overall requested range offset.</summary>
-		int Offset { get; }
+		int Offset { get; } 
 	}
 }

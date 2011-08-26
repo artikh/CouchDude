@@ -26,6 +26,15 @@ namespace CouchDude
 	[TypeConverter(typeof(ViewQueryUriConverter))]
 	public class ViewQuery
 	{
+		/// <constructor />
+		public ViewQuery() {}
+
+		/// <summary>Restores view query from provided URI ignoring it if malformed.</summary>
+		public ViewQuery(Uri uri) { ViewQueryUriConverter.TryParse(uri, this); }
+
+		/// <summary>Restores view query from provided URI string ignoring it if malformed.</summary>
+		public ViewQuery(string uriString) { ViewQueryUriConverter.TryParse(uriString, this); }
+
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName { get; set; }
 
@@ -94,6 +103,36 @@ namespace CouchDude
 		public Uri ToUri()
 		{
 			return new Uri(ViewQueryUriConverter.ToUriString(this), UriKind.Relative);
+		}
+
+		/// <summary>Cretates copy of current clone.</summary>
+		public ViewQuery Clone()
+		{
+			// Kind of inefficient, but should suffice for now. Helps keep code clean.
+			return new ViewQuery(ToString());
+		}
+		
+		/// <summary>Compares current instance with provided for equality.</summary>
+		public bool Equals(ViewQuery otherViewQuery)
+		{
+			if (ReferenceEquals(otherViewQuery, null)) return false;
+			if (ReferenceEquals(otherViewQuery, this)) return true;
+
+			// Kind of inefficient, but should suffice for now. Helps keep code clean.
+			return ToString() == otherViewQuery.ToString();
+		}
+
+		/// <summary>Compares current instance with provided for equality.</summary>
+		public override bool Equals(object obj)
+		{
+			return Equals(obj as ViewQuery);
+		}
+
+		/// <summary>Computes hash code for current instance of query.</summary>
+		public override int GetHashCode()
+		{
+			// Kind of inefficient, but should suffice for now. Helps keep code clean.
+			return ToString().GetHashCode();
 		}
 	}
 }

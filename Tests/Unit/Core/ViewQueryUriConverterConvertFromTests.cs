@@ -18,9 +18,8 @@ namespace CouchDude.Tests.Unit.Core
 		[Fact]
 		public void ShouldConvertFromStringAndBack()
 		{
-			var testUri =
-					"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey" +
-						"&limit=42&skip=42&stale=update_after&descending=true&reduce=false&include_docs=true&inclusive_end=false&group=true&group_level=42";
+			const string testUri = "_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey" +
+				"&limit=42&skip=42&stale=update_after&descending=true&reduce=false&include_docs=true&inclusive_end=false&group=true&group_level=42";
 
 			var converter = TypeDescriptor.GetConverter(typeof(ViewQuery));
 			var viewQuery = (ViewQuery) converter.ConvertFrom(testUri);

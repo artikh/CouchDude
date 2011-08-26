@@ -20,7 +20,6 @@ using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,14 +45,12 @@ namespace CouchDude
 		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
 		{
 			var uri = value as Uri;
-			if (uri == null)
-			{
-				var uriString = value as string;
-				if (uriString != null)
-					Uri.TryCreate(uriString, UriKind.RelativeOrAbsolute, out uri);
-			}
 			if (uri != null)
-				return FromUri(uri);
+				return TryParse(uri);
+
+			var uriString = value as string;
+			if (uriString != null)
+				return TryParse(uriString);
 
 			return base.ConvertFrom(context, culture, value);
 		}
@@ -69,27 +66,43 @@ namespace CouchDude
 		/// <inheritdoc/>
 		public override object ConvertTo(ITypeDescriptorContext context, CultureInfo culture, object value, Type destinationType)
 		{
-			if (destinationType == typeof(string))
-				return ToUriString((ViewQuery)value);
-			else if (destinationType == typeof (Uri))
+			var viewQuery = value as ViewQuery;
+			if (viewQuery != null)
 			{
-				var uriString = ToUriString((ViewQuery)value);
-				Uri uri;
-				return Uri.TryCreate(uriString, UriKind.Relative, out uri)? uri: null;
+				if (destinationType == typeof (string))
+					return ToUriString(viewQuery);
+
+				if (destinationType == typeof (Uri))
+					return ToUriString(viewQuery);
 			}
-			else
-				return base.ConvertTo(context, culture, value, destinationType);
+			return base.ConvertTo(context, culture, value, destinationType);
 		}
 
-		private static ViewQuery FromUri(Uri uri)
+		internal static ViewQuery TryParse(string uriString)
 		{
-			if (uri.IsAbsoluteUri) return null;
+			Uri uri;
+			return Uri.TryCreate(uriString, UriKind.Relative, out uri) ? TryParse(uri): null;
+		}
 
+		internal static ViewQuery TryParse(Uri uri)
+		{
 			var viewQuery = new ViewQuery();
+			return TryParse(uri, viewQuery) ? viewQuery : null;
+		}
+
+		internal static bool TryParse(string uriString, ViewQuery viewQuery)
+		{
+			Uri uri;
+			return Uri.TryCreate(uriString, UriKind.Relative, out uri) && TryParse(uri, viewQuery);
+		}
+
+		internal static bool TryParse(Uri uri, ViewQuery viewQuery)
+		{
+			if (uri.IsAbsoluteUri) return false;
 
 			var match = Regex.Match(
 				uri.ToString(), "^(?:(?<specialView>_all_docs)|_design/(?<designDocName>.*?)/_view/(?<viewName>.*?))(?:\\?(?<queryString>.*))?$");
-			if(match.Success)
+			if (match.Success)
 			{
 				var specialViewGroup = match.Groups["specialView"];
 				if (specialViewGroup.Success)
@@ -101,16 +114,15 @@ namespace CouchDude
 				}
 
 				var queryStringGroup = match.Groups["queryString"];
-				if(queryStringGroup.Success)
+				if (queryStringGroup.Success)
 				{
 					var queryString = queryStringGroup.Value;
 					ParseQueryString(viewQuery, queryString);
 				}
 
-				return viewQuery;
+				return true;
 			}
-			
-			return null;
+			return false;
 		}
 
 		private static dynamic TryParseKey(string keyString)
@@ -198,25 +210,30 @@ namespace CouchDude
 			}
 		}
 
+		internal static Uri ToUri(ViewQuery viewQuery)
+		{
+			return new Uri(ToUriString(viewQuery), UriKind.Relative);
+		}
+
 		internal static string ToUriString(ViewQuery viewQuery)
 		{
 			// http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options
 			var uriBuilder = new ViewUriBuilder(viewQuery.DesignDocumentName, viewQuery.ViewName);
-			uriBuilder.AddIfNotNull    (viewQuery.Key,                "key"                    );
-			uriBuilder.AddIfNotNull    (viewQuery.StartKey,           "startkey"               );
-			uriBuilder.AddIfNotNull    (viewQuery.StartDocumentId,    "startkey_docid"         );
-			uriBuilder.AddIfNotNull    (viewQuery.EndKey,             "endkey"                 );
-			uriBuilder.AddIfNotNull    (viewQuery.EndDocumentId,      "endkey_docid"           );
-			uriBuilder.AddIfHasValue   (viewQuery.Limit,              "limit"                  );
-			uriBuilder.AddIfHasValue   (viewQuery.Skip,               "skip"                   );
-			uriBuilder.AddIfTrue       (viewQuery.StaleViewIsOk,      "stale",					viewQuery.UpdateIfStale? "update_after": "ok"    );
-			uriBuilder.AddIfTrue       (viewQuery.FetchDescending,    "descending",    "true"  );
-			uriBuilder.AddIfTrue       (viewQuery.SuppressReduce,     "reduce",        "false" );
-			uriBuilder.AddIfTrue       (viewQuery.IncludeDocs,        "include_docs",  "true"  );
-			uriBuilder.AddIfTrue       (viewQuery.DoNotIncludeEndKey, "inclusive_end", "false" );
-			uriBuilder.AddIfTrue       (viewQuery.Group,              "group",         "true"  );
-			uriBuilder.AddIfHasValue   (viewQuery.GroupLevel,         "group_level"            );
-			return uriBuilder.ToUri();
+			uriBuilder.AddIfNotNull  (viewQuery.Key,                "key"                    );
+			uriBuilder.AddIfNotNull  (viewQuery.StartKey,           "startkey"               );
+			uriBuilder.AddIfNotNull  (viewQuery.StartDocumentId,    "startkey_docid"         );
+			uriBuilder.AddIfNotNull  (viewQuery.EndKey,             "endkey"                 );
+			uriBuilder.AddIfNotNull  (viewQuery.EndDocumentId,      "endkey_docid"           );
+			uriBuilder.AddIfHasValue (viewQuery.Limit,              "limit"                  );
+			uriBuilder.AddIfHasValue (viewQuery.Skip,               "skip"                   );
+			uriBuilder.AddIfTrue     (viewQuery.StaleViewIsOk,      "stale",         viewQuery.UpdateIfStale? "update_after": "ok"    );
+			uriBuilder.AddIfTrue     (viewQuery.FetchDescending,    "descending",    "true"  );
+			uriBuilder.AddIfTrue     (viewQuery.SuppressReduce,     "reduce",        "false" );
+			uriBuilder.AddIfTrue     (viewQuery.IncludeDocs,        "include_docs",  "true"  );
+			uriBuilder.AddIfTrue     (viewQuery.DoNotIncludeEndKey, "inclusive_end", "false" );
+			uriBuilder.AddIfTrue     (viewQuery.Group,              "group",         "true"  );
+			uriBuilder.AddIfHasValue (viewQuery.GroupLevel,         "group_level"            );
+			return uriBuilder.ToUriString();
 		}
 
 		private class ViewUriBuilder
@@ -264,7 +281,7 @@ namespace CouchDude
 					querySring[key] = valueString;
 			}
 
-			public string ToUri()
+			public string ToUriString()
 			{
 				var uri = new StringBuilder();
 				if (!String.IsNullOrEmpty(designDocumentName))
