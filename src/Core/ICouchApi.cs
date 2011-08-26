@@ -40,7 +40,7 @@ namespace CouchDude
 		Task<DocumentInfo> DeleteDocument(string documentId, string revision);
 
 		/// <summary>Queries CouchDB view.</summary>
-		Task<IPagedList<ViewResultRow>> Query(ViewQuery query);
+		Task<IViewQueryResult<ViewResultRow>> Query(ViewQuery query);
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
 		Task<IPagedList<LuceneResultRow>> QueryLucene(FullTextQuery query);

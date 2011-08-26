@@ -39,7 +39,10 @@ namespace CouchDude
 		/// <summary>Query result row to result transform operation. If <c>null</c> default one gets used.</summary>
 		Func<IEnumerable<TRow>, IEnumerable<TResult>> ProcessRows { get; set; }
 
-		/// <summary>Expreses query as relative URL.</summary>
+		/// <summary>Expreses query as relative URI.</summary>
 		Uri ToUri();
+
+		/// <summary>Expreses query as relative URI string.</summary>
+		string ToString();
 	}
 }

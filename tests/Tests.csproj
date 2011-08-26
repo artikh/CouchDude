@@ -94,6 +94,7 @@
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Core\Utils\ExceptionUtilsTests.cs" />
     <Compile Include="Unit\Core\Utils\TaskUtilsTasks.cs" />
+    <Compile Include="Unit\Core\ViewQueryTests.cs" />
     <Compile Include="Unit\Core\ViewQueryUriConverterConvertFromTests.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentAssemblerTests.cs" />
     <Compile Include="Unit\SchemeManager\DesignDocumentExtractorTest.cs" />

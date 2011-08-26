@@ -136,6 +136,7 @@
     <Compile Include="IQueryResultRow.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
     <Compile Include="ISynchronousSessionMethods.cs" />
+    <Compile Include="IViewQueryResult.cs" />
     <Compile Include="LuceneQueryOfT.cs" />
     <Compile Include="LuceneQueryUriConverter.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
