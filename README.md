@@ -6,11 +6,10 @@ implements low-level CouchDB API wrappers as well as useful Unit of Work impleme
 CouchDude features are:
 
   * CRUD operations over documents;
-  *	Document bulk update functionality;
+  *	document bulk update functionality;
   *	CouchDB views querying;
   *	lucene-couchdb indexes querying;
-  *	Database management;
-  *	Document-entity mapping;
+  *	transparent document-entity mapping;
   *	NHibernate-like first level cache and Unit of Work implementation;
-  *	Entity and view-data queries (deserialization of results) over CouchDB views and couchdb-lucene indexes;
-  *	Complete asynchronous version of API (if server communication involved).
+  *	entity and view-data queries (deserialization of results) over CouchDB views and couchdb-lucene indexes;
+  *	complete asynchronous version of API (if server communication involved).
