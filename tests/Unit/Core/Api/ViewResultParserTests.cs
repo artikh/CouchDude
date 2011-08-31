@@ -78,12 +78,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldParseViewResultInfoProperties()
 		{
-			ViewResult viewResult;
+			IViewQueryResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = ViewResultParser.Parse(stringReader, new ViewQuery());
+				viewResult = ViewQueryResultParser.Parse(stringReader, new ViewQuery());
 
-			Assert.Equal(42, viewResult.TotalRowCount);
-			Assert.Equal(3, viewResult.RowCount);
+			Assert.Equal(42, viewResult.TotalCount);
+			Assert.Equal(3, viewResult.Count);
 			Assert.Equal(1, viewResult.Offset);
 		}
 
@@ -95,7 +95,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidJson(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() =>ViewResultParser.Parse(stringReader, new ViewQuery()));
+				Assert.Throws<ParseException>(() =>ViewQueryResultParser.Parse(stringReader, new ViewQuery()));
 		}
 
 		[Theory]
@@ -106,17 +106,17 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidResponse(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() =>ViewResultParser.Parse(stringReader, new ViewQuery()));
+				Assert.Throws<ParseException>(() =>ViewQueryResultParser.Parse(stringReader, new ViewQuery()));
 		}
 
 		[Fact]
 		public void ShouldParseViewResultInfoRows()
 		{
-			ViewResult viewResult;
+			IViewQueryResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = ViewResultParser.Parse(stringReader, new ViewQuery());
+				viewResult = ViewQueryResultParser.Parse(stringReader, new ViewQuery());
 
-			ViewResultRow secondRow = viewResult.Skip(1).First();
+			ViewResultRow secondRow = viewResult.Rows.Skip(1).First();
 
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d-42".ToJsonFragment(), secondRow.Key);

@@ -102,9 +102,8 @@
     <Compile Include="Api\Errors.cs" />
     <Compile Include="Api\JsonContent.cs" />
     <Compile Include="Api\SynchronousCouchApi.cs" />
-    <Compile Include="Api\FullTextSearchResultParser.cs" />
-    <Compile Include="Api\RequestResultBase.cs" />
-    <Compile Include="Api\ViewResultParser.cs" />
+    <Compile Include="Api\LuceneQueryResultParser.cs" />
+    <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
     <Compile Include="Configuration\EntityConfig.cs" />
@@ -131,17 +130,21 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="IBulkUpdateBatch.cs" />
+    <Compile Include="ILuceneQueryResult.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
+    <Compile Include="IQueryResult.cs" />
     <Compile Include="IQueryResultRow.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
     <Compile Include="ISynchronousSessionMethods.cs" />
     <Compile Include="IViewQueryResult.cs" />
-    <Compile Include="LuceneQueryOfT.cs" />
+    <Compile Include="Impl\LuceneQueryResult.cs" />
     <Compile Include="LuceneQueryUriConverter.cs" />
+    <Compile Include="Impl\QueryResult.cs" />
+    <Compile Include="Impl\QueryResultExtensions.cs" />
+    <Compile Include="RowConvertor.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
     <Compile Include="Utils\TaskUtils.cs" />
-    <Compile Include="ViewQueryOfT.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -207,18 +210,15 @@
     <Compile Include="Utils\JetBrainsAnnotations.cs" />
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
-    <Compile Include="Api\LuceneResult.cs" />
-    <Compile Include="Impl\PagedList.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
     <Compile Include="Configuration\Builders\SettingsBuilder.cs" />
-    <Compile Include="IPagedList.cs" />
-    <Compile Include="FullTextQuery.cs" />
+    <Compile Include="LuceneQuery.cs" />
     <Compile Include="ViewQuery.cs" />
-    <Compile Include="Api\ViewResult.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="ISession.cs" />
     <Compile Include="ISessionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Impl\ViewQueryResult.cs" />
     <Compile Include="ViewQueryUriConverter.cs" />
     <Compile Include="ViewResultRow.cs" />
   </ItemGroup>

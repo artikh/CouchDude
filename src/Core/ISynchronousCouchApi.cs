@@ -42,9 +42,9 @@ namespace CouchDude
 		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
-		IPagedList<ViewResultRow> Query(ViewQuery query);
+		IViewQueryResult Query(ViewQuery query);
 
 		/// <summary>Queries CouchDB view.</summary>
-		IPagedList<LuceneResultRow> QueryLucene(FullTextQuery query);
+		ILuceneQueryResult QueryLucene(LuceneQuery query);
 	}
 }

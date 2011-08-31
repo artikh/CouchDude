@@ -21,8 +21,8 @@ using System.ComponentModel;
 
 namespace CouchDude
 {
-	/// <summary>Сортировка поля объекта</summary>
-	public struct FullTextSort
+	/// <summary>Lucene query result sort order.</summary>
+	public struct LuceneSort
 	{
 		/// <summary>Name of feild to sort on</summary>
 		public string FieldName;
@@ -31,7 +31,7 @@ namespace CouchDude
 		public bool SortDescending;
 
 		/// <contructor/>
-		public FullTextSort(string fieldName, bool sortDescending = false)
+		public LuceneSort(string fieldName, bool sortDescending = false)
 		{
 			FieldName = fieldName;
 			SortDescending = sortDescending;
@@ -40,7 +40,7 @@ namespace CouchDude
 
 	/// <summary>Fulltext query to couchdb-lucene</summary>
 	[TypeConverter(typeof(LuceneQueryUriConverter))]
-	public class FullTextQuery
+	public class LuceneQuery: IQuery
 	{
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName { get; set; }
@@ -58,7 +58,7 @@ namespace CouchDude
 		public string Analyzer { get; set; }
 
 		/// <summary>Array of objects to sort on</summary>
-		public FullTextSort[] Sort { get; set; }
+		public LuceneSort[] Sort { get; set; }
 
 		/// <summary>How many documents will be returned</summary>
 		public int? Limit { get; set; }
@@ -81,7 +81,7 @@ namespace CouchDude
 		*/
 
 		/// <constructor/>
-		public FullTextQuery()
+		public LuceneQuery()
 		{
 			DesignDocumentName = "lucene";
 			IncludeDocs = false;			
@@ -91,7 +91,7 @@ namespace CouchDude
 		}
 
 		/// <constructor/>
-		public FullTextQuery(string designDocumentName, string indexName, string query): this()
+		public LuceneQuery(string designDocumentName, string indexName, string query): this()
 		{
 			DesignDocumentName = designDocumentName;
 			Query = query;

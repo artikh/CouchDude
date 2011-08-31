@@ -1,13 +1,15 @@
 namespace CouchDude
 {
-	/// <summary>View query result object.</summary>
-	public interface IViewQueryResult<out T> : IPagedList<T>
+	/// <summary>Typed CouchDB view query result.</summary>
+	public interface IViewQueryResult<out T> : IViewQueryResult, IQueryResult<T, ViewResultRow> { }
+
+	/// <summary>CouchDB view query result.</summary>
+	public interface IViewQueryResult : IQueryResult<ViewResultRow>
 	{
-		/// <summary>Query used to fetch this result.</summary>
+		/// <summary>Query used to produce current results set.</summary>
 		ViewQuery Query { get; }
 
-		/// <summary>Returns query should be used to fetch next page of data; or <c>null</c> if current result 
-		/// represents final page.</summary>
-		ViewQuery GetNextPageQuery();
+		/// <summary>Returns next page view query or <c>null</c> if instance represents last page of results.</summary>
+		ViewQuery NextPageQuery { get; }
 	}
 }

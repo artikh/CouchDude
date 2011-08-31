@@ -96,7 +96,7 @@ namespace CouchDude.Api
 		}
 
 		public static void ThrowIfFulltextIndexRequestWasUnsuccessful(
-			FullTextQuery query, HttpResponseMessage response)
+			LuceneQuery query, HttpResponseMessage response)
 		{
 			if (!response.IsSuccessStatusCode)
 				if (response.StatusCode == HttpStatusCode.NotFound)

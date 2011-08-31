@@ -58,14 +58,14 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<ViewResultRow> Query(ViewQuery query)
+		public IViewQueryResult Query(ViewQuery query)
 		{
 			return couchApi.Query(query).WaitForResult();
 		}
 
 		/// <inheritdoc/>
 		/// TODO: Add result weight to result
-		public IPagedList<LuceneResultRow> QueryLucene(FullTextQuery query)
+		public ILuceneQueryResult QueryLucene(LuceneQuery query)
 		{
 			return couchApi.QueryLucene(query).WaitForResult();
 		}

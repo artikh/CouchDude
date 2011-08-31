@@ -153,29 +153,29 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<IPagedList<ViewResultRow>> Query(ViewQuery query)
+		public Task<IViewQueryResult> Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
-			
 
-			return StartQuery(query.ToUri()).ContinueWith<IPagedList<ViewResultRow>>(
+
+			return StartQuery(query.ToUri()).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					Errors.ThrowIfViewRequestWasUnsuccessful(query, response);
-					return ViewResultParser.Parse(rt.Result.GetContentTextReader(), query);
+					return ViewQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
 		}
 
-		public Task<IPagedList<LuceneResultRow>> QueryLucene(FullTextQuery query)
+		public Task<ILuceneQueryResult> QueryLucene(LuceneQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
 			
-			return StartQuery(query.ToUri()).ContinueWith<IPagedList<LuceneResultRow>>(
+			return StartQuery(query.ToUri()).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					Errors.ThrowIfFulltextIndexRequestWasUnsuccessful(query, response);
-					return FullTextSearchResultParser.Parse(rt.Result.GetContentTextReader(), query);
+					return LuceneQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
 		}
 

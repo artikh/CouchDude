@@ -32,15 +32,15 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<T> Query<T>(ViewQuery<T> query)
+		public IViewQueryResult<T> Query<T>(ViewQuery query)
 		{
-			return session.Query(query).WaitForResult();
+			return session.Query<T>(query).WaitForResult();
 		}
 
 		/// <inheritdoc/>
-		public IPagedList<T> FulltextQuery<T>(FullTextQuery<T> query) where T : class
+		public ILuceneQueryResult<T> LuceneQuery<T>(LuceneQuery query)
 		{
-			return session.FulltextQuery(query).WaitForResult();
+			return session.QueryLucene<T>(query).WaitForResult();
 		}
 
 		/// <inheritdoc/>

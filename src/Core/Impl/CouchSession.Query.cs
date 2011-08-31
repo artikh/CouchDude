@@ -28,75 +28,85 @@ namespace CouchDude.Impl
 	public partial class CouchSession
 	{
 		/// <inheritdoc/>
-		public Task<IPagedList<T>> FulltextQuery<T>(FullTextQuery<T> query) where T : class
+		public Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
+			var isEntityType = CheckIfEntityType<T>(query);
+			WaitForFlushIfInProgress();
 
-			return QueryInternal<T, FullTextQuery<T>, LuceneResultRow>(query, (api, q) => api.QueryLucene(q));
+			return couchApi
+				.QueryLucene(query)
+				.ContinueWith(
+					queryTask => {
+						var rawResult = queryTask.Result;
+						if (isEntityType)
+							lock (unitOfWork)
+							{
+								var result = rawResult.OfType(DeserializeEntity<T, LuceneResultRow>);
+								// ReSharper disable ReturnValueOfPureMethodIsNotUsed
+								result.GetEnumerator();
+								// forcing collection to fill out cache so it happans inside of unit of work lock
+								// ReSharper restore ReturnValueOfPureMethodIsNotUsed
+								return result;
+							}
+						else
+							return rawResult.OfType(DeserializeViewData<T, LuceneResultRow>);
+					});
 		}
 
 		/// <inheritdoc/>
-		public Task<IPagedList<T>> Query<T>(ViewQuery<T> query)
+		public Task<IViewQueryResult<T>> Query<T>(ViewQuery query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 			if (query.Skip >= 10)
-				throw new ArgumentException("", "query");
-
-			return QueryInternal<T, ViewQuery<T>, ViewResultRow>(query, (api, q) => api.Query(q));
-		}
-
-		private Task<IPagedList<T>> QueryInternal<T, TQuery, TRow>(
-			TQuery query, Func<ICouchApi, TQuery, Task<IPagedList<TRow>>> queryTask)
-			where TQuery : IQuery<TRow, T>
-			where TRow : IQueryResultRow
-		{
-			var isEntityType = settings.TryGetConfig(typeof(T)) != null;
-			if (isEntityType && !query.IncludeDocs)
-				throw new QueryException("You should use IncludeDocs query option when querying for entities.");
-
+				throw new ArgumentException("View query should not use skip option greater then 9 (see http://tinyurl.com/couch-skip)", "query");
+			var isEntityType = CheckIfEntityType<T>(query);
 			WaitForFlushIfInProgress();
 
-			return queryTask(couchApi, query).ContinueWith<IPagedList<T>>(
-				qt =>{
-					var rawQueryResult = qt.Result;
-					IEnumerable<T> queryResultRows;
-					if (query.ProcessRows != null)
-						queryResultRows = query.ProcessRows(rawQueryResult);
-					else if (isEntityType)
-						queryResultRows = DeserializeEntitiesAndCache<T, TRow>(rawQueryResult, rawQueryResult.RowCount);
-					else
-						queryResultRows = DeserializeViewData<T, TRow>(rawQueryResult);
-
-					return new PagedList<T>(queryResultRows, rawQueryResult.TotalRowCount, rawQueryResult.Offset);
-				}
-			);
+			return couchApi
+				.Query(query)
+				.ContinueWith(
+					queryTask => {
+						var rawResult = queryTask.Result;
+						if (isEntityType)
+							lock (unitOfWork)
+							{
+								var result = rawResult.OfType(DeserializeEntity<T, ViewResultRow>);
+								// ReSharper disable ReturnValueOfPureMethodIsNotUsed
+								result.GetEnumerator();
+								// forcing collection to fill out cache so it happans inside of unit of work lock
+								// ReSharper restore ReturnValueOfPureMethodIsNotUsed
+								return result;
+							}
+						else
+							return rawResult.OfType(DeserializeViewData<T, ViewResultRow>);
+					});
 		}
 
-		private static IEnumerable<T> DeserializeViewData<T, TRow>(IEnumerable<TRow> rawViewResults) where TRow : IQueryResultRow
+		// ReSharper disable UnusedParameter.Local
+		private bool CheckIfEntityType<T>(IQuery query)
+		// ReSharper restore UnusedParameter.Local
 		{
-			return from row in rawViewResults
-						 select row.Value into value
-						 select value == null ? default(T) : (T)value.TryDeserialize(typeof(T));
+			var isEntityType = settings.TryGetConfig(typeof (T)) != null;
+			if (isEntityType && !query.IncludeDocs)
+				throw new QueryException("You should use IncludeDocs query option when querying for entities.");
+			return isEntityType;
 		}
 
-		private IEnumerable<T> DeserializeEntitiesAndCache<T, TRow>(IEnumerable<TRow> queryResult, int rowCount) where TRow : IQueryResultRow
+		private static T DeserializeViewData<T, TRow>(TRow row) where TRow : IQueryResultRow
 		{
-			lock (unitOfWork)
-			{
-				var entities = new List<T>(rowCount);
-				foreach (var row in queryResult)
-					entities.Add(DeserializeEntity<T>(unitOfWork, row.Document, row.DocumentId));
-
-				return entities;
-			}
+			var value = row.Value;
+			return value == null ? default(T) : (T)value.TryDeserialize(typeof(T));
 		}
-
-		private static T DeserializeEntity<T>(SessionUnitOfWork unitOfWork, IDocument document, string documentId)
+		
+		private T DeserializeEntity<T, TRow>(TRow row) where TRow : IQueryResultRow
 		{
+			var documentId = row.DocumentId;
 			if (documentId.HasValue())
 			{
+				var document = row.Document;
 				if (document != null)
 					unitOfWork.UpdateWithDocument(document);
 				object entity;

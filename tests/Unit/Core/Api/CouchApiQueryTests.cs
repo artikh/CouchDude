@@ -54,9 +54,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 			});
 
 			Assert.NotNull(result);
-			Assert.Equal(2, result.TotalRowCount);
-			Assert.Equal(1, result.RowCount);
-			var firstRow = result.First();
+			Assert.Equal(2, result.TotalCount);
+			Assert.Equal(1, result.Count);
+			var firstRow = result.Rows.First();
 			Assert.Equal(new object[] { "key", 0 }.ToJsonFragment(),	firstRow.Key);
 			Assert.Equal("\"some string\"",														firstRow.Value.ToString());
 			Assert.Equal("doc1",																			firstRow.DocumentId);

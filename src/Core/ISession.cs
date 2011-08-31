@@ -35,10 +35,10 @@ namespace CouchDude
 		Task<TEntity> Load<TEntity>(string entityId) where TEntity : class;
 
 		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items.</summary>
-		Task<IPagedList<T>> Query<T>(ViewQuery<T> query);
+		Task<IViewQueryResult<T>> Query<T>(ViewQuery query);
 
 		/// <summary>Queries lucene-couchdb index.</summary>
-		Task<IPagedList<T>> FulltextQuery<T>(FullTextQuery<T> query) where T : class;
+		Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query);
 
 		/// <summary>Synchronous session methods.</summary>
 		ISynchronousSessionMethods Synchronously { get; }

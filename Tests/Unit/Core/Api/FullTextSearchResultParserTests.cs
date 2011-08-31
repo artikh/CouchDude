@@ -75,12 +75,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldParseViewResultInfoProperties()
 		{
-			LuceneResult viewResult;
+			ILuceneQueryResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = FullTextSearchResultParser.Parse(stringReader, new FullTextQuery());
+				viewResult = LuceneQueryResultParser.Parse(stringReader, new LuceneQuery());
 
-			Assert.Equal(42, viewResult.TotalRowCount);
-			Assert.Equal(3, viewResult.RowCount);
+			Assert.Equal(42, viewResult.TotalCount);
+			Assert.Equal(3, viewResult.Count);
 			Assert.Equal(1, viewResult.Offset);
 		}
 
@@ -92,7 +92,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidJson(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() => FullTextSearchResultParser.Parse(stringReader, new FullTextQuery()));
+				Assert.Throws<ParseException>(() => LuceneQueryResultParser.Parse(stringReader, new LuceneQuery()));
 		}
 
 		[Theory]
@@ -103,17 +103,17 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowParseExceptionOnInvalidResponse(string json)
 		{
 			using (TextReader stringReader = new StringReader(json))
-				Assert.Throws<ParseException>(() => FullTextSearchResultParser.Parse(stringReader, new FullTextQuery()));
+				Assert.Throws<ParseException>(() => LuceneQueryResultParser.Parse(stringReader, new LuceneQuery()));
 		}
 
 		[Fact]
 		public void ShouldParseViewResultInfoRows()
 		{
-			LuceneResult viewResult;
+			ILuceneQueryResult viewResult;
 			using (TextReader stringReader = new StringReader(TestData))
-				viewResult = FullTextSearchResultParser.Parse(stringReader, new FullTextQuery());
+				viewResult = LuceneQueryResultParser.Parse(stringReader, new LuceneQuery());
 
-			LuceneResultRow secondRow = viewResult.Skip(1).First();
+			LuceneResultRow secondRow = viewResult.Rows.Skip(1).First();
 
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
 			Assert.Equal(0.1m, secondRow.Score);

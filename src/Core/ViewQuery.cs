@@ -24,7 +24,7 @@ namespace CouchDude
 	/// <summary>Describes CouchDB view query.</summary>
 	/// <remarks>http://wiki.apache.org/couchdb/HTTP_view_API#Querying_Options</remarks>
 	[TypeConverter(typeof(ViewQueryUriConverter))]
-	public class ViewQuery
+	public class ViewQuery: IQuery
 	{
 		/// <constructor />
 		public ViewQuery() {}

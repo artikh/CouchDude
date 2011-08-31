@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CouchDude.Impl;
@@ -131,17 +129,17 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					_ => {
 						lock (executedOperations)
 							executedOperations.Add("Query");
-						return PagedList<ViewResultRow>.Empty.ToTask<IPagedList<ViewResultRow>>();
+						return ViewQueryResult.Empty.ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.QueryLucene(It.IsAny<FullTextQuery>()))
-				.Returns<FullTextQuery>(
+				.Setup(api => api.QueryLucene(It.IsAny<LuceneQuery>()))
+				.Returns<LuceneQuery>(
 					_ =>
 					{
 						lock (executedOperations)
 							executedOperations.Add("QueryLucene");
 						return
-							PagedList<LuceneResultRow>.Empty.ToTask<IPagedList<LuceneResultRow>>();
+							LuceneQueryResult.Empty.ToTask();
 					});
 			couchApiMock
 				.Setup(api => api.RequestDocumentById(It.IsAny<string>()))
@@ -197,8 +195,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							break;
 						case "query":
 							operation =
-								sesion.Query(
-									new ViewQuery<SimpleEntity> {
+								sesion.Query<SimpleEntity>(
+									new ViewQuery {
 										DesignDocumentName = "dd1",
 										ViewName = "byX",
 										Key = "key1",
@@ -207,8 +205,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							break;
 						case "fullTextQuery":
 							operation =
-								sesion.FulltextQuery(
-									new FullTextQuery<SimpleEntity>
+								sesion.QueryLucene<SimpleEntity>(
+									new LuceneQuery
 									{
 										DesignDocumentName = "dd1",
 										IndexName = "byX",
@@ -217,7 +215,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 									});
 							break;
 					}
+					// ReSharper disable PossibleNullReferenceException
 					operation.Wait();
+					// ReSharper restore PossibleNullReferenceException
 				});
 
 			Assert.True(

@@ -40,10 +40,10 @@ namespace CouchDude
 		Task<DocumentInfo> DeleteDocument(string documentId, string revision);
 
 		/// <summary>Queries CouchDB view.</summary>
-		Task<IViewQueryResult<ViewResultRow>> Query(ViewQuery query);
+		Task<IViewQueryResult> Query(ViewQuery query);
 
-		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
-		Task<IPagedList<LuceneResultRow>> QueryLucene(FullTextQuery query);
+		/// <summary>Queries couchdb-lucene index.</summary>
+		Task<ILuceneQueryResult> QueryLucene(LuceneQuery query);
 
 		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
 		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);

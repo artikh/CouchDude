@@ -92,8 +92,8 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.FulltextQuery(new FullTextQuery<Entity> { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
-				Assert.True(result.RowCount >= 2);
+				var result = session.Synchronously.LuceneQuery<Entity>(new LuceneQuery { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
+				Assert.True(result.Count >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);
 				var loadedEntityB = result.First(e => e.Id == entityB.Id);
