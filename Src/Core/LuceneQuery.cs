@@ -17,24 +17,60 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text;
+using CouchDude.Impl;
 
 namespace CouchDude
 {
+	/// <summary>Types supported by Lucene engine.</summary>
+	public enum LuceneType
+	{
+		/// <summary>Single persision fload-point number.</summary>
+		Float,
+		/// <summary>Double persision fload-point number.</summary>
+		Double,
+		/// <summary>Single persision integer number.</summary>
+		Int,
+		/// <summary>Double persision integer number.</summary>
+		Long,
+		/// <summary>Date/time number.</summary>
+		Date
+	}
+
 	/// <summary>Lucene query result sort order.</summary>
 	public struct LuceneSort
 	{
 		/// <summary>Name of feild to sort on</summary>
-		public string FieldName;
+		public readonly string FieldName;
 
 		/// <summary>Sort order</summary>
-		public bool SortDescending;
+		public readonly bool SortDescending;
+
+		/// <summary>Sort ordering type</summary>
+		public readonly LuceneType? Type;
 
 		/// <contructor/>
-		public LuceneSort(string fieldName, bool sortDescending = false)
+		public LuceneSort(string fieldName, bool sortDescending = false, LuceneType? type = null)
 		{
 			FieldName = fieldName;
 			SortDescending = sortDescending;
+			Type = type;
+		}
+
+		/// <inheritdoc/>
+		public override string ToString()
+		{
+			var result = new StringBuilder();
+			if (SortDescending)
+				result.Append("\\");
+			if (result.Length == 0 && Type == null)
+				return FieldName;
+			result.Append(FieldName);
+			if (Type != null)
+				result.Append("<").Append(Type.Value.ToString().ToLower()).Append(">");
+			return result.ToString();
 		}
 	}
 
@@ -51,9 +87,6 @@ namespace CouchDude
 		/// <summary>Search query (see http://lucene.apache.org/java/2_4_0/queryparsersyntax.html) </summary>
 		public string Query { get; set; }
 
-		/// <summary>Indicates that we need documents from couchdb in result</summary>
-		public bool IncludeDocs { get; set; }
-
 		/// <summary>Name of analizer which is used for this query</summary>
 		public string Analyzer { get; set; }
 
@@ -66,19 +99,22 @@ namespace CouchDude
 		/// <summary>How many documents need to be skipped</summary>
 		public int? Skip { get; set; }
 
-		/*
-		 * UNIMPLEMENTED
-		/// <summary></summary>
-		public string Callback{ get; set; }
+		/// <summary>Query executed every type submitted.</summary>
+		public bool SuppressCaching { get; set; }
+		
+		/// <summary>Sets default operator for boolean queries to AND insted of OR.</summary>
+		public bool UseConjunctionSematics { get; set; }
 
-		/// <summary></summary>
-		public bool Debug{ get; set; }
-		/// <summary></summary>
-		public string DefaultOperator{ get; set; }
+		/// <summary>Indicates that we need documents from couchdb in result</summary>
+		public bool IncludeDocs { get; set; }
 
-		/// <summary></summary>
-		public bool Stale{ get; set; }
-		*/
+		/// <summary>Stored fields to retrive. If <c>null</c> defaults to all.</summary>
+		public ICollection<string> Fields { get; set; }
+		
+		/// <summary>If <c>true</c> couchdb-lucene will not block if the index is not up to date and it will immediately return results. 
+		/// Therefore searches may be faster as Lucene caches important data (especially for sorting). 
+		/// couchdb-lucene will trigger an index update unless one is already running.</summary>
+		public bool DoNotBlockIfStale { get; set; }
 
 		/// <constructor/>
 		public LuceneQuery()
@@ -101,13 +137,32 @@ namespace CouchDude
 		/// <summary>Expreses query as relative URL.</summary>
 		public Uri ToUri()
 		{
-			return new Uri(LuceneQueryUriConverter.ToUriString(this), UriKind.Relative);
+			return LuceneQueryUriConverter.ToUri(this);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString()
 		{
 			return LuceneQueryUriConverter.ToUriString(this);
+		}
+
+		/// <summary>Parses relative URI string as lucene-couchdb query.</summary>
+		public static LuceneQuery Parse(string uriString)
+		{
+			return LuceneQueryUriConverter.Parse(uriString);
+		}
+
+		/// <summary>Parses relative URI as lucene-couchdb query.</summary>
+		public static LuceneQuery Parse(Uri uri)
+		{
+			return LuceneQueryUriConverter.Parse(uri);
+		}
+
+		/// <summary>Clones query object.</summary>
+		public LuceneQuery Clone()
+		{
+			//TODO: add manual cloning
+			return Parse(ToString());
 		}
 	}
 }

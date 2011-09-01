@@ -82,7 +82,7 @@ namespace CouchDude.Api
 				select new ViewResultRow(viewKey, value, documentId, document)
 			).ToList();
 
-			return new ViewQueryResult(rows, rawResult.total_rows, rawResult.offset, viewQuery);
+			return new ViewQueryResult(viewQuery, rows, rawResult.total_rows, rawResult.offset);
 		}
 	}
 }

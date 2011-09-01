@@ -81,7 +81,7 @@ namespace CouchDude.Api
 				let document = rawRow.doc != null ? new Document(rawRow.doc) : null
 				select new LuceneResultRow(fields, score, documentId, document)
 			).ToList();
-			return new LuceneQueryResult(rows, rawResult.total_rows, rawResult.offset, query);
+			return new LuceneQueryResult(query, rows, rawResult.total_rows, rawResult.offset);
 		}
 	}
 }

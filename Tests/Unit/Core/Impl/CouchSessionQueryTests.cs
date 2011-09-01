@@ -43,6 +43,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					(ViewQuery query) => {
 						sendQuery = query;
 						return new ViewQueryResult(
+							query,
 							new[] {
 								new ViewResultRow(
 									Entity.StandardDocId.ToJsonFragment(),
@@ -51,10 +52,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 									Entity.CreateDocWithRevision()
 									)
 							},
-							1,
-							offset: 0,
-							query: query
-							).ToTask<IViewQueryResult>();
+							totalCount: 1,
+							offset: 0).ToTask<IViewQueryResult>();
 					});
 
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
@@ -74,6 +73,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					query => new ViewQueryResult(
+						query, 
 						new[] {
 							new ViewResultRow(
 								Entity.StandardDocId.ToJsonFragment(),
@@ -83,8 +83,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						},
 						totalCount: 1,
-						offset: 0,
-						query: query
+						offset: 0
 						).ToTask<IViewQueryResult>()
 				);
 
@@ -126,22 +125,17 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									new {
-										Title = "Object title",
-										Subject = "some"
-									}.ToJsonFragment(),
-									Entity.StandardDocId,
-									Entity.CreateDocWithRevision()
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								new {
+									Title = "Object title",
+									Subject = "some"
+								}.ToJsonFragment(),
+								Entity.StandardDocId,
+								Entity.CreateDocWithRevision()
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			IViewQueryResult<Entity> queryResult =
@@ -165,19 +159,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									null,
-									Entity.StandardDocId,
-									Entity.CreateDocWithRevision()
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								null,
+								Entity.StandardDocId,
+								Entity.CreateDocWithRevision()
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 
@@ -195,19 +184,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
-									null,
-									null
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+								null,
+								null
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			IViewQueryResult<Entity> queryResult =
@@ -232,19 +216,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
-									Entity.StandardDocId,
-									new Document(docString)
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+								Entity.StandardDocId,
+								new Document(docString)
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			var queryResult =
@@ -263,19 +242,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									null,
-									Entity.StandardDocId,
-									Entity.CreateDocWithRevision()
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								null,
+								Entity.StandardDocId,
+								Entity.CreateDocWithRevision()
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			IViewQueryResult<ViewData> queryResult = session.Synchronously.Query<ViewData>(new ViewQuery());
@@ -293,19 +267,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns<ViewQuery>(
 					q =>
-						new ViewQueryResult(
-							new[] {
-								new ViewResultRow(
-									new object[] {"key1", 0}.ToJsonFragment(),
-									new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
-									Entity.StandardDocId,
-									Entity.CreateDocWithRevision()
-									)
-							},
-							totalCount: 1,
-							offset: 0,
-							query: q
-							).ToTask<IViewQueryResult>()
+						new ViewQueryResult(query: q, rows: new[] {
+							new ViewResultRow(
+								new object[] {"key1", 0}.ToJsonFragment(),
+								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
+								Entity.StandardDocId,
+								Entity.CreateDocWithRevision()
+								)
+						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
 			var session = new CouchSession(Default.Settings, couchApi.Object);
 			IViewQueryResult<ViewData> queryResult = session.Synchronously.Query<ViewData>(new ViewQuery());

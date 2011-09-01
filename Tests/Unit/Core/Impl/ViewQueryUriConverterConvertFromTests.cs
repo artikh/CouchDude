@@ -1,9 +1,8 @@
 using System.ComponentModel;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Core
+namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class ViewQueryUriConverterConvertFromTests
 	{

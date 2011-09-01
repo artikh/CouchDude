@@ -26,7 +26,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using CouchDude.Api;
 
-namespace CouchDude
+namespace CouchDude.Impl
 {
 	/// <summary>Converts <see cref="ViewQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class ViewQueryUriConverter: TypeConverter

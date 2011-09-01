@@ -20,7 +20,7 @@ using System.ComponentModel;
 using CouchDude.Api;
 using Xunit;
 
-namespace CouchDude.Tests.Unit.Core
+namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class ViewQueryUriConverterConvertToTests
 	{

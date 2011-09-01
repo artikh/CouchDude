@@ -18,6 +18,7 @@
 
 using System;
 using System.ComponentModel;
+using CouchDude.Impl;
 
 namespace CouchDude
 {

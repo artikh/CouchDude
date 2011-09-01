@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
+using CouchDude.Utils;
 
 namespace CouchDude.Impl
 {
@@ -7,14 +11,14 @@ namespace CouchDude.Impl
 	{
 		/// <summary>Empty query result.</summary>
 		public static readonly IViewQueryResult Empty = 
-			new ViewQueryResult(rows: new ViewResultRow[0], totalCount: 0, offset: 0, query: new ViewQuery());
+			new ViewQueryResult(query: new ViewQuery(), rows: new ViewResultRow[0], totalCount: 0, offset: 0);
 
 		/// <constructor />
-		public ViewQueryResult(ICollection<ViewResultRow> rows, int totalCount, int offset, ViewQuery query) 
+		public ViewQueryResult(ViewQuery query, ICollection<ViewResultRow> rows, int totalCount, int offset) 
 			: base(rows, totalCount, offset) { Query = query; }
 
 		/// <constructor />
-		public ViewQueryResult(IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset, ViewQuery query) 
+		public ViewQueryResult(ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset) 
 			: base(rows, count, totalCount, offset) { Query = query; }
 
 		/// <inheritdoc/>
@@ -22,6 +26,32 @@ namespace CouchDude.Impl
 
 		/// <inheritdoc/>
 		public ViewQuery NextPageQuery { get { return null; } }
+		
+		private static readonly ConcurrentDictionary<IViewQueryResult, ViewQuery> NextPageQueries =
+			new ConcurrentDictionary<IViewQueryResult, ViewQuery>();
+		internal static ViewQuery GetNextPageQuery(IViewQueryResult queryResult)
+		{
+			return NextPageQueries.GetOrAdd(
+				queryResult,
+				r =>
+				{
+					if (queryResult.Count == queryResult.TotalCount || queryResult.Count == 0)
+						return null;
+					else
+					{
+						var nextPageQuery = queryResult.Query.Clone();
+						var lastItem = queryResult.Rows.Last();
+						nextPageQuery.Skip = 1;
+
+						if (nextPageQuery.StartKey != null)
+							nextPageQuery.StartKey = lastItem.Key;
+
+						if (lastItem.DocumentId.HasValue())
+							nextPageQuery.StartDocumentId = lastItem.DocumentId;
+						return nextPageQuery;
+					}
+				});
+		}
 	}
 
 	/// <summary>Typed CouchDB view query result class.</summary>
@@ -30,15 +60,17 @@ namespace CouchDude.Impl
 		/// <summary>Empty query result.</summary>
 		// ReSharper disable StaticFieldInGenericType
 		public static readonly IViewQueryResult<T> Empty =
-			new ViewQueryResult<T>(rows: new ViewResultRow[0], totalCount: 0, offset: 0, query: new ViewQuery(), rowConvertor: _ => default(T));
+			new ViewQueryResult<T>(query: new ViewQuery(), rows: new ViewResultRow[0], totalCount: 0, offset: 0, rowConvertor: rows => rows.Select(_ => default(T)));
 		// ReSharper restore StaticFieldInGenericType
 
 		/// <constructor />
-		public ViewQueryResult(ICollection<ViewResultRow> rows, int totalCount, int offset, ViewQuery query, RowConvertor<T, ViewResultRow> rowConvertor)
+		public ViewQueryResult(
+			ViewQuery query, ICollection<ViewResultRow> rows, int totalCount, int offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, totalCount, offset, rowConvertor) { Query = query; }
 
 		/// <constructor />
-		public ViewQueryResult(IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset, ViewQuery query, RowConvertor<T, ViewResultRow> rowConvertor)
+		public ViewQueryResult(
+			ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, count, totalCount, offset, rowConvertor) { Query = query; }
 
 		/// <inheritdoc/>

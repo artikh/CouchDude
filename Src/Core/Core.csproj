@@ -139,10 +139,9 @@
     <Compile Include="ISynchronousSessionMethods.cs" />
     <Compile Include="IViewQueryResult.cs" />
     <Compile Include="Impl\LuceneQueryResult.cs" />
-    <Compile Include="LuceneQueryUriConverter.cs" />
+    <Compile Include="Impl\LuceneQueryUriConverter.cs" />
     <Compile Include="Impl\QueryResult.cs" />
     <Compile Include="Impl\QueryResultExtensions.cs" />
-    <Compile Include="RowConvertor.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
     <Compile Include="Utils\TaskUtils.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
@@ -219,7 +218,7 @@
     <Compile Include="ISessionFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Impl\ViewQueryResult.cs" />
-    <Compile Include="ViewQueryUriConverter.cs" />
+    <Compile Include="Impl\ViewQueryUriConverter.cs" />
     <Compile Include="ViewResultRow.cs" />
   </ItemGroup>
   <ItemGroup>

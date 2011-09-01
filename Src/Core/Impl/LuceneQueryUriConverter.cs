@@ -22,7 +22,7 @@ using System.Globalization;
 using System.Text;
 using System.Web;
 
-namespace CouchDude
+namespace CouchDude.Impl
 {
 	/// <summary>Converts <see cref="LuceneQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class LuceneQueryUriConverter : TypeConverter
@@ -74,6 +74,24 @@ namespace CouchDude
 				}
 			}
 			return uriBuilder.ToString();
+		}
+
+		/// <summary>Converts lucene query to relative URL.</summary>
+		public static Uri ToUri(LuceneQuery luceneQuery)
+		{
+			return null;
+		}
+
+		/// <summary>Parses relative URI as lucene-couchdb query.</summary>
+		public static LuceneQuery Parse(Uri uri)
+		{
+			return null;
+		}
+
+		/// <summary>Parses relative URI string as lucene-couchdb query.</summary>
+		public static LuceneQuery Parse(string uriString)
+		{
+			return null;
 		}
 	}
 }

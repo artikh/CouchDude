@@ -9,19 +9,19 @@ namespace CouchDude.Impl
 	/// <summary>Base class for typed query results.</summary>
 	public abstract class QueryResult<T, TRow> : QueryResult<TRow>, IQueryResult<T, TRow> where TRow : IQueryResultRow
 	{
-		private readonly RowConvertor<T, TRow> rowConvertor;
+		private readonly Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor;
 		private readonly object syncHandle = new object();
 		private volatile IEnumerable<T> convertedRows;
 
 		/// <constructor />
-		protected QueryResult(ICollection<TRow> rows, int totalCount, int offset, RowConvertor<T, TRow> rowConvertor)
+		protected QueryResult(ICollection<TRow> rows, int totalCount, int offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, totalCount, offset)
 		{
 			this.rowConvertor = rowConvertor;
 		}
 
 		/// <constructor />
-		protected QueryResult(IEnumerable<TRow> rows, int count, int totalCount, int offset, RowConvertor<T, TRow> rowConvertor)
+		protected QueryResult(IEnumerable<TRow> rows, int count, int totalCount, int offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, count, totalCount, offset)
 		{
 			this.rowConvertor = rowConvertor;
@@ -33,7 +33,7 @@ namespace CouchDude.Impl
 			if (convertedRows == null)
 				lock (syncHandle)
 					if (convertedRows == null)
-						convertedRows = Rows.Select(row => rowConvertor(row));
+						convertedRows = rowConvertor(Rows);
 			return convertedRows.GetEnumerator();
 		}
 

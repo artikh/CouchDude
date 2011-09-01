@@ -38,20 +38,14 @@ namespace CouchDude.Impl
 			return couchApi
 				.QueryLucene(query)
 				.ContinueWith(
-					queryTask => {
-						var rawResult = queryTask.Result;
-						if (isEntityType)
-							lock (unitOfWork)
-							{
-								var result = rawResult.OfType(DeserializeEntity<T, LuceneResultRow>);
-								// ReSharper disable ReturnValueOfPureMethodIsNotUsed
-								result.GetEnumerator();
-								// forcing collection to fill out cache so it happans inside of unit of work lock
-								// ReSharper restore ReturnValueOfPureMethodIsNotUsed
-								return result;
-							}
-						else
-							return rawResult.OfType(DeserializeViewData<T, LuceneResultRow>);
+					queryTask =>
+					{
+						var rawQueryResult = queryTask.Result;
+						if (!isEntityType)
+							return rawQueryResult.OfType(DeserializeViewData<T, LuceneResultRow>);
+
+						UpdateUnitOfWork(rawQueryResult.Rows);
+						return rawQueryResult.OfType(GetEntities<T, LuceneResultRow>);
 					});
 		}
 
@@ -69,19 +63,12 @@ namespace CouchDude.Impl
 				.Query(query)
 				.ContinueWith(
 					queryTask => {
-						var rawResult = queryTask.Result;
-						if (isEntityType)
-							lock (unitOfWork)
-							{
-								var result = rawResult.OfType(DeserializeEntity<T, ViewResultRow>);
-								// ReSharper disable ReturnValueOfPureMethodIsNotUsed
-								result.GetEnumerator();
-								// forcing collection to fill out cache so it happans inside of unit of work lock
-								// ReSharper restore ReturnValueOfPureMethodIsNotUsed
-								return result;
-							}
-						else
-							return rawResult.OfType(DeserializeViewData<T, ViewResultRow>);
+						var rawQueryResult = queryTask.Result;
+						if (!isEntityType) 
+							return rawQueryResult.OfType(DeserializeViewData<T, ViewResultRow>);
+						
+						UpdateUnitOfWork(rawQueryResult.Rows);
+						return rawQueryResult.OfType(GetEntities<T, ViewResultRow>);
 					});
 		}
 
@@ -95,26 +82,48 @@ namespace CouchDude.Impl
 			return isEntityType;
 		}
 
-		private static T DeserializeViewData<T, TRow>(TRow row) where TRow : IQueryResultRow
+
+		private static IEnumerable<T> DeserializeViewData<T, TRow>(IEnumerable<TRow> rows) where TRow : IQueryResultRow
 		{
-			var value = row.Value;
-			return value == null ? default(T) : (T)value.TryDeserialize(typeof(T));
+			return from row in rows
+			       select row.Value into value
+			       select value == null ? default(T) : (T) value.TryDeserialize(typeof (T));
 		}
-		
-		private T DeserializeEntity<T, TRow>(TRow row) where TRow : IQueryResultRow
+
+		private void UpdateUnitOfWork<TRow>(IEnumerable<TRow> rows) where TRow: IQueryResultRow
 		{
-			var documentId = row.DocumentId;
-			if (documentId.HasValue())
-			{
-				var document = row.Document;
-				if (document != null)
+			var documentsToUpdateUnitOfWorkWith =
+				from row in rows
+				let documentId = row.DocumentId
+				where documentId.HasValue()
+				select row.Document into document
+				where document != null
+				select document;
+
+			lock (unitOfWork)
+				foreach (var document in documentsToUpdateUnitOfWorkWith)
 					unitOfWork.UpdateWithDocument(document);
-				object entity;
-				if (unitOfWork.TryGetByDocumentId(documentId, out entity) && entity is T)
-					return (T) entity;
+		}
+
+		private IEnumerable<T> GetEntities<T, TRow>(IEnumerable<TRow> rows) where TRow : IQueryResultRow
+		{
+			lock (unitOfWork)
+				return GetEntitiesInt<T, TRow>(rows).ToArray();
+		}
+
+		private IEnumerable<T> GetEntitiesInt<T, TRow>(IEnumerable<TRow> rows) where TRow : IQueryResultRow
+		{
+			foreach (var documentId in rows.Select(row => row.DocumentId)) 
+			{
+				if (documentId.HasValue())
+				{
+					object entity;
+					if (unitOfWork.TryGetByDocumentId(documentId, out entity) && entity is T)
+						yield return (T) entity;
+				}
+
+				yield return default(T);
 			}
-			
-			return default(T);
 		}
 	}
 }
