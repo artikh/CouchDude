@@ -16,6 +16,7 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using System.Linq;
 
@@ -30,6 +31,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 		private static readonly string TestData =
 			new {
 				total_rows = 42,
+				skip = 1,
+				limit = 3,
+				search_duration = 518,
+				fetch_duration = 4,
 				offset = 1,
 				rows = new object[] {
 					new {
@@ -82,6 +87,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal(42, viewResult.TotalCount);
 			Assert.Equal(3, viewResult.Count);
 			Assert.Equal(1, viewResult.Offset);
+			Assert.Equal(1, viewResult.Skip);
+			Assert.Equal(3, viewResult.Limit);
+			Assert.Equal(TimeSpan.FromMilliseconds(4), viewResult.FetchDuration);
+			Assert.Equal(TimeSpan.FromMilliseconds(518), viewResult.SearchDuration);
 		}
 
 		[Theory]
@@ -118,6 +127,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
 			Assert.Equal(0.1m, secondRow.Score);
 			Assert.Equal(new { three = 3, four = "four" }.ToJsonFragment(), secondRow.Fields);
+			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.Id);
 			Assert.Equal(
 				new
 					{

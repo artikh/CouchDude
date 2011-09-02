@@ -47,6 +47,11 @@ namespace CouchDude.Api
 		{
 			public int total_rows;
 			public int offset;
+			public int skip;
+			public int limit;
+			public int search_duration;
+			public int fetch_duration;
+
 			public IList<RawViewResultRow> rows;
 		}
 		// ReSharper restore ClassNeverInstantiated.Local
@@ -76,12 +81,21 @@ namespace CouchDude.Api
 			var rows = (
 				from rawRow in rawResult.rows ?? new RawViewResultRow[0]
 				let fields = rawRow.fields != null ? new JsonFragment(rawRow.fields) : null
-				let documentId = rawRow.id
-				let score = rawRow.score
 				let document = rawRow.doc != null ? new Document(rawRow.doc) : null
-				select new LuceneResultRow(fields, score, documentId, document)
+				select new LuceneResultRow(rawRow.id, fields, rawRow.score, rawRow.id, document)
 			).ToList();
-			return new LuceneQueryResult(query, rows, rawResult.total_rows, rawResult.offset);
+
+			return new LuceneQueryResult(
+				query, 
+				rows, 
+				count: rows.Count,
+				totalCount: rawResult.total_rows, 
+				offset: rawResult.offset, 
+				fetchDuration: TimeSpan.FromMilliseconds(rawResult.fetch_duration), 
+				searchDuration: TimeSpan.FromMilliseconds(rawResult.search_duration), 
+				limit: rawResult.limit, 
+				skip: rawResult.skip
+			);
 		}
 	}
 }

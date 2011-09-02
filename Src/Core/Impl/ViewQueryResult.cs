@@ -25,7 +25,7 @@ namespace CouchDude.Impl
 		public ViewQuery Query { get; private set; }
 
 		/// <inheritdoc/>
-		public ViewQuery NextPageQuery { get { return null; } }
+		public ViewQuery NextPageQuery { get { return GetNextPageQuery(this); } }
 		
 		private static readonly ConcurrentDictionary<IViewQueryResult, ViewQuery> NextPageQueries =
 			new ConcurrentDictionary<IViewQueryResult, ViewQuery>();
@@ -77,6 +77,6 @@ namespace CouchDude.Impl
 		public ViewQuery Query { get; private set; }
 
 		/// <inheritdoc/>
-		public ViewQuery NextPageQuery { get { return null; } }
+		public ViewQuery NextPageQuery { get { return ViewQueryResult.GetNextPageQuery(this); } }
 	}
 }

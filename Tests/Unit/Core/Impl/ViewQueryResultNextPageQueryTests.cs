@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using CouchDude.Impl;
@@ -25,7 +26,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldReturnNullIfTotalCountAndCountAreEqualForUntypedLuceneQueryResult()
 		{
-			var result = new LuceneQueryResult(new LuceneQuery(), new LuceneResultRow[3], totalCount: 3, offset: 0);
+			var result = new LuceneQueryResult(new LuceneQuery(), new LuceneResultRow[3], 3, 0, default(TimeSpan), default(TimeSpan), 0, 0);
 			Assert.Null(result.NextPageQuery);
 		}
 
@@ -33,7 +34,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNullIfTotalCountAndCountAreEqualForTypedLuceneQueryResult()
 		{
 			var result = new LuceneQueryResult<object>(
-				new LuceneQuery(), new LuceneResultRow[3], totalCount: 3, offset: 0, rowConvertor: StubConvertor);
+				new LuceneQuery(), new LuceneResultRow[3],  3, 0, default(TimeSpan), default(TimeSpan), 0, 0, StubConvertor);
 			Assert.Null(result.NextPageQuery);
 		}
 
@@ -55,7 +56,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldReturnNullIfCountIsZeroForUntypedLuceneQueryResult() 
 		{
-			var result = new LuceneQueryResult(new LuceneQuery(), new LuceneResultRow[0], count: 0, totalCount: 3, offset: 0);
+			var result = new LuceneQueryResult(new LuceneQuery(), new LuceneResultRow[0], 0, 3, 0, default(TimeSpan), default(TimeSpan), 0, 0);
 			Assert.Null(result.NextPageQuery);
 		}
 
@@ -63,7 +64,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNullIfCountIsZeroForTypedLuceneQueryResult() 
 		{
 			var result = new LuceneQueryResult<object>(
-				new LuceneQuery(), new LuceneResultRow[0], count: 0, totalCount: 3, offset: 0, rowConvertor: StubConvertor);
+				new LuceneQuery(), new LuceneResultRow[0], 0, 3, 0, default(TimeSpan), default(TimeSpan), 0, 0, StubConvertor);
 			Assert.Null(result.NextPageQuery);
 		}
 
@@ -93,8 +94,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var result = new ViewQueryResult<object>(
 				ViewQuery.Parse("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22"),
 				new [] {
-					new ViewResultRow("first".ToJsonFragment(), null, "firstDocId", null),
-					new ViewResultRow("first".ToJsonFragment(), null, "secondDocId", null)
+					new ViewResultRow("firstKey".ToJsonFragment(), null, "firstDocId", null),
+					new ViewResultRow("firstKey".ToJsonFragment(), null, "secondDocId", null)
 				}, 
 				totalCount: 3, 
 				offset: 0, 
@@ -102,7 +103,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var nextPageQuery = result.NextPageQuery;
 
-			Assert.Equal("second".ToJsonFragment(), nextPageQuery.StartKey);
+			Assert.Equal("firstKey".ToJsonFragment(), nextPageQuery.StartKey);
 			Assert.Equal("secondDocId", nextPageQuery.StartDocumentId);
 			Assert.Equal(1, nextPageQuery.Skip);
 		}
@@ -142,7 +143,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				offset: 0, 
 				rowConvertor: StubConvertor);
 
-			Assert.Equal(2, result.NextPageQuery.Skip);
+			Assert.Equal(2, result.NextPageQuery.Limit);
 		}
 		
 		[Fact]
@@ -151,14 +152,39 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			var result = new LuceneQueryResult<object>(
 				new LuceneQuery { DesignDocumentName = "dd", IndexName = "someIndex", Query = "test:query", Limit = 2 },
 				new[] {
-					new LuceneResultRow("field-value".ToJsonFragment(), 0, null, null),
-					new LuceneResultRow("field-value".ToJsonFragment(), 0, null, null)
+					new LuceneResultRow("54e39b4a6d9442c6bd2032e6b12fec5d", "field-value".ToJsonFragment(), 0, null, null),
+					new LuceneResultRow("db7df2f7a0da4a24923ac2a02b9cb7f7", "field-value".ToJsonFragment(), 0, null, null)
 				}, 
 				totalCount: 3, 
-				offset: 0, 
+				offset: 0,
+				fetchDuration: default(TimeSpan),
+				searchDuration: default(TimeSpan),
+				limit: 2,
+				skip: 0,
 				rowConvertor: StubConvertor);
 
 			Assert.Equal(2, result.NextPageQuery.Skip);
+			Assert.Equal(2, result.NextPageQuery.Limit);
+		}
+		
+		[Fact]
+		public void ShouldUseLimitAndSkipReturnedWithResult() 
+		{
+			var result = new LuceneQueryResult<object>(
+				new LuceneQuery { DesignDocumentName = "dd", IndexName = "someIndex", Query = "test:query", Limit = 100500, Skip = 2 },
+				new[] {
+					new LuceneResultRow("54e39b4a6d9442c6bd2032e6b12fec5d", "field-value".ToJsonFragment(), 0, null, null),
+					new LuceneResultRow("db7df2f7a0da4a24923ac2a02b9cb7f7", "field-value".ToJsonFragment(), 0, null, null)
+				}, 
+				totalCount: 3, 
+				offset: 0,
+				fetchDuration: default(TimeSpan),
+				searchDuration: default(TimeSpan),
+				limit: 2,
+				skip: 0,
+				rowConvertor: StubConvertor);
+
+			Assert.Equal(0 + 2, result.NextPageQuery.Skip);
 			Assert.Equal(2, result.NextPageQuery.Limit);
 		}
 

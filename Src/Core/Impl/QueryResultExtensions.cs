@@ -9,7 +9,9 @@ namespace CouchDude.Impl
 		/// <summary>Converts untyped query result ot typed one.</summary>
 		public static ILuceneQueryResult<T> OfType<T>(this ILuceneQueryResult result, Func<IEnumerable<LuceneResultRow>, IEnumerable<T>> rowConvertor)
 		{
-			return new LuceneQueryResult<T>(result.Query, result.Rows, result.Count, result.TotalCount, result.Offset, rowConvertor);
+			return new LuceneQueryResult<T>(
+				result.Query, result.Rows, result.Count, result.TotalCount, result.Offset, 
+				result.FetchDuration, result.SearchDuration, result.Limit, result.Offset,  rowConvertor);
 		}
 
 		/// <summary>Converts untyped query result ot typed one.</summary>

@@ -25,13 +25,17 @@ namespace CouchDude
 		public LuceneResultRow() { }
 
 		/// <constructor />
-		public LuceneResultRow(IJsonFragment fields, decimal score, string documentId, IDocument document)
+		public LuceneResultRow(string id, IJsonFragment fields, decimal score, string documentId, IDocument document)
 		{
+			Id = id;
 			Score = score;
 			Fields = fields;
 			DocumentId = documentId;
 			Document = document;
 		}
+
+		/// <summary>The unique identifier for this match.</summary>
+		public string Id { get; private set; }
 
 		/// <summary>The normalized score (0.0-1.0, inclusive) for this match.</summary>
 		public decimal Score { get; private set; }
