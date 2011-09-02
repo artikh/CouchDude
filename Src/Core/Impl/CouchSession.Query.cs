@@ -121,8 +121,8 @@ namespace CouchDude.Impl
 					if (unitOfWork.TryGetByDocumentId(documentId, out entity) && entity is T)
 						yield return (T) entity;
 				}
-
-				yield return default(T);
+				else
+					yield return default(T);
 			}
 		}
 	}
