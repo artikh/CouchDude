@@ -8,6 +8,7 @@ CouchDude features are:
   * CRUD operations over documents;
   *	document bulk update functionality;
   *	CouchDB views querying;
+  * Semi-automatic paging support (ASP.NET integration coming soon);
   *	lucene-couchdb indexes querying;
   *	transparent document-entity mapping;
   *	NHibernate-like first level cache and Unit of Work implementation;
