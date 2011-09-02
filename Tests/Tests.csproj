@@ -90,6 +90,8 @@
     <Compile Include="Unit\Core\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
     <Compile Include="Unit\Core\Configuration\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\Core\Impl\CouchSessionSaveChangesTests.cs" />
+    <Compile Include="Unit\Core\Impl\LuceneQueryUriConverterConvertFromTests.cs" />
+    <Compile Include="Unit\Core\Impl\LuceneQueryUriConverterConvertToTests.cs" />
     <Compile Include="Unit\Core\Impl\SessionUnitOfWorkTests.cs" />
     <Compile Include="SampleData\SimpleEntity.cs" />
     <Compile Include="Unit\Core\Impl\ViewQueryResultNextPageQueryTests.cs" />

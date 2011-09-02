@@ -17,16 +17,80 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Text;
-using System.Web;
+using System.Text.RegularExpressions;
+using CouchDude.Utils;
 
 namespace CouchDude.Impl
 {
 	/// <summary>Converts <see cref="LuceneQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class LuceneQueryUriConverter : TypeConverter
 	{
+		private static readonly OptionListSerializer<LuceneQuery> Serializer =
+			new OptionListSerializer<LuceneQuery>(
+				new StringOption<LuceneQuery>(q => q.Query, "q"),
+				new StringOption<LuceneQuery>(q => q.Analyzer, "analyzer"),
+				new BooleanOption<LuceneQuery>(q => q.SuppressCaching, "debug", "true", "false", defaultValue: "false"),
+				new BooleanOption<LuceneQuery>(q => q.UseConjunctionSematics, "default_operator", "AND", "OR", defaultValue: "OR"),
+				new BooleanOption<LuceneQuery>(q => q.IncludeDocs, "include_docs", "true", "false", defaultValue: "false"),
+				new CustomValueOption<LuceneQuery, ICollection<string>>(
+					q => q.Fields, "include_fields", defaultValue: null,
+					deserialize: stringValue => {
+					  var fields = stringValue.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+					  return fields.Length == 0? null: fields;
+					  },
+					serialize: value => value == null? null: string.Join(",", value)
+				),
+				new PositiveIntegerOption<LuceneQuery>(q => q.Limit, "limit"),
+				new PositiveIntegerOption<LuceneQuery>(q => q.Skip, "skip"),
+				new CustomValueOption<LuceneQuery, IList<LuceneSort>>(
+					q => q.Sort, "sort", defaultValue: null,
+					deserialize: stringValue => {
+					  var sorts = stringValue
+					    .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+					    .Select(
+					      s => {
+					        LuceneSort sort;
+					        if (LuceneSort.TryParse(s, out sort))
+					          return sort;
+					        return null;
+					      })
+					    .Where(s => s != null)
+					    .ToArray();
+					  return sorts.Length == 0 ? null : sorts;
+					  },
+					serialize: value => value == null? null: string.Join(",", value.Select(s => s.ToString()))
+				),
+				new BooleanOption<LuceneQuery>(q => q.DoNotBlockIfStale, "stale", "ok", null, defaultValue: null)
+			);
+
+
+		/// <inheritdoc/>
+		public override bool CanConvertFrom(ITypeDescriptorContext context, Type sourceType)
+		{
+			if (sourceType == typeof(string) || sourceType == typeof(Uri))
+				return true;
+			return base.CanConvertFrom(context, sourceType);
+		}
+
+		/// <inheritdoc/>
+		public override object ConvertFrom(ITypeDescriptorContext context, CultureInfo culture, object value)
+		{
+			var uri = value as Uri;
+			if (uri != null)
+				return TryParse(uri);
+
+			var uriString = value as string;
+			if (uriString != null)
+				return TryParse(uriString);
+
+			return base.ConvertFrom(context, culture, value);
+		}
+		
 		/// <inheritdoc/>
 		public override bool CanConvertTo(ITypeDescriptorContext context, Type destinationType)
 		{
@@ -51,47 +115,72 @@ namespace CouchDude.Impl
 				return base.ConvertTo(context, culture, value, destinationType);
 		}
 
+
+		internal static LuceneQuery TryParse(string uriString)
+		{
+			Uri uri;
+			return Uri.TryCreate(uriString, UriKind.Relative, out uri) ? TryParse(uri) : null;
+		}
+
+		internal static LuceneQuery TryParse(Uri uri)
+		{
+			LuceneQuery viewQuery;
+			return TryParse(uri, out viewQuery) ? viewQuery : null;
+		}
+
+		internal static bool TryParse(string uriString, out LuceneQuery viewQuery)
+		{
+			Uri uri;
+			viewQuery = null;
+			return Uri.TryCreate(uriString, UriKind.Relative, out uri) && TryParse(uri, out viewQuery);
+		}
+
+		internal static bool TryParse(Uri uri, out LuceneQuery viewQuery)
+		{
+			if (uri.IsAbsoluteUri)
+			{
+				viewQuery = null;
+				return false;
+			}
+
+			var match = Regex.Match(
+				uri.ToString(), "^_fti/_design/(?<designDocName>.*?)/(?<indexName>.*?)(?:\\?(?<queryString>.*))?$");
+			if (match.Success)
+			{
+				viewQuery = new LuceneQuery {
+					DesignDocumentName = match.Groups["designDocName"].Value,
+					IndexName = match.Groups["indexName"].Value
+				};
+
+				var queryStringGroup = match.Groups["queryString"];
+				if (queryStringGroup.Success)
+					Serializer.Parse(queryStringGroup.Value, ref viewQuery);
+
+				return true;
+			}
+			viewQuery = null;
+			return false;
+		}
+
+		internal static Uri ToUri(LuceneQuery viewQuery)
+		{
+			var uriString = ToUriString(viewQuery);
+			return uriString == null? null: new Uri(uriString, UriKind.Relative);
+		}
+
 		internal static string ToUriString(LuceneQuery viewQuery)
 		{
-			var uriBuilder = new StringBuilder();
-			uriBuilder.Append("_fti/_design/" + viewQuery.DesignDocumentName + "/");
-			uriBuilder.Append(viewQuery.IndexName);
-			uriBuilder.Append("?");
-			uriBuilder.Append("q=" + HttpUtility.UrlEncode(viewQuery.Query));
-			if (viewQuery.IncludeDocs)
-				uriBuilder.Append("&include_docs=true");
-			if (viewQuery.Analyzer != null)
-				uriBuilder.Append("&analyzer=" + HttpUtility.UrlEncode(viewQuery.Analyzer));
-			if (viewQuery.Sort != null)
-			{
-				uriBuilder.Append("&sort=");
-				var oneItemInList = true;
-				foreach (var luceneSort in viewQuery.Sort)
-				{
-					var sortLuceneString = (!oneItemInList ? "," : "") + (luceneSort.SortDescending ? "\\" : "/") + luceneSort.FieldName;
-					uriBuilder.Append(sortLuceneString);
-					oneItemInList = false;
-				}
-			}
-			return uriBuilder.ToString();
-		}
+			if (viewQuery.DesignDocumentName.HasNoValue() || viewQuery.IndexName.HasNoValue())
+				return null;
 
-		/// <summary>Converts lucene query to relative URL.</summary>
-		public static Uri ToUri(LuceneQuery luceneQuery)
-		{
-			return null;
-		}
+			var uri = new StringBuilder();
+			uri.Append("_fti/_design/").Append(viewQuery.DesignDocumentName).Append("/").Append(viewQuery.IndexName);
 
-		/// <summary>Parses relative URI as lucene-couchdb query.</summary>
-		public static LuceneQuery Parse(Uri uri)
-		{
-			return null;
-		}
+			var queryString = Serializer.ToQueryString(viewQuery);
+			if (queryString.Length > 0)
+				uri.Append("?").Append(queryString);
 
-		/// <summary>Parses relative URI string as lucene-couchdb query.</summary>
-		public static LuceneQuery Parse(string uriString)
-		{
-			return null;
+			return uri.ToString();
 		}
 	}
 }

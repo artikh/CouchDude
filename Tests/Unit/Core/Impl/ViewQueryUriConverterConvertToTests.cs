@@ -132,13 +132,19 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldGenerateSpecialAllDocumentsViewUrl()
 		{
-			Assert.Equal("_all_docs", ConvertToString(new ViewQuery { ViewName = "_all_docs" }));
+			Assert.Equal("_all_docs?key=%22key%22", ConvertToString(new ViewQuery { ViewName = "_all_docs", Key = "key" }));
 		}
 
 		[Fact]
 		public void ShouldThrowQueryExceptionIfNotSecialViewAndNoDesignDocumentMentioned()
 		{
-			Assert.Throws<QueryException>(() => ConvertToString(new ViewQuery { ViewName = "_not_so_special_view" }));
+			Assert.Null(ConvertToString(new ViewQuery { ViewName = "_not_so_special_view" }));
+		}
+
+		[Fact]
+		public void ShouldThrowQueryExceptionIfNoViewNameMentioned()
+		{
+			Assert.Null(ConvertToString(new ViewQuery { DesignDocumentName = "dd" }));
 		}
 	}
 }

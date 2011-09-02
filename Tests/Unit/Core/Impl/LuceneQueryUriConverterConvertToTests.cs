@@ -1,0 +1,147 @@
+﻿using System.ComponentModel;
+using Xunit;
+
+namespace CouchDude.Tests.Unit.Core.Impl
+{
+	public class LuceneQueryUriConverterConvertToTests
+	{
+		private static string ConvertToString(LuceneQuery viewQuery, bool setDefaultDesignDocumentAndView = true)
+		{
+			if (setDefaultDesignDocumentAndView)
+			{
+				viewQuery.DesignDocumentName = "dd";
+				viewQuery.IndexName = "someIndex";
+			}
+
+			var converter = TypeDescriptor.GetConverter(typeof(LuceneQuery));
+			if (converter != null)
+				return (string) converter.ConvertTo(viewQuery, typeof (string));
+			return null;
+		}
+
+		[Fact]
+		public void ShouldThrowQueryExceptionIfNoDesignDocumentMentioned()
+		{
+			Assert.Null(ConvertToString(new LuceneQuery { IndexName = "someIndex" }, setDefaultDesignDocumentAndView: false));
+		}
+
+		[Fact]
+		public void ShouldThrowQueryExceptionIfNoIndexNameMentioned()
+		{
+			Assert.Null(ConvertToString(new LuceneQuery { DesignDocumentName = "dd" }, setDefaultDesignDocumentAndView: false));
+		}
+		
+		[Fact]
+		public void ShouldEncodeQuery()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=%e8%96%84%e8%8d%b7%e5%86%b0%e6%bc%a0%e6%b7%8b",
+				ConvertToString(new LuceneQuery{ Query = "薄荷冰漠淋" })
+				);
+		}
+
+		[Fact]
+		public void ShouldAddSkipParameter()
+		{
+			Assert.Equal("_fti/_design/dd/someIndex?q=42&skip=42", ConvertToString(new LuceneQuery{ Query = "42", Skip = 42}));
+		}
+
+		[Fact]
+		public void ShouldAddLimitParameter()
+		{
+			Assert.Equal("_fti/_design/dd/someIndex?q=42&limit=42", ConvertToString(new LuceneQuery{ Query = "42", Limit = 42}));
+		}
+
+		[Fact]
+		public void ShouldUseDoNotBlockIfStaleParameterIfTrue()
+		{
+			Assert.Equal("_fti/_design/dd/someIndex?q=42&stale=ok", ConvertToString(new LuceneQuery{ Query = "42", DoNotBlockIfStale = true}));
+		}
+
+		[Fact]
+		public void ShouldNotUseDoNotBlockIfStaleParameterIfFalse()
+		{
+			Assert.Equal("_fti/_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery{ Query = "42", DoNotBlockIfStale = false}));
+		}
+
+		[Fact]
+		public void ShouldUseFieldsParameter()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&include_fields=field1%2cfield2%2cfield3", 
+				ConvertToString(new LuceneQuery { Query = "42", Fields = new[] { "field1", "field2", "field3" } }));
+		}
+
+		[Fact]
+		public void ShouldUseSingleItemFieldsParameter()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&include_fields=field", 
+				ConvertToString(new LuceneQuery { Query = "42", Fields = new[] { "field" } }));
+		}
+
+		[Fact]
+		public void ShouldAddIncludeDocsIfTrue()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&include_docs=true", 
+				ConvertToString(new LuceneQuery { Query = "42", IncludeDocs = true }));
+		}
+
+		[Fact]
+		public void ShouldNotAddIncludeDocsIfFalse()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42", 
+				ConvertToString(new LuceneQuery { Query = "42", IncludeDocs = false }));
+		}
+
+		[Fact]
+		public void ShouldGenerateSortParameter()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&sort=field1%2c%5cfield2%2cfield3%3cdouble%3e%2c%5cfield4%3clong%3e",
+				ConvertToString(
+					new LuceneQuery {
+						Query = "42",
+						Sort = new[] {
+							new LuceneSort("field1"),
+							new LuceneSort("field2", sortDescending: true),
+							new LuceneSort("field3", type: LuceneType.Double),
+							new LuceneSort("field4", sortDescending: true, type: LuceneType.Long)
+						}
+					}));
+		}
+		
+		[Fact]
+		public void ShouldUseDebugModeIfSuppressCaching()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&debug=true",
+				ConvertToString(new LuceneQuery { Query = "42", SuppressCaching = true}));
+		}
+		
+		[Fact]
+		public void ShouldNotUseDebugModeIfSuppressCachingFalse()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42",
+				ConvertToString(new LuceneQuery { Query = "42", SuppressCaching = false}));
+		}
+
+		[Fact]
+		public void ShouldSetDefaultOperatorToAndIfUseConjunctionSematicsIsTrue()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42&default_operator=AND",
+				ConvertToString(new LuceneQuery { Query = "42", UseConjunctionSematics = true}));
+		}
+
+		[Fact]
+		public void ShouldNotSetDefaultOperatorToAndIfUseConjunctionSematicsIsFalse()
+		{
+			Assert.Equal(
+				"_fti/_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery { Query = "42", UseConjunctionSematics = false}));
+		}
+	}
+}

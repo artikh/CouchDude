@@ -142,7 +142,10 @@
     <Compile Include="Impl\LuceneQueryUriConverter.cs" />
     <Compile Include="Impl\QueryResult.cs" />
     <Compile Include="Impl\QueryResultExtensions.cs" />
+    <Compile Include="LuceneSort.cs" />
+    <Compile Include="LuceneType.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
+    <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\TaskUtils.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>

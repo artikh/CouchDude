@@ -71,7 +71,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNextPageQueryForViewQueryResultAndRangeKeyQuery() 
 		{
 			var result = new ViewQueryResult<object>(
-				new ViewQuery("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22"),
+				ViewQuery.Parse("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22"),
 				new [] {
 					new ViewResultRow("first".ToJsonFragment(), null, null, null),
 					new ViewResultRow("second".ToJsonFragment(), null, null, null)
@@ -91,7 +91,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNextPageQueryMentioningStartDocIdForViewQueryResultAndRangeKeyQuery() 
 		{
 			var result = new ViewQueryResult<object>(
-				new ViewQuery("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22"),
+				ViewQuery.Parse("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22"),
 				new [] {
 					new ViewResultRow("first".ToJsonFragment(), null, "firstDocId", null),
 					new ViewResultRow("first".ToJsonFragment(), null, "secondDocId", null)
@@ -111,7 +111,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNextPageQueryMentioningStartDocIdForViewQueryResultAndKeyQuery() 
 		{
 			var result = new ViewQueryResult<object>(
-				new ViewQuery("_design/dd/_view/pointOfView?key=%22keyvalue%22"),
+				ViewQuery.Parse("_design/dd/_view/pointOfView?key=%22keyvalue%22"),
 				new [] {
 					new ViewResultRow("keyvalue".ToJsonFragment(), null, "firstDocId", null),
 					new ViewResultRow("keyvalue".ToJsonFragment(), null, "secondDocId", null)
@@ -133,7 +133,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNextPageQueryCopingLimitForViewQueryResultAndRangeKeyQuery() 
 		{
 			var result = new ViewQueryResult<object>(
-				new ViewQuery("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22&limit=2"),
+				ViewQuery.Parse("_design/dd/_view/pointOfView?startkey=%22first%22&endkey=%22third%22&limit=2"),
 				new[] {
 					new ViewResultRow("first".ToJsonFragment(), null, null, null),
 					new ViewResultRow("second".ToJsonFragment(), null, null, null)
@@ -149,7 +149,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldReturnNextPageQueryForLuceneQueryResult() 
 		{
 			var result = new LuceneQueryResult<object>(
-				new LuceneQuery("dd", "someIndex", "test:query") { Limit = 2 },
+				new LuceneQuery { DesignDocumentName = "dd", IndexName = "someIndex", Query = "test:query", Limit = 2 },
 				new[] {
 					new LuceneResultRow("field-value".ToJsonFragment(), 0, null, null),
 					new LuceneResultRow("field-value".ToJsonFragment(), 0, null, null)

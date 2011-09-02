@@ -27,15 +27,6 @@ namespace CouchDude
 	[TypeConverter(typeof(ViewQueryUriConverter))]
 	public class ViewQuery: IQuery
 	{
-		/// <constructor />
-		public ViewQuery() {}
-
-		/// <summary>Restores view query from provided URI ignoring it if malformed.</summary>
-		public ViewQuery(Uri uri) { ViewQueryUriConverter.TryParse(uri, this); }
-
-		/// <summary>Restores view query from provided URI string ignoring it if malformed.</summary>
-		public ViewQuery(string uriString) { ViewQueryUriConverter.TryParse(uriString, this); }
-
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName { get; set; }
 
@@ -74,7 +65,7 @@ namespace CouchDude
 
 		/// <summary>CouchDB will not refresh the view even if it is stale.</summary>
 		public bool StaleViewIsOk { get; set; }
-		
+
 		/// <summary>CouchDB will update view after this request is served.</summary>
 		public bool UpdateIfStale { get; set; }
 
@@ -94,6 +85,9 @@ namespace CouchDude
 		/// as exclusive at the end.</summary>
 		public bool DoNotIncludeEndKey { get; set; }
 
+		/// <summary>Requestes update sequence number to be included to query result.</summary>
+		public bool IncludeUpdateSequenceNumber { get; set; }
+
 		/// <summary>Gets query URI.</summary>
 		public override string ToString()
 		{
@@ -103,14 +97,47 @@ namespace CouchDude
 		/// <summary>Gets query URI.</summary>
 		public Uri ToUri()
 		{
-			return new Uri(ViewQueryUriConverter.ToUriString(this), UriKind.Relative);
+			return ViewQueryUriConverter.ToUri(this);
 		}
 
 		/// <summary>Cretates copy of current clone.</summary>
 		public ViewQuery Clone()
 		{
-			// Kind of inefficient, but should suffice for now. Helps keep code clean.
-			return new ViewQuery(ToString());
+			// TODO: implement manual clonnign here
+
+			ViewQuery clone;
+			TryParse(ToString(), out clone);
+			return clone;
+		}
+
+		/// <summary>Parse view query from provided URI.</summary>
+		public static ViewQuery Parse(Uri uri)
+		{
+			ViewQuery viewQuery;
+			if(!ViewQueryUriConverter.TryParse(uri, out viewQuery))
+				throw new ParseException("Error parsing view query URI: {0}", uri);
+			return viewQuery;
+		}
+
+		/// <summary>Parse view query from provided URI.</summary>
+		public static ViewQuery Parse(string uriString)
+		{
+			ViewQuery viewQuery;
+			if (!ViewQueryUriConverter.TryParse(uriString, out viewQuery))
+				throw new ParseException("Error parsing view query URI string: {0}", uriString);
+			return viewQuery;
+		}
+
+		/// <summary>Attemps to parse view query from provided URI.</summary>
+		public static bool TryParse(Uri uri, out ViewQuery viewQuery)
+		{
+			return ViewQueryUriConverter.TryParse(uri, out viewQuery);
+		}
+
+		/// <summary>Attemps to parse view query from provided URI string.</summary>
+		public static bool TryParse(string uriString, out ViewQuery viewQuery)
+		{
+			return ViewQueryUriConverter.TryParse(uriString, out viewQuery);
 		}
 		
 		/// <summary>Compares current instance with provided for equality.</summary>
