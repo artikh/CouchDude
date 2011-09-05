@@ -28,7 +28,7 @@ namespace CouchDude.Tests.SampleData
 			{ 
 				return ConfigureCouchDude.With()
 					.ServerUri("http://127.0.0.1:5984")
-					.DatabaseName("test")
+					.DefaultDatabaseName("test")
 					.MappingEntities()
 						.FromAssemblyOf<IEntity>()
 						.Implementing<IEntity>()

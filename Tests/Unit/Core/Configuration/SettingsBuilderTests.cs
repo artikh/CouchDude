@@ -32,7 +32,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		[Fact]
 		public void ShouldSetServerUriAndDatabaseName()
 		{
-			var settings = ConfigureCouchDude.With().ServerUri("http://example.com").DatabaseName("db1").CreateSettings();
+			var settings = ConfigureCouchDude.With().ServerUri("http://example.com").DefaultDatabaseName("db1").CreateSettings();
 
 			Assert.Equal(new Uri("http://example.com"), settings.ServerUri);
 			Assert.Equal("db1", settings.DatabaseName);
@@ -43,14 +43,14 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(
 				() => ConfigureCouchDude.With().ServerUri("http://example.com").CreateSettings());
-			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().DatabaseName("db1").CreateSettings());
+			Assert.Throws<ConfigurationException>(() => ConfigureCouchDude.With().DefaultDatabaseName("db1").CreateSettings());
 		}
 
 		[Fact]
 		public void ShouldIterateOverAssemblyTypesRegisteringUsingInterface()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssemblyOf<Entity>()
 					.Implementing<IEntity>()
@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldIterateOverAssemblyTypesRegisteringUsingBaseType()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssemblyOf<Entity>()
 					.InheritedFrom<Entity>()
@@ -84,7 +84,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldExplictlyRegisterTypes()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntitiy<Entity>()
 				.CreateSettings();
 
@@ -99,7 +99,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldIterateOverAssemblyTypesRegisteringUsingProvidedPredicate()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssemblyOf<Entity>()
 					.Where(t => t.Name.StartsWith("Entity"))
@@ -116,7 +116,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldProvideAbilityToPointToAssemblyByName()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssembly("CouchDude.Tests")
 					.Where(t => t.GetInterfaces().Any(i => i.Name == "IEntity"))
@@ -136,7 +136,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				c => c.EntityType == typeof(Entity) && c.DocumentType == "simpleEntity");
 
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .InheritedFrom<Entity>()
@@ -152,7 +152,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSetDocumentTypePolicy()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
@@ -167,7 +167,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSetEntityIdToDocumentIdConversion()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
@@ -182,7 +182,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSetDocumentIdToEntityIdConversion()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
@@ -197,7 +197,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSetIdMemberPolicy()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .InheritedFrom<Entity>()
@@ -218,7 +218,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.InheritedFrom<Entity>()
@@ -232,7 +232,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
@@ -245,7 +245,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(() => 
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 						.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
@@ -257,7 +257,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSetRevisionMemberPolicy()
 		{
 			Settings settings = ConfigureCouchDude.With()
-				 .ServerUri("http://example.com").DatabaseName("db1")
+				 .ServerUri("http://example.com").DefaultDatabaseName("db1")
 				 .MappingEntities()
 					 .FromAssemblyOf<Entity>()
 					 .Implementing<IEntity>()
@@ -278,7 +278,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
@@ -292,7 +292,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.Throws<ConfigurationException>(() =>
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 					.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
@@ -305,7 +305,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		{
 			Assert.DoesNotThrow(() =>
 				ConfigureCouchDude.With()
-					.ServerUri("http://example.com").DatabaseName("db1")
+					.ServerUri("http://example.com").DefaultDatabaseName("db1")
 						.MappingEntities()
 						.FromAssemblyOf<Entity>()
 						.Implementing<IEntity>()
@@ -322,7 +322,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 				c => c.EntityType == typeof(Entity) && c.DocumentType == "simpleEntity");
 
 			var settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssemblyOf<Entity>()
 					.Where(t => t.Name == "Entity")
@@ -341,7 +341,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 		public void ShouldSemiInheritAspectsOfConfigurationFromPreviousDeclaration()
 		{
 			var settings = ConfigureCouchDude.With()
-				.ServerUri("http://example.com").DatabaseName("db1")
+				.ServerUri("http://example.com").DefaultDatabaseName("db1")
 				.MappingEntities()
 					.FromAssembly("CouchDude.Tests")
 					.Implementing<IEntity>()

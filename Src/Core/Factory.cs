@@ -16,18 +16,28 @@
 */
 #endregion
 
-using System.Threading.Tasks;
-using System.Net.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using CouchDude.Http;
+using CouchDude.Impl;
 
-namespace CouchDude.Http
+namespace CouchDude
 {
-	/// <summary>HTTP client abstracted interface.</summary>
-	public interface IHttpClient
+	/// <summary>Factory class for main CouchDude API classes.</summary>
+	public static class Factory
 	{
-		/// <summary>Starts HTTP request and returs task.</summary>
-		Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage);
+		/// <summary>Creates session factory from provided settings.</summary>
+		public static ISessionFactory CreateSessionFactory(this Settings settings)
+		{
+			return new CouchSessionFactory(settings);
+		}
 
-		/// <summary>Makes HTTP request and waits for result.</summary>
-		HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage);
+		/// <summary>Creates session factory from provided settings and <see cref="IHttpClient"/>.</summary>
+		public static ISessionFactory CreateSessionFactory(this Settings settings, IHttpClient httpClient)
+		{
+			return new CouchSessionFactory(settings);
+		}
 	}
 }

@@ -129,8 +129,10 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
+    <Compile Include="Factory.cs" />
     <Compile Include="IBulkUpdateBatch.cs" />
     <Compile Include="ILuceneQueryResult.cs" />
+    <Compile Include="Impl\CheckIf.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
     <Compile Include="IQueryResult.cs" />

@@ -59,8 +59,8 @@ namespace CouchDude.Configuration.Builders
 			return ServerUri(new Uri(serverUriString, UriKind.Absolute));
 		}
 
-		/// <summary>Sets CouchDB database name.</summary>
-		public SettingsBuilder DatabaseName(string dbName)
+		/// <summary>Sets default database name to use.</summary>
+		public SettingsBuilder DefaultDatabaseName(string dbName)
 		{
 			settings.DatabaseName = dbName;
 			return this;

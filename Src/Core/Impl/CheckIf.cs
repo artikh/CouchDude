@@ -1,6 +1,6 @@
-#region Licence Info 
+﻿#region Licence Info 
 /*
-	Copyright 2011 � Artem Tikhomirov																					
+	Copyright 2011 · Artem Tikhomirov																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -16,15 +16,14 @@
 */
 #endregion
 
-namespace CouchDude
-{
-	/// <summary>Factory object for <see cref="ISession"/> object.</summary>
-	public interface ISessionFactory
-	{
-		/// <summary>Creates session.</summary>
-		ISession CreateSession();
+using System.Text.RegularExpressions;
 
-		/// <summary>Creates session targeting non-default database.</summary>
-		ISession CreateSession(string databaseName);
+namespace CouchDude.Impl
+{
+	/// <summary>Commonly used checks.</summary>
+	public static class CheckIf
+	{
+		/// <summary>Checks if database name is valid.</summary>
+		public static bool DatabaseNameIsOk(string dbName) { return Regex.IsMatch(dbName, @"^[a-z][0-9a-z_$()+\-/]*$"); }
 	}
 }

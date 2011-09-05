@@ -102,13 +102,7 @@ namespace CouchDude
 		}
 
 		/// <summary>Determines if provided database name is valid.</summary>
-		public static bool ValidDbName(string databaseName)
-		{
-			var firstLetter = databaseName[0];
-			return Char.IsLetter(firstLetter)
-			       && Char.IsLower(firstLetter)
-			       && databaseName.All(ch => Regex.IsMatch(ch.ToString(), "[0-9a-z_$()+-/]"));
-		}
+		public static bool ValidDbName(string databaseName) { return Impl.CheckIf.DatabaseNameIsOk(databaseName); }
 
 		/// <summary>Registers entity configuration.</summary>
 		public Settings Register(IEntityConfig entityConfig)
