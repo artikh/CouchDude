@@ -9,10 +9,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnNullParameters()
 		{
-			Assert.Throws<ArgumentNullException>(() => new CouchApi(null, new Uri("http://example.com"), "db1"));
-			Assert.Throws<ArgumentNullException>(() => new CouchApi(new HttpClientMock(), null, "db1"));
-			Assert.Throws<ArgumentNullException>(() => new CouchApi(new HttpClientMock(), new Uri("http://example.com"), null));
-			Assert.Throws<ArgumentNullException>(() => new CouchApi(new HttpClientMock(), new Uri("http://example.com"), string.Empty));
+			Assert.Throws<ArgumentNullException>(() => new CouchApi(null, new Uri("http://example.com")));
+			Assert.Throws<ArgumentNullException>(() => new CouchApi(new HttpClientMock(), null));
 		}
 	}
 }

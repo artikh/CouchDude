@@ -42,8 +42,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 			var response = ConstructOkResponse("1-1a517022a0c2d4814d51abfedf9bfee7");
 
 			var httpMock = new HttpClientMock(response);
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
-			var revision = couchApi.Synchronously.RequestLastestDocumentRevision("doc1");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			var revision = couchApi.Synchronously.RequestLastestDocumentRevision("testdb", "doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Head, httpMock.Request.Method);
@@ -56,10 +56,13 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var response = ConstructOkResponse();
 			var httpMock = new HttpClientMock(response);
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
 
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision(""));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision(null));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("testdb", ""));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("testdb", null));
+
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("", "doc1"));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestLastestDocumentRevision(null, "doc1"));
 		}
 
 		[Fact]
@@ -67,18 +70,18 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var response = ConstructOkResponse();
 			var httpMock = new HttpClientMock(response);
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
 
-			Assert.Throws<ParseException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("doc1"));
+			Assert.Throws<ParseException>(() => couchApi.Synchronously.RequestLastestDocumentRevision("testdb", "doc1"));
 		}
 
 		[Fact]
 		public void ShouldReturnNullIfNoDocumentFound()
 		{
 			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "not found"));
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
 
-			var version = couchApi.Synchronously.RequestLastestDocumentRevision("doc1");
+			var version = couchApi.Synchronously.RequestLastestDocumentRevision("testdb", "doc1");
 			Assert.Null(version);
 		}
 
@@ -92,7 +95,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
-					() => couchApi.Synchronously.RequestLastestDocumentRevision("doc1"));
+					() => couchApi.Synchronously.RequestLastestDocumentRevision("testdb", "doc1"));
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
@@ -110,7 +113,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<CouchCommunicationException>(
-				() => couchApi.Synchronously.RequestLastestDocumentRevision(docId: "doc1")
+				() => couchApi.Synchronously.RequestLastestDocumentRevision("testdb", "doc1")
 			);
 
 			Assert.Contains("bad_request: Mock reason", exception.Message);
@@ -118,7 +121,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
 		{
-			return new CouchApi(httpMock, new Uri("http://example.com:5984/"), "testdb");
+			return new CouchApi(httpMock, new Uri("http://example.com:5984/"));
 		}
 	}
 }

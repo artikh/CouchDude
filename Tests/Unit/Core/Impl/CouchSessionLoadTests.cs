@@ -54,10 +54,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(_ => Entity.CreateDocWithRevision().ToTask());
+				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
+				.Returns<string, string>((_,__) => Entity.CreateDocWithRevision().ToTask());
 			couchApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Setup(ca => ca.SaveDocument("testdb", It.IsAny<IDocument>()))
 				.Returns(Entity.StandardDococumentInfo.ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
@@ -75,7 +75,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldLoadDataCorrectlyIfNoRevisionPropertyFound()
 		{
 			var couchApi = Mock.Of<ICouchApi>(
-				api => api.RequestDocumentById(It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
+				api => api.RequestDocumentById("testdb", It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
 			);
 
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Synchronously.Load<EntityWithoutRevision>("doc1");
@@ -98,11 +98,12 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(docId => { 
-					requestedId = docId;
-					return Entity.CreateDocWithRevision().ToTask<IDocument>();
-				});
+				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
+				.Returns<string, string>(
+					(dbName, id) => {
+						requestedId = id;
+						return Entity.CreateDocWithRevision().ToTask<IDocument>();
+					});
 			var session = new CouchSession(Default.Settings, couchApiMock.Object);
 			session.Synchronously.Load<Entity>(Entity.StandardEntityId);
 
@@ -113,16 +114,17 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(id => Task.Factory.StartNew(
-					() => new {
-						_id = "entity" + ".doc1",
-						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						type = "entity",
-						name = "John Smith"
-					}.ToDocument()));
+				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
+				.Returns<string, string>(
+					(dbName, id) => Task.Factory.StartNew(
+						() => new {
+							_id = "entity" + ".doc1",
+							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+							type = "entity",
+							name = "John Smith"
+						}.ToDocument()));
 			couchApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Setup(ca => ca.SaveDocument("testdb", It.IsAny<IDocument>()))
 				.Returns(new DocumentInfo(Entity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));

@@ -32,42 +32,41 @@ namespace CouchDude.Api
 			this.couchApi = couchApi;
 		}
 
-		public IDocument RequestDocumentById(string docId)
+		public IDocument RequestDocumentById(string databaseName, string docId)
 		{
-			return couchApi.RequestDocumentById(docId).WaitForResult();
+			return couchApi.RequestDocumentById(databaseName, docId).WaitForResult();
 		}
 
-		public DocumentInfo DeleteDocument(string docId, string revision)
+		public DocumentInfo DeleteDocument(string databaseName, string docId, string revision)
 		{
-			return couchApi.DeleteDocument(docId, revision).WaitForResult();
+			return couchApi.DeleteDocument(databaseName, docId, revision).WaitForResult();
 		}
 
-		public DocumentInfo SaveDocument(IDocument document)
+		public DocumentInfo SaveDocument(string databaseName, IDocument document)
 		{
-			return couchApi.SaveDocument(document).WaitForResult();
+			return couchApi.SaveDocument(databaseName, document).WaitForResult();
 		}
 
-		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
+		public IDictionary<string, DocumentInfo> BulkUpdate(string databaseName, Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
-			return couchApi.BulkUpdate(updateCommandBuilder).WaitForResult();
+			return couchApi.BulkUpdate(databaseName, updateCommandBuilder).WaitForResult();
 		}
 
-		public string RequestLastestDocumentRevision(string docId)
+		public string RequestLastestDocumentRevision(string databaseName, string docId)
 		{
-			return couchApi.RequestLastestDocumentRevision(docId).WaitForResult();
-		}
-
-		/// <inheritdoc/>
-		public IViewQueryResult Query(ViewQuery query)
-		{
-			return couchApi.Query(query).WaitForResult();
+			return couchApi.RequestLastestDocumentRevision(databaseName, docId).WaitForResult();
 		}
 
 		/// <inheritdoc/>
-		/// TODO: Add result weight to result
-		public ILuceneQueryResult QueryLucene(LuceneQuery query)
+		public IViewQueryResult Query(string databaseName, ViewQuery query)
 		{
-			return couchApi.QueryLucene(query).WaitForResult();
+			return couchApi.Query(databaseName, query).WaitForResult();
+		}
+
+		/// <inheritdoc/>
+		public ILuceneQueryResult QueryLucene(string databaseName, LuceneQuery query)
+		{
+			return couchApi.QueryLucene(databaseName, query).WaitForResult();
 		}
 	}
 }

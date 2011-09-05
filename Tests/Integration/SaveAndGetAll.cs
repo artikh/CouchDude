@@ -30,17 +30,20 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveCoupleEntitiesAndThenGetThemAllDeletingAfterwards()
 		{
-			var sessionFactory = new CouchSessionFactory(Default.Settings);
+			var sessionFactory = Default.Settings.CreateSessionFactory();
+			var prefix = Guid.NewGuid().ToString();
 
 			var entityA = new Entity
 			{
-				Name = "John Smith",
+				Id = prefix + "1",
+				Name = "1",
 				Age = 42,
 				Date = DateTime.Now
 			};
 
 			var entityB = new Entity
 			{
+				Id = prefix + "2",
 				Name = "Stas Girkin",
 				Age = 42,
 				Date = DateTime.Now
@@ -55,7 +58,12 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.Query<Entity>(new ViewQuery { ViewName = "_all_docs", IncludeDocs = true });
+				var result = session.Synchronously.Query<Entity>(new ViewQuery {
+					ViewName = "_all_docs",
+					StartKey = "entity." + entityA.Id,
+					EndKey = "entity." + entityB.Id,
+					IncludeDocs = true
+				});
 				Assert.True(result.Count >= 2);
 
 				var loadedEntityA = result.First(e => e != null && e.Id == entityA.Id);

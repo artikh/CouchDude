@@ -18,7 +18,6 @@
 
 using System;
 using CouchDude.Configuration.Builders;
-using CouchDude.Impl;
 
 namespace CouchDude
 {
@@ -30,13 +29,7 @@ namespace CouchDude
 		{
 			return new SettingsBuilder();
 		}
-
-		/// <summary>Creates session factory from provided setting.</summary>
-		public static ISessionFactory CreateSessionFactory(this Settings settings)
-		{
-			return new CouchSessionFactory(settings);
-		}
-
+		
 		/// <summary>Retrives service from service provider using type argument.</summary>
 		public static TService GetService<TService>(this IServiceProvider serviceProvider)
 		{

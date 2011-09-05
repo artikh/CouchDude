@@ -9,12 +9,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 {
 	public class CouchApiBulkUpdateTests
 	{
-		private static CouchApi CreateCouchApi() { return CreateCouchApi(new HttpClientMock()); }
-
-		private static CouchApi CreateCouchApi(HttpClientMock httpClientMock)
-		{
-			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"), "testdb");
-		}
+		private static ICouchApi CreateCouchApi(HttpClientMock httpClientMock = null) { return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock); }
 
 		[Fact]
 		public void ShouldThrowOnInvalidArgumentsToUnitOfWork()
@@ -28,7 +23,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
-			Func<Action<IBulkUpdateBatch>, IDictionary<string, DocumentInfo>> bulkUpdate = couchApi.Synchronously.BulkUpdate;
+			Func<Action<IBulkUpdateBatch>, IDictionary<string, DocumentInfo>> bulkUpdate =
+				action => couchApi.Synchronously.BulkUpdate("testdb", action);
 
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Create(null)));
 			// Save of the document with revision 
@@ -48,14 +44,15 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnNullArguments() 
 		{
-			Assert.Throws<ArgumentNullException>(() => CreateCouchApi().BulkUpdate(null));
+			Assert.Throws<ArgumentNullException>(() => CreateCouchApi().BulkUpdate("testdb", null));
+			Assert.Throws<ArgumentNullException>(() => CreateCouchApi().BulkUpdate("", b => {}));
 		}
 
 		[Fact]
 		public void ShouldNotDoNetworkingIfNoWorkToDo()
 		{
 			var httpClient = new HttpClientMock();
-			CreateCouchApi(httpClient).BulkUpdate(x => { });
+			CreateCouchApi(httpClient).BulkUpdate("testdb", x => { });
 
 			Assert.Null(httpClient.Request);
 		}
@@ -72,12 +69,14 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
-			var result = couchApi.Synchronously.BulkUpdate(x => {
-				x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-				x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
-				x.Delete(new { _id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", name = "John", age = 42 }.ToDocument());
-				x.Delete("doc4", "1-1a517022a0c2d4814d51abfedf9bfee0");
-			});
+			var result = couchApi.Synchronously.BulkUpdate(
+				"testdb", 
+				x => {
+					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+					x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
+					x.Delete(new { _id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", name = "John", age = 42 }.ToDocument());
+					x.Delete("doc4", "1-1a517022a0c2d4814d51abfedf9bfee0");
+				});
 
 			var expectedDescriptor = new {
 				docs = new object[] {
@@ -108,10 +107,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<InvalidDocumentException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
-				})
+				couchApi.Synchronously.BulkUpdate(
+					"testdb", 
+					x => {
+						x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+						x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
+					})
 			);
 
 			Assert.Contains("doc2", exception.Message);
@@ -128,10 +129,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
-				})
+				couchApi.Synchronously.BulkUpdate(
+					"testdb", 
+					x => {
+						x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+						x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
+					})
 			);
 
 			Assert.Contains("doc2", exception.Message);
@@ -149,10 +152,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Delete(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", _deleted = true }.ToDocument());
-				})
+				couchApi.Synchronously.BulkUpdate(
+					"testdb", 
+					x => {
+						x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+						x.Delete(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", _deleted = true }.ToDocument());
+					})
 			);
 
 			Assert.Contains("doc2", exception.Message);
@@ -170,10 +175,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Create(new { _id = "doc2" }.ToDocument());
-				})
+				couchApi.Synchronously.BulkUpdate(
+					"testdb", 
+					x => {
+						x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+						x.Create(new { _id = "doc2" }.ToDocument());
+					})
 			);
 
 			Assert.Contains("doc2", exception.Message);
@@ -191,10 +198,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 
 			var exception = Assert.Throws<AggregateException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Create(new { _id = "doc2" }.ToDocument());
-				})
+				couchApi.Synchronously.BulkUpdate(
+					"testdb", 
+					x => {
+						x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
+						x.Create(new { _id = "doc2" }.ToDocument());
+					})
 			);
 
 			Assert.Equal(2, exception.InnerExceptions.Count);
@@ -213,7 +222,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			ICouchApi couchApi = CreateCouchApi(httpClientMock);
 			
 			var exception = Assert.Throws<CouchCommunicationException>(() =>
-				couchApi.Synchronously.BulkUpdate(x => x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument()))
+				couchApi.Synchronously.BulkUpdate("testdb", x => x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument()))
 			);
 
 			Assert.Contains("bad_request: Mock reason", exception.Message);

@@ -17,14 +17,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApiMock = new Mock<ICouchApi>();
 			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
 				.Returns(new Dictionary<string, DocumentInfo>().ToTask<IDictionary<string, DocumentInfo>>());
 
 			ISession sesion = new CouchSession(Default.Settings, couchApiMock.Object);
 			sesion.Save(SimpleEntity.CreateStandardWithoutRevision());
 			sesion.SaveChanges();
 			
-			couchApiMock.Verify(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()), Times.Once());
+			couchApiMock.Verify(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()), Times.Once());
 		}
 
 		[Fact]
@@ -32,7 +32,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApiMock = new Mock<ICouchApi>();
 			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
 				.Returns(
 					new Dictionary<string, DocumentInfo> {
 						{ SimpleEntity.StandardDocId, new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968") }
@@ -58,9 +58,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var couchApiMock = new Mock<ICouchApi>();
 			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<Action<IBulkUpdateBatch>>(
-					updater => Task.Factory.StartNew(
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<string, Action<IBulkUpdateBatch>>(
+					(dbName, updater) => Task.Factory.StartNew(
 						() => {
 
 							apiShouldEnter.WaitOne();
@@ -112,9 +112,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var couchApiMock = new Mock<ICouchApi>();
 			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<Action<IBulkUpdateBatch>>(
-					updater => Task.Factory.StartNew(
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<string, Action<IBulkUpdateBatch>>(
+					(dbName, updater) => Task.Factory.StartNew(
 						() => {
 							saveChangesOperationStarted.Set();
 							saveChangesOperationShouldProceed.WaitOne();
@@ -124,55 +124,50 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					)
 				);
 			couchApiMock
-				.Setup(api => api.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					_ => {
+				.Setup(api => api.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns<string, ViewQuery>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("Query");
 						return ViewQueryResult.Empty.ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.QueryLucene(It.IsAny<LuceneQuery>()))
-				.Returns<LuceneQuery>(
-					_ =>
-					{
+				.Setup(api => api.QueryLucene(It.IsAny<string>(), It.IsAny<LuceneQuery>()))
+				.Returns<string, LuceneQuery>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("QueryLucene");
 						return
 							LuceneQueryResult.Empty.ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(
-					_ =>
-					{
+				.Setup(api => api.RequestDocumentById(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns<string, string>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("RequestDocumentById");
 						return SimpleEntity.CreateDocument().ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.RequestLastestDocumentRevision(It.IsAny<string>()))
-				.Returns<string>(
-					_ =>
-					{
+				.Setup(api => api.RequestLastestDocumentRevision(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns<string, string>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("RequestLastestDocumentRevision");
 						return SimpleEntity.StandardDocId.ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
-				.Returns<string, string>(
-					(_, __) =>
-					{
+				.Setup(api => api.DeleteDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+				.Returns<string, string, string>(
+					(_, __, ___) => {
 						lock (executedOperations)
 							executedOperations.Add("DeleteDocument");
 						return SimpleEntity.StandardDocumentInfo.ToTask();
 					});
 			couchApiMock
-				.Setup(api => api.SaveDocument(It.IsAny<IDocument>()))
-				.Returns<IDocument>(
-					_ =>
-					{
+				.Setup(api => api.SaveDocument(It.IsAny<string>(), It.IsAny<IDocument>()))
+				.Returns<string, IDocument>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("SaveDocument");
 						return SimpleEntity.StandardDocumentInfo.ToTask();

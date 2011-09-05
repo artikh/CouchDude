@@ -29,7 +29,7 @@ namespace CouchDude
 	{
 		private readonly EntityRegistry entityRegistry = new EntityRegistry();
 		private Uri serverUri;
-		private string databaseName;
+		private string defaultDatabaseName;
 
 		/// <summary>Base server URL.</summary>
 		public Uri ServerUri
@@ -48,9 +48,9 @@ namespace CouchDude
 		}
 
 		/// <summary>Database name.</summary>
-		public string DatabaseName
+		public string DefaultDatabaseName
 		{
-			get { return databaseName; }
+			get { return defaultDatabaseName; }
 			set
 			{
 				if (string.IsNullOrWhiteSpace(value))
@@ -63,8 +63,8 @@ namespace CouchDude
 						"value");
 				
 
-				if (databaseName == value) return;
-				databaseName = value;
+				if (defaultDatabaseName == value) return;
+				defaultDatabaseName = value;
 			}
 		}
 
@@ -74,7 +74,7 @@ namespace CouchDude
 		/// <summary>Reports</summary>
 		public bool Incomplete
 		{
-			get { return databaseName == null || serverUri == null; }
+			get { return defaultDatabaseName == null || serverUri == null; }
 		}
 
 		/// <constructor />
@@ -98,7 +98,7 @@ namespace CouchDude
 			
 
 			ServerUri = serverUri;
-			DatabaseName = databaseName;
+			DefaultDatabaseName = databaseName;
 		}
 
 		/// <summary>Determines if provided database name is valid.</summary>

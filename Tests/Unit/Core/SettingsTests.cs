@@ -51,7 +51,7 @@ namespace CouchDude.Tests.Unit.Core
 			Assert.True(settings.Incomplete);
 			settings.ServerUri = new Uri("http://example.com");
 			Assert.True(settings.Incomplete);
-			settings.DatabaseName = "db1";
+			settings.DefaultDatabaseName = "db1";
 			Assert.False(settings.Incomplete);
 		}
 	}

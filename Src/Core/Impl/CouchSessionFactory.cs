@@ -17,11 +17,15 @@
 #endregion
 
 using System;
-using CouchDude.Api;
-using CouchDude.Http;
 
 namespace CouchDude.Impl
 {
+	/*
+	 * Design note. 
+	 * This thing does not do mutch now, however I (A.T.) think it's neded for cross-session services later (not second level caching though).  
+	 * Plus it adds familiarity for NH folks :)
+	 */
+
 	/// <summary>Session factory implementation.</summary>
 	public class CouchSessionFactory: ISessionFactory
 	{
@@ -29,19 +33,25 @@ namespace CouchDude.Impl
 		private readonly Settings settings;
 
 		/// <constructor />
-		public CouchSessionFactory(Settings settings, ICouchApi couchApi = null)
+		internal CouchSessionFactory(Settings settings, ICouchApi couchApi)
 		{
 			if (settings == null) throw new ArgumentNullException("settings");
+			if (couchApi == null) throw new ArgumentNullException("couchApi");
 
 			this.settings = settings;
-			this.couchApi = couchApi 
-				?? new CouchApi(new HttpClientImpl(), settings.ServerUri, settings.DatabaseName);
+			this.couchApi = couchApi;
 		}
 
 		/// <inheritdoc/>
 		public ISession CreateSession()
 		{
 			return new CouchSession(settings, couchApi);
+		}
+
+		/// <inheritdoc/>
+		public ISession CreateSession(string databaseName)
+		{
+			return new CouchSession(databaseName, settings, couchApi);
 		}
 	}
 }

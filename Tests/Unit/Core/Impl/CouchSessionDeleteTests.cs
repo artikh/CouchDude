@@ -67,15 +67,15 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			DocumentInfo result = documentInfo;
 			var couchApiMock = new Mock<ICouchApi>();
 			couchApiMock
-				.Setup(ca => ca.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<Action<IBulkUpdateBatch>>(
-					updateAction => {
+				.Setup(ca => ca.BulkUpdate("testdb", It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<string, Action<IBulkUpdateBatch>>(
+					(dbName, updateAction) => {
 						updateAction(bulkUpdateBatchMock.Object);
 						return new Dictionary<string, DocumentInfo> {{result.Id, result}}
 							.ToTask<IDictionary<string, DocumentInfo>>();
 					});
 			couchApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
 				.Returns(EntityWithoutRevision.CreateDocumentWithRevision().ToTask());
 			couchApiMock
 				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
@@ -90,23 +90,6 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			Assert.Equal(EntityWithoutRevision.StandardDocId, deletedId);
 			Assert.Equal(EntityWithoutRevision.StandardRevision, deletedRev);
-		}
-		
-		private static ICouchApi MockCouchApi(DocumentInfo result, Mock<IBulkUpdateBatch> bulkUpdateBatchMock)
-		{
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(ca => ca.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<Action<IBulkUpdateBatch>>(
-					updateAction => {
-						updateAction(bulkUpdateBatchMock.Object);
-						return new Dictionary<string, DocumentInfo> {{result.Id, result}}
-							.ToTask<IDictionary<string, DocumentInfo>>();
-					});
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
-			var couchApi = couchApiMock.Object;
-			return couchApi;
 		}
 	}
 }

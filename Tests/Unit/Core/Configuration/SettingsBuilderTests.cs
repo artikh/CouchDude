@@ -35,7 +35,7 @@ namespace CouchDude.Tests.Unit.Core.Configuration
 			var settings = ConfigureCouchDude.With().ServerUri("http://example.com").DefaultDatabaseName("db1").CreateSettings();
 
 			Assert.Equal(new Uri("http://example.com"), settings.ServerUri);
-			Assert.Equal("db1", settings.DatabaseName);
+			Assert.Equal("db1", settings.DefaultDatabaseName);
 		}
 
 		[Fact]

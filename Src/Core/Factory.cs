@@ -17,9 +17,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using CouchDude.Api;
 using CouchDude.Http;
 using CouchDude.Impl;
 
@@ -28,16 +26,36 @@ namespace CouchDude
 	/// <summary>Factory class for main CouchDude API classes.</summary>
 	public static class Factory
 	{
-		/// <summary>Creates session factory from provided settings.</summary>
-		public static ISessionFactory CreateSessionFactory(this Settings settings)
+
+		/// <summary>Creates session factory from provided <paramref name="settings"/> 
+		/// and <paramref name="httpClient"/> if provided.</summary>
+		public static ISessionFactory CreateSessionFactory(this Settings settings, IHttpClient httpClient = null)
 		{
-			return new CouchSessionFactory(settings);
+			if(settings == null) throw new ArgumentNullException("settings");
+			if(settings.Incomplete) throw new ArgumentException("Settings object initalization have not finished yet.", "settings");
+
+			return new CouchSessionFactory(settings, CreateCouchApi(settings.ServerUri, httpClient));
 		}
 
-		/// <summary>Creates session factory from provided settings and <see cref="IHttpClient"/>.</summary>
-		public static ISessionFactory CreateSessionFactory(this Settings settings, IHttpClient httpClient)
+		/// <summary>Creates standard implementation of <see cref="IHttpClient"/>.</summary>
+		public static IHttpClient CreateHttpClient()
 		{
-			return new CouchSessionFactory(settings);
+			return new HttpClientImpl();
+		}
+
+		/// <summary>Creates new <see cref="ICouchApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
+		public static ICouchApi CreateCouchApi(string serverAddress, IHttpClient httpClient = null)
+		{
+			return CreateCouchApi(new Uri(serverAddress, UriKind.RelativeOrAbsolute), httpClient);
+		}
+
+		/// <summary>Creates new <see cref="ICouchApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
+		public static ICouchApi CreateCouchApi(Uri serverAddress, IHttpClient httpClient = null)
+		{
+			if (serverAddress == null) throw new ArgumentNullException("serverAddress");
+			if (!serverAddress.IsAbsoluteUri) throw new ArgumentException("Server address should be absolute URI.", "serverAddress");
+
+			return new CouchApi(httpClient ?? CreateHttpClient(), serverAddress);
 		}
 	}
 }

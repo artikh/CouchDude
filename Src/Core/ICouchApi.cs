@@ -25,28 +25,29 @@ namespace CouchDude
 	/// <summary>Represents low-level CouchDB API.</summary>
 	public interface ICouchApi
 	{
-		/// <summary>Requests CouchDB for document.</summary>
-		Task<IDocument> RequestDocumentById(string docId);
+		/// <summary>Requests CouchDB for document of <paramref name="docId"/> located in 
+		/// <paramref name="databaseName"/>.</summary>
+		Task<IDocument> RequestDocumentById(string databaseName, string docId);
 
-		/// <summary>Saves new document to CouchDB.</summary>
-		Task<DocumentInfo> SaveDocument(IDocument document);
+		/// <summary>Saves new document to <paramref name="databaseName"/>.</summary>
+		Task<DocumentInfo> SaveDocument(string databaseName, IDocument document);
 
-		/// <summary>Retrives current document revision from database. </summary>
+		/// <summary>Retrives current document revision from <paramref name="databaseName"/>. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
-		Task<string> RequestLastestDocumentRevision(string docId);
+		Task<string> RequestLastestDocumentRevision(string databaseName, string docId);
 
-		/// <summary>Deletes document of provided <param name="documentId"/> if it's revision
-		/// is equal to provided <param name="revision"/>.</summary>
-		Task<DocumentInfo> DeleteDocument(string documentId, string revision);
+		/// <summary>Deletes document of provided <paramref name="documentId"/> if it's revision
+		/// is equal to provided <paramref name="revision"/> from <paramref name="databaseName"/>.</summary>
+		Task<DocumentInfo> DeleteDocument(string databaseName, string documentId, string revision);
 
-		/// <summary>Queries CouchDB view.</summary>
-		Task<IViewQueryResult> Query(ViewQuery query);
+		/// <summary>Queries CouchDB view defined in <paramref name="databaseName"/>.</summary>
+		Task<IViewQueryResult> Query(string databaseName, ViewQuery query);
 
-		/// <summary>Queries couchdb-lucene index.</summary>
-		Task<ILuceneQueryResult> QueryLucene(LuceneQuery query);
+		/// <summary>Queries couchdb-lucene index defined in <paramref name="databaseName"/>.</summary>
+		Task<ILuceneQueryResult> QueryLucene(string databaseName, LuceneQuery query);
 
-		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
-		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
+		/// <summary>Creates, updates and deletes several documents as a whole in <paramref name="databaseName"/>. </summary>
+		Task<IDictionary<string, DocumentInfo>> BulkUpdate(string databaseName, Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Synchronous version of API.</summary>
 		ISynchronousCouchApi Synchronously { get; }

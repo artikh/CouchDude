@@ -62,7 +62,7 @@ namespace CouchDude.Configuration.Builders
 		/// <summary>Sets default database name to use.</summary>
 		public SettingsBuilder DefaultDatabaseName(string dbName)
 		{
-			settings.DatabaseName = dbName;
+			settings.DefaultDatabaseName = dbName;
 			return this;
 		}
 

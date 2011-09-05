@@ -38,9 +38,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
+				.Setup(ca => ca.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
 				.Returns(
-					(ViewQuery query) => {
+					(string dbName, ViewQuery query) => {
 						sendQuery = query;
 						return new ViewQueryResult(
 							query,
@@ -70,9 +70,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
 			couchApiMock
-				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					query => new ViewQueryResult(
+				.Setup(ca => ca.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery query) => new ViewQueryResult(
 						query, 
 						new[] {
 							new ViewResultRow(
@@ -122,9 +122,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery q) =>
 						new ViewQueryResult(query: q, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -156,9 +156,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery q) =>
 						new ViewQueryResult(query: q, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -181,10 +181,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
-						new ViewQueryResult(query: q, rows: new[] {
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery query) =>
+						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
 								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
@@ -213,10 +213,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
-						new ViewQueryResult(query: q, rows: new[] {
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery query) =>
+						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
 								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),
@@ -239,10 +239,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
-						new ViewQueryResult(query: q, rows: new[] {
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery query) =>
+						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
 								null,
@@ -264,10 +264,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = new Mock<ICouchApi>();
 			couchApi
-				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
-				.Returns<ViewQuery>(
-					q =>
-						new ViewQueryResult(query: q, rows: new[] {
+				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+				.Returns(
+					(string dbName, ViewQuery query) =>
+						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
 								new {Title = "Object title", Subject = "some"}.ToJsonFragment(),

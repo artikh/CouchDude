@@ -14,7 +14,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var prefix = Guid.NewGuid().ToString();
 
-			var sessionFactory = new CouchSessionFactory(Default.Settings);
+			var sessionFactory = Default.Settings.CreateSessionFactory();
 
 			using (var session = sessionFactory.CreateSession())
 			{

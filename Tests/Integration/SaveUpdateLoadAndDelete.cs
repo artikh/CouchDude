@@ -29,7 +29,7 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveUpdateAndLoadSimpleEntity()
 		{
-			var sessionFactory = new CouchSessionFactory(Default.Settings);
+			var sessionFactory = Default.Settings.CreateSessionFactory();
 
 			var savedEntity = new Entity {
 				Id = Guid.NewGuid().ToString(),

@@ -24,27 +24,27 @@ namespace CouchDude
 	/// <summary>Represents synchronous version of low-level CouchDB API.</summary>
 	public interface ISynchronousCouchApi
 	{
-		/// <summary>Requests CouchDB for document and waits for an answer.</summary>
-		IDocument RequestDocumentById(string docId);
-		
-		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
-		DocumentInfo SaveDocument(IDocument document);
+		/// <summary>Requests <paramref name="databaseName"/> for document and waits for an answer.</summary>
+		IDocument RequestDocumentById(string databaseName, string docId);
 
-		/// <summary>Retrives current document revision from database and waits for the result of the operation. </summary>
+		/// <summary>Saves new document to <paramref name="databaseName"/> and waits for the result of the operation.</summary>
+		DocumentInfo SaveDocument(string databaseName, IDocument document);
+
+		/// <summary>Retrives current document revision from <paramref name="databaseName"/> and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
-		string RequestLastestDocumentRevision(string docId);
+		string RequestLastestDocumentRevision(string databaseName, string docId);
 
-		/// <summary>Deletes document of provided <param name="docId"/> if it's revision
-		/// is equal to provided <param name="revision"/> and waits for the result of the operation.</summary>
-		DocumentInfo DeleteDocument(string docId, string revision);
+		/// <summary>Deletes document of provided <paramref name="docId"/> if it's revision
+		/// is equal to provided <paramref name="revision"/> from <paramref name="databaseName"/> and waits for the result of the operation.</summary>
+		DocumentInfo DeleteDocument(string databaseName, string docId, string revision);
 
 		/// <summary>Creates, updates and deletes several documents as a whole. </summary>
-		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
+		IDictionary<string, DocumentInfo> BulkUpdate(string databaseName, Action<IBulkUpdateBatch> updateCommandBuilder);
 
-		/// <summary>Queries CouchDB view and waits for the result of the operation.</summary>
-		IViewQueryResult Query(ViewQuery query);
+		/// <summary>Queries CouchDB view defined in <paramref name="databaseName"/> and waits for the result of the operation.</summary>
+		IViewQueryResult Query(string databaseName, ViewQuery query);
 
-		/// <summary>Queries CouchDB view.</summary>
-		ILuceneQueryResult QueryLucene(LuceneQuery query);
+		/// <summary>Queries couchdb-lucene index defined in <paramref name="databaseName"/>.</summary>
+		ILuceneQueryResult QueryLucene(string databaseName, LuceneQuery query);
 	}
 }

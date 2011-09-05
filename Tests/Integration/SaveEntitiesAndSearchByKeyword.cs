@@ -18,10 +18,6 @@
 
 using System;
 using System.Linq;
-
-using CouchDude.Api;
-using CouchDude.Http;
-using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Xunit;
 
@@ -32,8 +28,7 @@ namespace CouchDude.Tests.Integration
 	{
 		public SaveEntitiesAndSearchByKeyword()
 		{
-			var settings = Default.Settings;
-			var couchApi = new CouchApi(new HttpClientImpl(), settings.ServerUri, settings.DatabaseName);
+			var couchApi = Factory.CreateCouchApi(new Uri("http://127.0.0.1:5984"));
 
 			var luceneDoc = new
 			{
@@ -52,22 +47,22 @@ namespace CouchDude.Tests.Integration
 				}
 			}.ToDocument();
 
-			var existingLucineDesignDocRevision = couchApi.Synchronously.RequestLastestDocumentRevision("_design/lucene");
+			var existingLucineDesignDocRevision = couchApi.Synchronously.RequestLastestDocumentRevision("test", "_design/lucene");
 			if (existingLucineDesignDocRevision != null)
 			{
 				luceneDoc.Revision = existingLucineDesignDocRevision;
-				couchApi.Synchronously.SaveDocument(luceneDoc);
+				couchApi.Synchronously.SaveDocument("test", luceneDoc);
 			}
 			else
 			{
-				couchApi.Synchronously.SaveDocument(luceneDoc);
+				couchApi.Synchronously.SaveDocument("test", luceneDoc);
 			}
 		}
 
 		[Fact(Skip = "No lucine")]
 		public void ShouldSaveTwoEntitiesAndFindTheyByKeyword()
 		{
-			var sessionFactory = new CouchSessionFactory(Default.Settings);
+			var sessionFactory = Default.Settings.CreateSessionFactory();
 
 			var entityA = new Entity
 			{
@@ -92,7 +87,8 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.LuceneQuery<Entity>(new LuceneQuery { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
+				var result = session.Synchronously.LuceneQuery<Entity>(
+					new LuceneQuery { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
 				Assert.True(result.Count >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);

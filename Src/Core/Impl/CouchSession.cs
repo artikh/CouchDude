@@ -32,20 +32,27 @@ namespace CouchDude.Impl
 	{
 		private const int UnitOfWorkFlashInProgressTimeout = 30000;
 		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-		
+
+		private readonly string databaseName;
 		private readonly Settings settings;
 		private readonly ICouchApi couchApi;
 		private readonly SessionUnitOfWork unitOfWork;
 		private readonly ManualResetEventSlim unitOfWorkFlashInProgressEvent = new ManualResetEventSlim(true);
 
 		/// <constructor />
-		public CouchSession(Settings settings, ICouchApi couchApi)
+		public CouchSession(Settings settings, ICouchApi couchApi) 
+			: this(settings != null? settings.DefaultDatabaseName: null, settings, couchApi) { }
+
+		/// <constructor />
+		public CouchSession(string databaseName, Settings settings, ICouchApi couchApi)
 		{
 			if (settings == null) throw new ArgumentNullException("settings");
 			if (settings.Incomplete) throw new ArgumentException("Settings are incomplete.", "settings");
+			if (databaseName.HasNoValue()) throw new ArgumentNullException("databaseName");
 			if (couchApi == null) throw new ArgumentNullException("couchApi");
-			
 
+
+			this.databaseName = databaseName;
 			this.settings = settings;
 			this.couchApi = couchApi;
 			unitOfWork = new SessionUnitOfWork(settings);
@@ -120,7 +127,7 @@ namespace CouchDude.Impl
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			return couchApi.RequestDocumentById(docId).ContinueWith(rt => {
+			return couchApi.RequestDocumentById(databaseName, docId).ContinueWith(rt => {
 				var document = rt.Result;
 				if (document == null)
 					return default(TEntity);
@@ -149,7 +156,7 @@ namespace CouchDude.Impl
 						unitOfWorkFlashInProgressEvent.Reset();
 						
 						couchApi
-							.BulkUpdate(bulk => unitOfWork.ApplyChanges(bulk))
+							.BulkUpdate(databaseName, bulk => unitOfWork.ApplyChanges(bulk))
 							.ContinueWith(HandleChangesSaveCompleted, TaskContinuationOptions.AttachedToParent);
 					});
 		}

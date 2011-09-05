@@ -36,7 +36,7 @@ namespace CouchDude.Impl
 			WaitForFlushIfInProgress();
 
 			return couchApi
-				.QueryLucene(query)
+				.QueryLucene(databaseName, query)
 				.ContinueWith(
 					queryTask =>
 					{
@@ -60,7 +60,7 @@ namespace CouchDude.Impl
 			WaitForFlushIfInProgress();
 
 			return couchApi
-				.Query(query)
+				.Query(databaseName, query)
 				.ContinueWith(
 					queryTask => {
 						var rawQueryResult = queryTask.Result;
@@ -119,7 +119,9 @@ namespace CouchDude.Impl
 				{
 					object entity;
 					if (unitOfWork.TryGetByDocumentId(documentId, out entity) && entity is T)
-						yield return (T) entity;
+						yield return (T)entity;
+					else
+						yield return default(T);
 				}
 				else
 					yield return default(T);
