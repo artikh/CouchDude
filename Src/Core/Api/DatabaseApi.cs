@@ -23,7 +23,6 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using CouchDude.Impl;
 using CouchDude.Utils;
 using CouchDude.Http;
 
@@ -63,7 +62,10 @@ namespace CouchDude.Api
 					if (response.StatusCode == HttpStatusCode.NotFound)
 						return null;
 					if (!response.IsSuccessStatusCode)
-							throw Errors.CreateCommunicationException(response);
+					{
+						var couchApiError = new CouchError(response);
+						couchApiError.ThrowCouchCommunicationException();
+					}
 					return new Document(response.GetContentTextReader());
 				});
 		}
@@ -80,10 +82,13 @@ namespace CouchDude.Api
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
+					{
+						var couchApiError = new CouchError(response);
 						if(response.StatusCode == HttpStatusCode.Conflict)
-							throw Errors.CreateStaleStateException("delete", documentId, revision);
-						else 
-							throw Errors.CreateCommunicationException(response);
+							couchApiError.ThrowStaleStateException("delete", documentId, revision);
+						else
+							couchApiError.ThrowCouchCommunicationException();
+					}
 					return ReadDocumentInfo(response);
 				});
 		}
@@ -102,15 +107,14 @@ namespace CouchDude.Api
 					var response = rt.Result;
 					var documentId = document.Id;
 					if(!response.IsSuccessStatusCode)
-						switch(response.StatusCode)
-						{
-							case HttpStatusCode.Conflict:
-								throw Errors.CreateStaleStateException("update", documentId);
-							case HttpStatusCode.Forbidden:
-								throw Errors.CreateInvalidDocumentException(documentId, response);
-							default:
-								throw Errors.CreateCommunicationException(response);
-						}
+					{
+						var couchApiError = new CouchError(response);
+						if (response.StatusCode == HttpStatusCode.Conflict)
+							couchApiError.ThrowStaleStateException("update", documentId);
+						else if (response.StatusCode == HttpStatusCode.Forbidden)
+							couchApiError.ThrowInvalidDocumentException(documentId);
+						else couchApiError.ThrowCouchCommunicationException();
+					}
 					return ReadDocumentInfo(response);
 				});
 		}
@@ -140,18 +144,18 @@ namespace CouchDude.Api
 					var response = rt.Result;
 
 					if (response.StatusCode == HttpStatusCode.NotFound)
-						return null;
+						return (string)null;
 
-					if(!response.IsSuccessStatusCode)
-						switch(response.StatusCode)
-						{
-							case HttpStatusCode.Conflict:
-								throw Errors.CreateStaleStateException("update", docId);
-							case HttpStatusCode.Forbidden:
-								throw Errors.CreateInvalidDocumentException(docId, Errors.ParseErrorResponseBody(response));
-							default:
-								throw Errors.CreateCommunicationException(response);
-						}
+					if (!response.IsSuccessStatusCode)
+					{
+						var couchApiError = new CouchError(response);
+						if (response.StatusCode == HttpStatusCode.Conflict)
+							couchApiError.ThrowStaleStateException("update", docId);
+						else if (response.StatusCode == HttpStatusCode.Forbidden)
+							couchApiError.ThrowInvalidDocumentException(docId);
+						else 
+							couchApiError.ThrowCouchCommunicationException();
+					}
 					var etag = response.Headers.ETag;
 					if (etag == null || etag.Tag == null)
 						throw new ParseException("Etag header expected but was not found.");
@@ -168,7 +172,14 @@ namespace CouchDude.Api
 			return StartQuery(query.ToUri()).ContinueWith(
 				rt => {
 					var response = rt.Result;
-					Errors.ThrowIfViewRequestWasUnsuccessful(query, response);
+					if(!response.IsSuccessStatusCode)
+					{
+						var error = new CouchError(response);
+						if (response.StatusCode == HttpStatusCode.NotFound)
+							error.ThrowViewNotFoundException(query);
+						else
+							error.ThrowCouchCommunicationException();
+					}
 					return ViewQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
 		}
@@ -180,7 +191,14 @@ namespace CouchDude.Api
 			return StartQuery(query.ToUri()).ContinueWith(
 				rt => {
 					var response = rt.Result;
-					Errors.ThrowIfFulltextIndexRequestWasUnsuccessful(query, response);
+					if (!response.IsSuccessStatusCode)
+					{
+						var error = new CouchError(response);
+						if (response.StatusCode == HttpStatusCode.NotFound)
+							error.ThrowLuceneIndexNotFoundException(query);
+						else
+							error.ThrowCouchCommunicationException();
+					}
 					return LuceneQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
 		}

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using CouchDude.Api;
 using Xunit;
 
@@ -75,6 +76,17 @@ namespace CouchDude.Tests.Unit.Core.Api
 			CreateCouchApi(httpClient).Db("testdb").BulkUpdate(x => { });
 
 			Assert.Null(httpClient.Request);
+		}
+
+		[Fact]
+		public void ShouldThrowIfDatabaseMissing()
+		{
+			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "Object Not Found") {
+				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+			});
+			Assert.Throws<DatabaseMissingException>(
+				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.BulkUpdate(x => { })
+			);
 		}
 
 		[Fact]

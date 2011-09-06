@@ -20,7 +20,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-
+using System.Text;
 using CouchDude.Api;
 using CouchDude.Http;
 using Xunit;
@@ -62,6 +62,21 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal("\"some string\"",														firstRow.Value.ToString());
 			Assert.Equal("doc1",																			firstRow.DocumentId);
 			Assert.Equal(new { _id = "doc1" }.ToDocument(),						firstRow.Document);
+		}
+		
+		[Fact]
+		public void ShouldThrowIfDatabaseMissing()
+		{
+			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "Object Not Found") {
+				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+			});
+
+			Assert.Throws<DatabaseMissingException>(
+				() => GetDatabaseApi(httpClient).Synchronously.Query(new ViewQuery{
+					ViewName = "_all_docs",
+					Key = "key"
+				})
+			);
 		}
 
 		[Fact]

@@ -19,9 +19,10 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using CouchDude.Api;
 using CouchDude.Http;
-
+using CouchDude.Tests.SampleData;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
@@ -57,6 +58,19 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument(new { }.ToDocument()));
 			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument(new { _id = "" }.ToDocument()));
 			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.SaveDocument( null));
+		}
+
+
+		[Fact]
+		public void ShouldThrowIfDatabaseMissing()
+		{
+			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "Object Not Found") {
+				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+			});
+
+			Assert.Throws<DatabaseMissingException>(
+				() => GetDatabaseApi(httpClient).Synchronously.SaveDocument(SimpleEntity.CreateDocument())
+			);
 		}
 
 		[Fact]

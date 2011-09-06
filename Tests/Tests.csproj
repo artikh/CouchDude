@@ -110,7 +110,7 @@
     <Compile Include="Unit\Core\Api\DatabaseApiGetLastestDocumentRevisionTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiQueryTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiSaveDocumentToDbTests.cs" />
-    <Compile Include="Unit\Core\Api\ErrorsHelperTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchErrorTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiGetDocumentFromDbByIdTests.cs">
       <SubType>Code</SubType>
     </Compile>

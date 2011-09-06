@@ -23,8 +23,7 @@ using CouchDude.Api;
 
 namespace CouchDude
 {
-	/// <summary>Exception thrown in case of missing _id property on
-	/// CouchDB document.</summary>
+	/// <summary>Exception thrown in case of missing _id property on CouchDB document.</summary>
 	[Serializable]
 	public class DocumentIdMissingException : ParseException
 	{

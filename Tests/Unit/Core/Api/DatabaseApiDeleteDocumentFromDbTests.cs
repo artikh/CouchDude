@@ -17,6 +17,10 @@
 #endregion
 
 using System;
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
@@ -42,12 +46,28 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowOnNullArguments()
 		{
 			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
-			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(
 				() => databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: null));
 			Assert.Throws<ArgumentNullException>(
 				() => databaseApi.Synchronously.DeleteDocument(docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+		}
+
+		[Fact]
+		public void ShouldThrowIfDatabaseMissing()
+		{
+			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "Object Not Found") {
+				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+			});
+			Assert.Throws<DatabaseMissingException>(
+				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.DeleteDocument("doc1", "rev-123")
+			);
+		}
+
+		private static ICouchApi CreateCouchApi(IHttpClient httpClient)
+		{
+			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpClient);
 		}
 	}
 }

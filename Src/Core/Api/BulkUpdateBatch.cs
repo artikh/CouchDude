@@ -108,8 +108,8 @@ namespace CouchDude.Api
 				rt =>
 				{
 					var response = rt.Result;
-					if (!response.IsSuccessStatusCode) 
-						throw Errors.CreateCommunicationException(response);
+					if (!response.IsSuccessStatusCode)
+						new CouchError(response).ThrowCouchCommunicationException();
 
 					dynamic responseDescriptors = new JsonFragment(response.GetContentTextReader());
 					foreach (var responseDescriptor in responseDescriptors)
@@ -117,7 +117,7 @@ namespace CouchDude.Api
 						string errorName = responseDescriptor.error;
 						string documentId = responseDescriptor.id;
 						if(errorName != null) 
-							CollectError(documentId, errorName, responseDescriptor);
+							CollectError(documentId, responseDescriptor);
 						else
 						{
 							var documentInfo = new DocumentInfo(documentId, (string)responseDescriptor.rev);
@@ -137,21 +137,23 @@ namespace CouchDude.Api
 				});
 		}
 
-		private void CollectError(string documentId, string errorName, dynamic responseDescriptor)
+		private void CollectError(string documentId, dynamic errorDescriptor)
 		{
-			var reasonMessage = (string)responseDescriptor.reason;
 			var docIdToUpdateDescriptor = docIdToUpdateDescriptorMap[documentId];
 			var operation = docIdToUpdateDescriptor.Operation.ToString().ToLower();
-			switch(errorName)
+
+			var error = new CouchError(errorDescriptor);
+
+			switch (error.Error)
 			{
-				case "conflict":
-					exceptions.Add(Errors.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
+				case CouchError.Conflict:
+					exceptions.Add(error.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
 					break;
-				case "forbidden":
-					exceptions.Add(Errors.CreateInvalidDocumentException(documentId, reasonMessage));
+				case CouchError.Forbidden:
+					exceptions.Add(error.CreateInvalidDocumentException(documentId));
 					break;
 				default:
-					exceptions.Add(new CouchCommunicationException(Errors.FormatCouchError(errorName, reasonMessage)));
+					exceptions.Add(error.CreateCouchCommunicationException());
 					break;
 			}
 		}

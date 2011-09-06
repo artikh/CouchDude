@@ -17,43 +17,51 @@
 #endregion
 
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using CouchDude.Api;
 using CouchDude.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class ErrorsHelperTests
+	public class CouchErrorTests
 	{
+		private static string ProccessResponse(string responseString)
+		{
+			var error =
+				new CouchError(
+					new HttpResponseMessage(HttpStatusCode.InternalServerError, "Internal server error") {
+						Content = new StringContent(responseString, Encoding.UTF8)
+					});
+			return error.ToString();
+		}
+
 		[Fact]
 		public void ShouldReturnResultAsIsIfNotAJson()
 		{
-			using (var textReader = new StringReader("Some none-JSON string {{"))
-				Assert.Equal("Some none-JSON string {{", Errors.ParseErrorResponseBody(textReader));
+			Assert.Equal("InternalServerError: Some none-JSON string {{ [500]", ProccessResponse("Some none-JSON string {{"));
 		}
 
 		[Fact]
 		public void ShouldReturnOnlyErrorIfNoReason()
 		{
-			using (var textReader = new StringReader(@"{ ""error"": ""some error name"" }"))
-				Assert.Equal("some error name", Errors.ParseErrorResponseBody(textReader));
+			Assert.Equal("some error name: Internal server error [500]", ProccessResponse(@"{ ""error"": ""some error name"" }"));
 		}
 
 		[Fact]
 		public void ShouldReturnOnlyReasonIfNoError()
 		{
-			using (var textReader = new StringReader(@"{ ""reason"": ""some reason message"" }"))
-				Assert.Equal("some reason message", Errors.ParseErrorResponseBody(textReader));
+			Assert.Equal("InternalServerError: some reason message [500]", ProccessResponse(@"{ ""reason"": ""some reason message"" }"));
 		}
 
 		[Fact]
 		public void ShouldReturnOnlyErrorAndReasonIfBothPresent()
 		{
-			using (var textReader = new StringReader(
-				@"{ ""error"": ""some error name"", ""reason"": ""some reason message"" }"))
-				Assert.Equal(
-					"some error name: some reason message",
-					Errors.ParseErrorResponseBody(textReader));
+			Assert.Equal(
+				"some error name: some reason message [500]",
+				ProccessResponse(@"{ ""error"": ""some error name"", ""reason"": ""some reason message"" }"));
 		}
 	}
 }

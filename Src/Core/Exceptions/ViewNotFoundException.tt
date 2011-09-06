@@ -1,6 +1,0 @@
-﻿<#@ template language="C#" #>
-<#
-    this.ExceptionName = "ViewNotFound";
-		this.BaseExceptionName = "CouchDude";
-#>
-<#@ include file="BoilerplateExeption.ttinclude" #>
