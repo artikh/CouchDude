@@ -64,7 +64,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldCacheFreashlySavedInstance() 
 		{
 			var savingEntity = Entity.CreateStandardWithoutRevision();
-			ISession session = new CouchSession(Default.Settings, new Mock<ICouchApi>(MockBehavior.Strict).Object);
+			ISession session = new CouchSession(
+				Default.Settings, 
+				Mock.Of<ICouchApi>(c => c.Db("testdb") == new Mock<IDatabaseApi>(MockBehavior.Strict).Object));
 			session.Save(savingEntity);
 
 			var loadedInstance = session.Synchronously.Load<Entity>(savingEntity.Id);

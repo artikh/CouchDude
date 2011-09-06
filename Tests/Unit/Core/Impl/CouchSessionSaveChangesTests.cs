@@ -12,33 +12,38 @@ namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class CouchSessionSaveChangesTests
 	{
+		private const int Timeout = 5000;
+
 		[Fact]
 		public void ShouldDelegateChangesSaveToApi()
 		{
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns(new Dictionary<string, DocumentInfo>().ToTask<IDictionary<string, DocumentInfo>>());
+			var couchApi = Mock.Of<ICouchApi>(
+				c => c.Db("testdb") == Mock.Of<IDatabaseApi>(
+					d => d.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()) == 
+						new Dictionary<string, DocumentInfo>().ToTask<IDictionary<string, DocumentInfo>>()
+				)
+			);
 
-			ISession sesion = new CouchSession(Default.Settings, couchApiMock.Object);
+			ISession sesion = new CouchSession(Default.Settings, couchApi);
 			sesion.Save(SimpleEntity.CreateStandardWithoutRevision());
 			sesion.SaveChanges();
 			
-			couchApiMock.Verify(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()), Times.Once());
+			Mock.Get(couchApi.Db("testdb")).Verify(dbApi => dbApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()), Times.Once());
 		}
 
 		[Fact]
 		public void ShouldAssignNewlyUpdatedRevisionsToEntities() 
 		{
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns(
-					new Dictionary<string, DocumentInfo> {
-						{ SimpleEntity.StandardDocId, new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968") }
-					}.ToTask<IDictionary<string, DocumentInfo>>());
+			var couchApi = Mock.Of<ICouchApi>(
+				c => c.Db("testdb") == Mock.Of<IDatabaseApi>(
+					d => d.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()) ==
+						new Dictionary<string, DocumentInfo> {
+							{ SimpleEntity.StandardDocId, new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968") }
+						}.ToTask<IDictionary<string, DocumentInfo>>()
+				)
+			);
 
-			ISession sesion = new CouchSession(Default.Settings, couchApiMock.Object);
+			ISession sesion = new CouchSession(Default.Settings, couchApi);
 			var entity = SimpleEntity.CreateStandardWithoutRevision();
 			sesion.Save(entity);
 			sesion.SaveChanges();
@@ -56,11 +61,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				{ SimpleEntity.StandardDocId, new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968") }
 			};
 
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<string, Action<IBulkUpdateBatch>>(
-					(dbName, updater) => Task.Factory.StartNew(
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<Action<IBulkUpdateBatch>>(
+					updater => Task.Factory.StartNew(
 						() => {
 
 							apiShouldEnter.WaitOne();
@@ -69,26 +74,28 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							updater(Mock.Of<IBulkUpdateBatch>());
 
 							return returnInfo;
-						}
+						},
+						TaskCreationOptions.PreferFairness
 					)
 				);
 
-			ISession sesion = new CouchSession(Default.Settings, couchApiMock.Object);
+			ISession sesion = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			var entity = SimpleEntity.CreateStandardWithoutRevision();
 			sesion.Save(entity);
 			var firstSaveChangesTask = sesion.StartSavingChanges(); // Enters API method
+			Thread.Sleep(500); //  Allowing first task to arrive to apiShouldEnter wating line first
 			var secondSaveChangesTask = sesion.StartSavingChanges(); // Waits for first task to end
 
 			Assert.Equal(0, bulkUpdateCalled);
 
 			apiShouldEnter.Set();
-			firstSaveChangesTask.Wait();
+			firstSaveChangesTask.WaitOrThrowOnTimeout();
 			Assert.Equal(1, bulkUpdateCalled);
 
 
 			entity.Age--;				    // Modifing entity for second save to be applicable
 			apiShouldEnter.Set();   // Permitting second API method call to proceed
-			secondSaveChangesTask.Wait();
+			secondSaveChangesTask.WaitOrThrowOnTimeout();
 			Assert.Equal(2, bulkUpdateCalled);
 
 			Assert.Equal("2-cc2c5ab22cfa4a0faad27a0cb9ca7968", entity.Revision);
@@ -110,11 +117,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				{ SimpleEntity.StandardDocId, new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968") }
 			};
 
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<string>(), It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<string, Action<IBulkUpdateBatch>>(
-					(dbName, updater) => Task.Factory.StartNew(
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(couchApi => couchApi.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<Action<IBulkUpdateBatch>>(
+					updater => Task.Factory.StartNew(
 						() => {
 							saveChangesOperationStarted.Set();
 							saveChangesOperationShouldProceed.WaitOne();
@@ -123,57 +130,57 @@ namespace CouchDude.Tests.Unit.Core.Impl
 						}
 					)
 				);
-			couchApiMock
-				.Setup(api => api.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
-				.Returns<string, ViewQuery>(
-					(_, __) => {
+			dbApiMock
+				.Setup(api => api.Query(It.IsAny<ViewQuery>()))
+				.Returns<ViewQuery>(
+					_ => {
 						lock (executedOperations)
 							executedOperations.Add("Query");
 						return ViewQueryResult.Empty.ToTask();
 					});
-			couchApiMock
-				.Setup(api => api.QueryLucene(It.IsAny<string>(), It.IsAny<LuceneQuery>()))
-				.Returns<string, LuceneQuery>(
-					(_, __) => {
+			dbApiMock
+				.Setup(api => api.QueryLucene(It.IsAny<LuceneQuery>()))
+				.Returns<LuceneQuery>(
+					_ => {
 						lock (executedOperations)
 							executedOperations.Add("QueryLucene");
 						return
 							LuceneQueryResult.Empty.ToTask();
 					});
-			couchApiMock
-				.Setup(api => api.RequestDocumentById(It.IsAny<string>(), It.IsAny<string>()))
-				.Returns<string, string>(
-					(_, __) => {
+			dbApiMock
+				.Setup(api => api.RequestDocumentById(It.IsAny<string>()))
+				.Returns<string>(
+					_ => {
 						lock (executedOperations)
 							executedOperations.Add("RequestDocumentById");
 						return SimpleEntity.CreateDocument().ToTask();
 					});
-			couchApiMock
-				.Setup(api => api.RequestLastestDocumentRevision(It.IsAny<string>(), It.IsAny<string>()))
-				.Returns<string, string>(
-					(_, __) => {
+			dbApiMock
+				.Setup(api => api.RequestLastestDocumentRevision(It.IsAny<string>()))
+				.Returns<string>(
+					_ => {
 						lock (executedOperations)
 							executedOperations.Add("RequestLastestDocumentRevision");
 						return SimpleEntity.StandardDocId.ToTask();
 					});
-			couchApiMock
-				.Setup(api => api.DeleteDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-				.Returns<string, string, string>(
-					(_, __, ___) => {
+			dbApiMock
+				.Setup(api => api.DeleteDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns<string, string>(
+					(_, __) => {
 						lock (executedOperations)
 							executedOperations.Add("DeleteDocument");
 						return SimpleEntity.StandardDocumentInfo.ToTask();
 					});
-			couchApiMock
-				.Setup(api => api.SaveDocument(It.IsAny<string>(), It.IsAny<IDocument>()))
-				.Returns<string, IDocument>(
-					(_, __) => {
+			dbApiMock
+				.Setup(api => api.SaveDocument(It.IsAny<IDocument>()))
+				.Returns<IDocument>(
+					_ => {
 						lock (executedOperations)
 							executedOperations.Add("SaveDocument");
 						return SimpleEntity.StandardDocumentInfo.ToTask();
 					});
 
-			ISession sesion = new CouchSession(Default.Settings, couchApiMock.Object);
+			ISession sesion = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 
 			sesion.Save(SimpleEntity.CreateStandardWithoutRevision());
 			var saveChangesOperation = sesion.StartSavingChanges();
@@ -211,7 +218,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							break;
 					}
 					// ReSharper disable PossibleNullReferenceException
-					operation.Wait();
+					operation.WaitOrThrowOnTimeout();
 					// ReSharper restore PossibleNullReferenceException
 				});
 
@@ -220,9 +227,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				string.Join(", ", executedOperations) + " operation(s) have executed before save changes operation completes");
 			
 			saveChangesOperationShouldProceed.Set();
-			saveChangesOperation.Wait();
+			saveChangesOperation.WaitOrThrowOnTimeout();
 
-			startOperationTask.Wait();
+			startOperationTask.WaitOrThrowOnTimeout();
 			Assert.Equal(1, executedOperations.Count);
 		}
 	}

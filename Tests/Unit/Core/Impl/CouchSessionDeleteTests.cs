@@ -33,7 +33,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldStopReturnigDeletedEntityFromCache()
 		{
 			var entity = Entity.CreateStandardWithoutRevision();
-			ISession session = new CouchSession(Default.Settings, new Mock<ICouchApi>(MockBehavior.Strict).Object);
+			ISession session = new CouchSession(
+				Default.Settings, 
+				Mock.Of<ICouchApi>(c => c.Db("testdb") == new Mock<IDatabaseApi>(MockBehavior.Strict).Object));
 			session.Save(entity);
 			session.Delete(entity);
 
@@ -64,23 +66,23 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var documentInfo = new DocumentInfo(EntityWithoutRevision.StandardDocId, "2-1a517022a0c2d4814d51abfedf9bfee7");
 
-			DocumentInfo result = documentInfo;
-			var couchApiMock = new Mock<ICouchApi>();
-			couchApiMock
-				.Setup(ca => ca.BulkUpdate("testdb", It.IsAny<Action<IBulkUpdateBatch>>()))
-				.Returns<string, Action<IBulkUpdateBatch>>(
-					(dbName, updateAction) => {
+			var result = documentInfo;
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(ca => ca.BulkUpdate(It.IsAny<Action<IBulkUpdateBatch>>()))
+				.Returns<Action<IBulkUpdateBatch>>(
+					updateAction => {
 						updateAction(bulkUpdateBatchMock.Object);
 						return new Dictionary<string, DocumentInfo> {{result.Id, result}}
 							.ToTask<IDictionary<string, DocumentInfo>>();
 					});
-			couchApiMock
-				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
+			dbApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
 				.Returns(EntityWithoutRevision.CreateDocumentWithRevision().ToTask());
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(new SynchronousCouchApi(couchApiMock.Object));
+			dbApiMock
+				.Setup(ca => ca.Synchronously).Returns(new SynchronousDatabaseApi(dbApiMock.Object));
 
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 
 			Assert.DoesNotThrow(() => {
 				var entity = session.Synchronously.Load<EntityWithoutRevision>(EntityWithoutRevision.StandardEntityId);

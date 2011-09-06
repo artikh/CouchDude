@@ -29,7 +29,7 @@ namespace CouchDude.Tests.Unit.Core.Utils
 		private static AggregateException GetTaskException(Task task)
 		{
 			AggregateException exception = null;
-			task.ContinueWith(t => { exception = t.Exception; }).Wait();
+			task.ContinueWith(t => { exception = t.Exception; }).WaitOrThrowOnTimeout();
 			return exception;
 		} 
 	}

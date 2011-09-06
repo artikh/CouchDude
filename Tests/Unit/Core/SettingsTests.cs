@@ -27,14 +27,14 @@ namespace CouchDude.Tests.Unit.Core
 		[Fact]
 		public void ShouldThrowOnUppercasedDbName()
 		{
-			Assert.Throws<ArgumentException>(
+			Assert.Throws<ArgumentOutOfRangeException>(
 				() => new Settings(new Uri("http://example.com"), "UpprecasedName"));
 		}
 
 		[Fact]
 		public void ShouldNotThrowOnIncorrectCharDbName()
 		{
-			Assert.Throws<ArgumentException>(
+			Assert.Throws<ArgumentOutOfRangeException>(
 				() => new Settings(new Uri("http://example.com"), "name_with*in_the_middle"));
 		}
 

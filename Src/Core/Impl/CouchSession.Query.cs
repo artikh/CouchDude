@@ -35,8 +35,8 @@ namespace CouchDude.Impl
 			var isEntityType = CheckIfEntityType<T>(query);
 			WaitForFlushIfInProgress();
 
-			return couchApi
-				.QueryLucene(databaseName, query)
+			return databaseApi
+				.QueryLucene(query)
 				.ContinueWith(
 					queryTask =>
 					{
@@ -59,8 +59,8 @@ namespace CouchDude.Impl
 			var isEntityType = CheckIfEntityType<T>(query);
 			WaitForFlushIfInProgress();
 
-			return couchApi
-				.Query(databaseName, query)
+			return databaseApi
+				.Query(query)
 				.ContinueWith(
 					queryTask => {
 						var rawQueryResult = queryTask.Result;

@@ -18,9 +18,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using CouchDude.Configuration;
+using CouchDude.Utils;
 
 namespace CouchDude
 {
@@ -55,12 +54,7 @@ namespace CouchDude
 			{
 				if (string.IsNullOrWhiteSpace(value))
 					throw new ArgumentNullException("value");
-				if (!ValidDbName(value))
-					throw new ArgumentException(
-						"A database must be named with all lowercase letters (a-z), " +
-						"digits (0-9), or any of the _$()+-/ characters and must end with a " +
-						"slash in the URL. The name has to start with a lowercase letter (a-z).",
-						"value");
+				CheckIf.DatabaseNameIsOk(value, "value");
 				
 
 				if (defaultDatabaseName == value) return;
@@ -89,20 +83,12 @@ namespace CouchDude
 				throw new ArgumentException("Server URL should be absolute.", "serverUri");
 			if (string.IsNullOrWhiteSpace(databaseName))
 				throw new ArgumentNullException("databaseName");
-			if (!ValidDbName(databaseName))
-				throw new ArgumentException(
-					"A database must be named with all lowercase letters (a-z), " +
-					"digits (0-9), or any of the _$()+-/ characters and must end with a " +
-					"slash in the URL. The name has to start with a lowercase letter (a-z).",
-					"databaseName");
+			CheckIf.DatabaseNameIsOk(databaseName, "databaseName");
 			
 
 			ServerUri = serverUri;
 			DefaultDatabaseName = databaseName;
 		}
-
-		/// <summary>Determines if provided database name is valid.</summary>
-		public static bool ValidDbName(string databaseName) { return Impl.CheckIf.DatabaseNameIsOk(databaseName); }
 
 		/// <summary>Registers entity configuration.</summary>
 		public Settings Register(IEntityConfig entityConfig)
@@ -137,7 +123,7 @@ namespace CouchDude
 
 			var currentType = entityType;
 
-			while (entityRegistry.Contains(currentType))
+			while (currentType != null && entityRegistry.Contains(currentType))
 			{
 				yield return currentType;
 				currentType = currentType.BaseType;

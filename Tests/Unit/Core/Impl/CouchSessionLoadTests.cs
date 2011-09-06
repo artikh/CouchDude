@@ -52,18 +52,17 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldLoadDataThroughtCouchApi()
 		{
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
-				.Returns<string, string>((_,__) => Entity.CreateDocWithRevision().ToTask());
-			couchApiMock
-				.Setup(ca => ca.SaveDocument("testdb", It.IsAny<IDocument>()))
+			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
+			dbApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Returns<string>(_ => Entity.CreateDocWithRevision().ToTask());
+			dbApiMock
+				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
 				.Returns(Entity.StandardDococumentInfo.ToTask());
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
+			dbApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousDatabaseApi(dbApiMock.Object));
 
-			var couchApi = couchApiMock.Object;
-			var session = new CouchSession(Default.Settings, couchApi);
+			var session = new CouchSession(Default.Settings, MockCouchApi(dbApiMock.Object));
 			var loadedEntity = session.Synchronously.Load<Entity>(Entity.StandardEntityId);
 			Assert.NotNull(loadedEntity);
 			Assert.Equal(Entity.StandardEntityId, loadedEntity.Id);
@@ -75,8 +74,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldLoadDataCorrectlyIfNoRevisionPropertyFound()
 		{
 			var couchApi = Mock.Of<ICouchApi>(
-				api => api.RequestDocumentById("testdb", It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
-			);
+				c => c.Db("testdb") ==  Mock.Of<IDatabaseApi>(
+					api => api.RequestDocumentById(It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
+			));
 
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Synchronously.Load<EntityWithoutRevision>("doc1");
 			Assert.NotNull(loadedEntity);
@@ -96,15 +96,15 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			string requestedId = null;
 
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
-				.Returns<string, string>(
-					(dbName, id) => {
+			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
+			dbApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Returns<string>(
+					id => {
 						requestedId = id;
-						return Entity.CreateDocWithRevision().ToTask<IDocument>();
+						return Entity.CreateDocWithRevision().ToTask();
 					});
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, MockCouchApi(dbApiMock));
 			session.Synchronously.Load<Entity>(Entity.StandardEntityId);
 
 			Assert.Equal(Entity.StandardDocId, requestedId);
@@ -112,23 +112,31 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 		static ICouchApi MockCouchApi()
 		{
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.RequestDocumentById("testdb", It.IsAny<string>()))
-				.Returns<string, string>(
-					(dbName, id) => Task.Factory.StartNew(
+			var databaseApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
+			databaseApiMock
+				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Returns<string>(
+					id => Task.Factory.StartNew(
 						() => new {
 							_id = "entity" + ".doc1",
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
 							name = "John Smith"
 						}.ToDocument()));
-			couchApiMock
-				.Setup(ca => ca.SaveDocument("testdb", It.IsAny<IDocument>()))
+			databaseApiMock
+				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
 				.Returns(new DocumentInfo(Entity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
-			couchApiMock
-				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousCouchApi(couchApiMock.Object));
-			return couchApiMock.Object;
+			databaseApiMock
+				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousDatabaseApi(databaseApiMock.Object));
+			
+			return MockCouchApi(databaseApiMock);
+		}
+
+		private static ICouchApi MockCouchApi(Mock<IDatabaseApi> databaseApiMock) { return MockCouchApi(databaseApiMock.Object); }
+
+		private static ICouchApi MockCouchApi(IDatabaseApi databaseApi)
+		{
+			return Mock.Of<ICouchApi>(ca => ca.Db("testdb") == databaseApi);
 		}
 	}
 }

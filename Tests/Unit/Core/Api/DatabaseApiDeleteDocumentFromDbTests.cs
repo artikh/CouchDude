@@ -17,21 +17,19 @@
 #endregion
 
 using System;
-using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class CouchApiDeleteDocumentFromDbTests
+	public class DatabaseApiDeleteDocumentFromDbTests
 	{
 		[Fact]
 		public void ShouldSendDeleteRequestOnDeletion()
 		{
 			var httpMock = new HttpClientMock(new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMock).Db("testdb");
 
-			var resultObject = couchApi.Synchronously.DeleteDocument(
-			databaseName: "testdb", docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
+			var resultObject = databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
@@ -44,12 +42,12 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowOnNullArguments()
 		{
 			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMock).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(
-				() => couchApi.Synchronously.DeleteDocument(databaseName: "testdb", docId: "doc1", revision: null));
+				() => databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: null));
 			Assert.Throws<ArgumentNullException>(
-				() => couchApi.Synchronously.DeleteDocument(databaseName: "testdb", docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
+				() => databaseApi.Synchronously.DeleteDocument(docId: null, revision: "1-1a517022a0c2d4814d51abfedf9bfee7"));
 		}
 	}
 }

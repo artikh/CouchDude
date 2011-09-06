@@ -36,11 +36,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			ViewQuery sendQuery = null;
 
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
+			dbApiMock
+				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) => {
+					(ViewQuery query) => {
 						sendQuery = query;
 						return new ViewQueryResult(
 							query,
@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							offset: 0).ToTask<IViewQueryResult>();
 					});
 
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			var viewQuery = new ViewQuery {ViewName = "_all_docs", IncludeDocs = true};
 			session.Synchronously.Query<Entity>(viewQuery);
 
@@ -68,11 +68,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			Entity entity = Entity.CreateStandard();
 
-			var couchApiMock = new Mock<ICouchApi>(MockBehavior.Loose);
-			couchApiMock
-				.Setup(ca => ca.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
+			dbApiMock
+				.Setup(ca => ca.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) => new ViewQueryResult(
+					(ViewQuery query) => new ViewQueryResult(
 						query, 
 						new[] {
 							new ViewResultRow(
@@ -87,7 +87,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 						).ToTask<IViewQueryResult>()
 				);
 
-			var session = new CouchSession(Default.Settings, couchApiMock.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			IViewQueryResult<Entity> queryResult =
 				session.Synchronously.Query<Entity>(new ViewQuery {ViewName = "_all_docs", IncludeDocs = true});
 
@@ -120,11 +120,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldMapEntitiesIfTypeIsCompatible()
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery q) =>
+					(ViewQuery q) =>
 						new ViewQueryResult(query: q, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -137,7 +137,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			IViewQueryResult<Entity> queryResult =
 				session.Synchronously.Query<Entity>(new ViewQuery {IncludeDocs = true});
 
@@ -154,11 +154,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldCacheInstanceFromQuery()
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery q) =>
+					(ViewQuery q) =>
 						new ViewQueryResult(query: q, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -168,7 +168,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 
 			Entity queriedEntity =
 				session.Synchronously.Query<Entity>(new ViewQuery {IncludeDocs = true}).First();
@@ -179,11 +179,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldNotFailIfOnNullDocumentRowsFromCouchDb()
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) =>
+					(ViewQuery query) =>
 						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -193,7 +193,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			IViewQueryResult<Entity> queryResult =
 				session.Synchronously.Query<Entity>(new ViewQuery {IncludeDocs = true});
 
@@ -211,11 +211,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7"", ""type"": ""entity""}")]
 		public void ShouldNotFailOnIncorrectDocumentFromCouchDb(string docString)
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) =>
+					(ViewQuery query) =>
 						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -225,7 +225,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			var queryResult =
 				session.Synchronously.Query<Entity>(new ViewQuery {IncludeDocs = true});
 
@@ -237,11 +237,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldNotFailIfOnNullValueRowsFromCouchDB()
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query(It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) =>
+					(ViewQuery query) =>
 						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -251,7 +251,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
 			IViewQueryResult<ViewData> queryResult = session.Synchronously.Query<ViewData>(new ViewQuery());
 
 			Assert.Equal(1, queryResult.Count);
@@ -262,11 +262,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldMapViewdataIfTypeIsCompatible()
 		{
-			var couchApi = new Mock<ICouchApi>();
-			couchApi
-				.Setup(a => a.Query(It.IsAny<string>(), It.IsAny<ViewQuery>()))
+			var dbApiMock = new Mock<IDatabaseApi>();
+			dbApiMock
+				.Setup(a => a.Query( It.IsAny<ViewQuery>()))
 				.Returns(
-					(string dbName, ViewQuery query) =>
+					(ViewQuery query) =>
 						new ViewQueryResult(query: query, rows: new[] {
 							new ViewResultRow(
 								new object[] {"key1", 0}.ToJsonFragment(),
@@ -276,14 +276,14 @@ namespace CouchDude.Tests.Unit.Core.Impl
 								)
 						}, totalCount: 1, offset: 0).ToTask<IViewQueryResult>()
 				);
-			var session = new CouchSession(Default.Settings, couchApi.Object);
-			IViewQueryResult<ViewData> queryResult = session.Synchronously.Query<ViewData>(new ViewQuery());
+			var session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>(c => c.Db("testdb") == dbApiMock.Object));
+			var queryResult = session.Synchronously.Query<ViewData>(new ViewQuery());
 
 			Assert.NotNull(queryResult);
 			Assert.Equal(1, queryResult.Count);
 			Assert.Equal(1, queryResult.TotalCount);
 
-			ViewData row = queryResult.First();
+			var row = queryResult.First();
 			Assert.NotNull(row);
 			Assert.Equal("Object title", row.Title);
 		}

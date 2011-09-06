@@ -26,7 +26,6 @@ namespace CouchDude
 	/// <summary>Factory class for main CouchDude API classes.</summary>
 	public static class Factory
 	{
-
 		/// <summary>Creates session factory from provided <paramref name="settings"/> 
 		/// and <paramref name="httpClient"/> if provided.</summary>
 		public static ISessionFactory CreateSessionFactory(this Settings settings, IHttpClient httpClient = null)
@@ -43,13 +42,15 @@ namespace CouchDude
 			return new HttpClientImpl();
 		}
 
-		/// <summary>Creates new <see cref="ICouchApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
+		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
 		public static ICouchApi CreateCouchApi(string serverAddress, IHttpClient httpClient = null)
 		{
-			return CreateCouchApi(new Uri(serverAddress, UriKind.RelativeOrAbsolute), httpClient);
+			if(string.IsNullOrWhiteSpace(serverAddress)) throw new ArgumentNullException("serverAddress");
+
+			return CreateCouchApi(new Uri(serverAddress, UriKind.Absolute), httpClient);
 		}
 
-		/// <summary>Creates new <see cref="ICouchApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
+		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address using <paramref name="httpClient"/> if provided.</summary>
 		public static ICouchApi CreateCouchApi(Uri serverAddress, IHttpClient httpClient = null)
 		{
 			if (serverAddress == null) throw new ArgumentNullException("serverAddress");

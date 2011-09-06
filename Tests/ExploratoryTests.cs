@@ -19,10 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using CouchDude.Utils;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -35,7 +33,8 @@ namespace CouchDude.Tests
 {
 	public class ExploratoryTests
 	{
-		private const string SomeNestedJson = @"{
+		private const string SomeNestedJson =
+			@"{
 				""str"": ""some string"",
 				""number"": 42,
 				""boolean"": true,
@@ -51,7 +50,8 @@ namespace CouchDude.Tests
 				}
 			}";
 
-		private const string SomeAltNestedJson = @"{
+		private const string SomeAltNestedJson =
+			@"{
 				""str"": ""some string"",
 				""number"": 42,
 				""boolean"": true,
@@ -85,12 +85,12 @@ namespace CouchDude.Tests
 			Assert.False(new JTokenEqualityComparer().Equals(obj1, obj2));
 		}
 
-		class ClassWithJObjectProperty
+		private class ClassWithJObjectProperty
 		{
 			public string Id;
 			public IList<JObject> SubObject;
 		}
-		
+
 		public class PrivatePropertySetterClass
 		{
 			private string name = "name name";
@@ -133,13 +133,14 @@ namespace CouchDude.Tests
 							},
 							TaskContinuationOptions.AttachedToParent);
 				});
-			task.Wait();
+			task.WaitOrThrowOnTimeout();
 
 			Assert.True(innerTaskContinuationFishTime > 0);
 		}
 	}
 
-	public static class UriFix
+
+public static class UriFix
 	{
 		private const int UnEscapeDotsAndSlashes = 0x2000000;
 		private const int SimpleUserSyntax = 0x20000;

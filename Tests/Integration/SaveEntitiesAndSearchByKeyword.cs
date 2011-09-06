@@ -28,7 +28,7 @@ namespace CouchDude.Tests.Integration
 	{
 		public SaveEntitiesAndSearchByKeyword()
 		{
-			var couchApi = Factory.CreateCouchApi(new Uri("http://127.0.0.1:5984"));
+			var databaseApi = Factory.CreateCouchApi(new Uri("http://127.0.0.1:5984")).Db("testdb");
 
 			var luceneDoc = new
 			{
@@ -47,15 +47,15 @@ namespace CouchDude.Tests.Integration
 				}
 			}.ToDocument();
 
-			var existingLucineDesignDocRevision = couchApi.Synchronously.RequestLastestDocumentRevision("test", "_design/lucene");
+			var existingLucineDesignDocRevision = databaseApi.Synchronously.RequestLastestDocumentRevision("_design/lucene");
 			if (existingLucineDesignDocRevision != null)
 			{
 				luceneDoc.Revision = existingLucineDesignDocRevision;
-				couchApi.Synchronously.SaveDocument("test", luceneDoc);
+				databaseApi.Synchronously.SaveDocument(luceneDoc);
 			}
 			else
 			{
-				couchApi.Synchronously.SaveDocument("test", luceneDoc);
+				databaseApi.Synchronously.SaveDocument(luceneDoc);
 			}
 		}
 

@@ -16,14 +16,25 @@
 */
 #endregion
 
+using System;
 using System.Text.RegularExpressions;
+using JetBrains.Annotations;
 
-namespace CouchDude.Impl
+namespace CouchDude.Utils
 {
 	/// <summary>Commonly used checks.</summary>
 	public static class CheckIf
 	{
 		/// <summary>Checks if database name is valid.</summary>
-		public static bool DatabaseNameIsOk(string dbName) { return Regex.IsMatch(dbName, @"^[a-z][0-9a-z_$()+\-/]*$"); }
+		public static void DatabaseNameIsOk(string dbName, [InvokerParameterName]string paramName)
+		{
+			if (!Regex.IsMatch(dbName, @"^[a-z][0-9a-z_$()+\-/]*$"))
+				throw new ArgumentOutOfRangeException(
+					paramName,
+					dbName,
+					"A database must be named with all lowercase letters (a-z), " +
+					"digits (0-9), or any of the _$()+-/ characters and must end with a " +
+					"slash in the URL. The name has to start with a lowercase letter (a-z).");
+		}
 	}
 }

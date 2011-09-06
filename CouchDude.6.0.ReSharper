@@ -106,6 +106,8 @@
       <PredefinedRule Inspect="True" Prefix="" Suffix="" Style="AaBb" ElementKind="Other" />
       <Abbreviation Text="DB" />
       <Abbreviation Text="ID" />
+      <Abbreviation Text="OR" />
+      <Abbreviation Text="AND" />
     </Naming2>
   </CodeStyleSettings>
 </Configuration>

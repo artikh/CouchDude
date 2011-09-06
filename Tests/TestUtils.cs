@@ -16,6 +16,7 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -29,6 +30,9 @@ namespace CouchDude.Tests
 {
 	internal static class TestUtils
 	{
+		private const int TaskTimeout = 5000;
+
+
 		private static JsonSerializerSettings GetJsonSerializerSettings()
 		{
 			return new JsonSerializerSettings
@@ -43,6 +47,13 @@ namespace CouchDude.Tests
 		public static Task<T> ToTask<T>(this T dataItemToReturn)
 		{
 			return Task.Factory.StartNew(() => dataItemToReturn);
+		}
+
+		public static void WaitOrThrowOnTimeout(this Task task)
+		{
+			if (!
+				task.Wait(TaskTimeout))
+				throw new TimeoutException("Task wait timeout expired");
 		}
 
 		public static string ToJsonString(this object self)

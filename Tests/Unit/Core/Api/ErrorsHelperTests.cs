@@ -23,7 +23,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class CouchApiParseErrorResponseBodyTests
+	public class ErrorsHelperTests
 	{
 		[Fact]
 		public void ShouldReturnResultAsIsIfNotAJson()

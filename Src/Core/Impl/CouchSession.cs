@@ -33,9 +33,9 @@ namespace CouchDude.Impl
 		private const int UnitOfWorkFlashInProgressTimeout = 30000;
 		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
-		private readonly string databaseName;
 		private readonly Settings settings;
 		private readonly ICouchApi couchApi;
+		private readonly IDatabaseApi databaseApi;
 		private readonly SessionUnitOfWork unitOfWork;
 		private readonly ManualResetEventSlim unitOfWorkFlashInProgressEvent = new ManualResetEventSlim(true);
 
@@ -52,9 +52,9 @@ namespace CouchDude.Impl
 			if (couchApi == null) throw new ArgumentNullException("couchApi");
 
 
-			this.databaseName = databaseName;
 			this.settings = settings;
 			this.couchApi = couchApi;
+			databaseApi = couchApi.Db(databaseName);
 			unitOfWork = new SessionUnitOfWork(settings);
 			Synchronously = new SynchronousSessionMethods(this);
 		}
@@ -127,7 +127,7 @@ namespace CouchDude.Impl
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			return couchApi.RequestDocumentById(databaseName, docId).ContinueWith(rt => {
+			return databaseApi.RequestDocumentById(docId).ContinueWith(rt => {
 				var document = rt.Result;
 				if (document == null)
 					return default(TEntity);
@@ -154,9 +154,9 @@ namespace CouchDude.Impl
 						WaitForFlushIfInProgress();
 						Log.Info("Reseting session flush event");
 						unitOfWorkFlashInProgressEvent.Reset();
-						
-						couchApi
-							.BulkUpdate(databaseName, bulk => unitOfWork.ApplyChanges(bulk))
+
+						databaseApi
+							.BulkUpdate(bulk => unitOfWork.ApplyChanges(bulk))
 							.ContinueWith(HandleChangesSaveCompleted, TaskContinuationOptions.AttachedToParent);
 					});
 		}

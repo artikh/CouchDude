@@ -26,13 +26,13 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class CouchApiSaveDocumentToDbTests
+	public class DatabaseApiSaveDocumentToDbTests
 	{
 		[Fact]
 		public void ShouldSaveToDbCorrectly()
 		{
 			HttpClientMock httpClientMock;
-			var couchApi = CreateCouchApi(
+			var databaseApi = GetDatabaseApi(
 				out httpClientMock,
 				response: new {
 				  ok = true,
@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				  rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
 				}.ToJsonString());
 
-			var result = couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1", name = "John Smith" }.ToDocument());
+			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "John Smith" }.ToDocument());
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpClientMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
@@ -53,26 +53,24 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnNullParametersSavingToDb()
 		{
-			var couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument("testdb", new { }.ToDocument()));
-			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.SaveDocument("testdb", null));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.SaveDocument("", new { _id = "doc1", name = "John Smith" }.ToDocument()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.SaveDocument(null, new { _id = "doc1", name = "John Smith" }.ToDocument()));
+			var couchApi = GetDatabaseApi();
+			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument(new { }.ToDocument()));
+			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.SaveDocument(new { _id = "" }.ToDocument()));
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.SaveDocument( null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncorrectJsonSavingToDb()
 		{
-			var couchApi = CreateCouchApi(response: "Some none-json [) content");
-			Assert.Throws<ParseException>(() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument()));
+			var couchApi = GetDatabaseApi(response: "Some none-json [) content");
+			Assert.Throws<ParseException>(() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
 		public void ShouldThrowOnEmptyResponseSavingToDb()
 		{
-			var couchApi = CreateCouchApi(response: "    ");
-			Assert.Throws<ParseException>(() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument()));
+			var couchApi = GetDatabaseApi(response: "    ");
+			Assert.Throws<ParseException>(() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
@@ -80,11 +78,11 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var webExeption = new WebException("Something wrong detected");
 			var httpClientMock = new HttpClientMock(webExeption);
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
-					() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument()));
+					() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument()));
 
 			Assert.Equal("Something wrong detected", couchCommunicationException.Message);
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
@@ -97,10 +95,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new HttpResponseMessage {
 					StatusCode = HttpStatusCode.Conflict
 				});
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 
 			Assert.Throws<StaleObjectStateException>(
-				() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument()));
+				() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
@@ -110,9 +108,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new HttpResponseMessage {
 					StatusCode = HttpStatusCode.Forbidden
 				});
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 			Assert.Throws<InvalidDocumentException>(
-				() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument()));
+				() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument()));
 		}
 
 		[Fact]
@@ -124,30 +122,30 @@ namespace CouchDude.Tests.Unit.Core.Api
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
 
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 
 			var exception = Assert.Throws<CouchCommunicationException>(
-				() => couchApi.Synchronously.SaveDocument("testdb", new { _id = "doc1" }.ToDocument())
+				() => couchApi.Synchronously.SaveDocument(new { _id = "doc1" }.ToDocument())
 			);
 
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static ICouchApi CreateCouchApi(IHttpClient httpClientMock)
+		private static IDatabaseApi GetDatabaseApi(IHttpClient httpClientMock)
 		{
-			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"));
+			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock).Db("tesdb");
 		}
 
-		private static ICouchApi CreateCouchApi(string response = "{\"_id\":\"doc1\"}")
+		private static IDatabaseApi GetDatabaseApi(string response = "{\"_id\":\"doc1\"}")
 		{
 			HttpClientMock httpClientMock;
-			return CreateCouchApi(out httpClientMock, response);
+			return GetDatabaseApi(out httpClientMock, response);
 		}
 
-		private static ICouchApi CreateCouchApi(out HttpClientMock httpClientMock, string response = "")
+		private static IDatabaseApi GetDatabaseApi(out HttpClientMock httpClientMock, string response = "")
 		{
 			httpClientMock = new HttpClientMock(response);
-			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"));
+			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock).Db("testdb");
 		}
 	}
 }

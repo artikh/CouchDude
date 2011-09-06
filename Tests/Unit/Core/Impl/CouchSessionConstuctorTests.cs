@@ -38,7 +38,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldThrowOnUnfinishedSettings()
 		{
-			Assert.Throws<ArgumentException>(() => 
+			Assert.Throws<ArgumentException>(() =>
 				new CouchSession(new Settings(), Mock.Of<ICouchApi>())
 			);
 		}

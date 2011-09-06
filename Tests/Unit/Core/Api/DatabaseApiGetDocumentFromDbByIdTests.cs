@@ -25,7 +25,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class CouchApiGetDocumentFromDbByIdTests
+	public class DatabaseApiGetDocumentFromDbByIdTests
 	{
 		[Fact]
 		public void ShouldGetDocumentFromDbByIdCorrectly()
@@ -37,8 +37,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 					name = "John Smith"
 				}.ToJsonString());
 
-			ICouchApi couchApi = Factory.CreateCouchApi("http://example.com:5984/", httpMock);
-			var result = couchApi.Synchronously.RequestDocumentById("testdb", "doc1");
+			var databaseApi = GetDatabaseApi(httpMock);
+			var result = databaseApi.Synchronously.RequestDocumentById("doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Get, httpMock.Request.Method);
@@ -63,8 +63,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
 				}.ToJsonString());
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
-			couchApi.Synchronously.RequestDocumentById("testdb", "docs/doc1");
+			var databaseApi = GetDatabaseApi(httpMock);
+			databaseApi.Synchronously.RequestDocumentById("docs/doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
@@ -79,9 +79,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 						_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 						name = "John Smith"
 					}.ToJsonString());
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			var databaseApi = GetDatabaseApi(httpMock);
 
-			couchApi.Synchronously.RequestDocumentById("testdb", "_design/docs/doc1");
+			databaseApi.Synchronously.RequestDocumentById("_design/docs/doc1");
 
 			Assert.Equal("http://example.com:5984/testdb/_design/docs%2Fdoc1", httpMock.Request.RequestUri.ToString());
 		}
@@ -91,8 +91,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			Assert.Throws<ParseException>(() => {
 				var httpMock = new HttpClientMock("Some none-json [) content");
-				ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
-				couchApi.Synchronously.RequestDocumentById("testdb", "doc1");
+				var databaseApi = GetDatabaseApi(httpMock);
+				databaseApi.Synchronously.RequestDocumentById("doc1");
 			});
 		}
 		
@@ -100,11 +100,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowOnNullParametersGettingDocumentById()
 		{
 			var httpMock = new HttpClientMock(string.Empty);
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById("testdb", null));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById("testdb", string.Empty));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById("", "doc1"));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.RequestDocumentById(null, "doc1"));
+			var databaseApi = GetDatabaseApi(httpMock);
+			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.RequestDocumentById(null));
+			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.RequestDocumentById(string.Empty));
 		}
 
 		[Fact]
@@ -112,8 +110,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			Assert.Throws<ParseException>(() => {
 				var httpMock = new HttpClientMock("    ");
-				ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
-				couchApi.Synchronously.RequestDocumentById("testdb", "doc1");
+				var databaseApi = GetDatabaseApi(httpMock);
+				databaseApi.Synchronously.RequestDocumentById("doc1");
 			});
 		}
 
@@ -122,10 +120,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var webExeption = new WebException("Something wrong detected");
 			var httpMock = new HttpClientMock(webExeption);
-			ICouchApi couchApi = new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			var databaseApi = GetDatabaseApi(httpMock);
 
 			var couchCommunicationException =
-				Assert.Throws<CouchCommunicationException>(() => couchApi.Synchronously.RequestDocumentById("testdb", "doc1"));
+				Assert.Throws<CouchCommunicationException>(() => databaseApi.Synchronously.RequestDocumentById("doc1"));
 
 			Assert.True(couchCommunicationException.Message.Contains("Something wrong detected"));
 			Assert.Equal(webExeption, couchCommunicationException.InnerException);
@@ -134,32 +132,32 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldReturnNullOn404WebExceptionWhenGettingDocument()
 		{
-			var httpMock = new HttpClientMock(new HttpResponseMessage{ StatusCode = HttpStatusCode.NotFound });
-			ICouchApi couchApi = CreateCouchApi(httpMock);
+			var httpMock = new HttpClientMock(new HttpResponseMessage { StatusCode = HttpStatusCode.NotFound });
+			var databaseApi = GetDatabaseApi(httpMock);
 
-			Assert.Null(couchApi.Synchronously.RequestDocumentById("testdb", "doc1"));
+			Assert.Null(databaseApi.Synchronously.RequestDocumentById("doc1"));
 		}
 
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
-			var httpClientMock =
+			var httpMock =
 				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "") {
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
 
-			ICouchApi couchApi = CreateCouchApi(httpClientMock);
+			var databaseApi = GetDatabaseApi(httpMock);
 
 			var exception = Assert.Throws<CouchCommunicationException>(
-				() => couchApi.Synchronously.RequestDocumentById("testdb", "doc1")
+				() => databaseApi.Synchronously.RequestDocumentById("doc1")
 			);
 
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static CouchApi CreateCouchApi(HttpClientMock httpMock)
+		private static IDatabaseApi GetDatabaseApi(HttpClientMock httpMock)
 		{
-			return new CouchApi(httpMock, new Uri("http://example.com:5984/"));
+			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMock).Db("testdb");
 		}
 	}
 }

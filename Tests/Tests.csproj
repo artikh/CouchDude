@@ -81,8 +81,9 @@
     <Compile Include="SampleData\ViewData.cs" />
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiBulkUpdateTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiConstructorTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiBulkUpdateTests.cs" />
+    <Compile Include="Unit\Core\Api\CouchApiFactoryTests.cs" />
     <Compile Include="Unit\Core\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Core\Api\ViewResultParserTests.cs" />
     <Compile Include="Unit\Core\Configuration\DefaultEntityConfigConventionsTests.cs" />
@@ -105,12 +106,12 @@
     <Compile Include="Unit\SchemeManager\DesignDocumentTests.cs" />
     <Compile Include="Unit\SchemeManager\DirectoryTests.cs" />
     <Compile Include="Unit\SchemeManager\EngineTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiDeleteDocumentFromDbTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiGetLastestDocumentRevisionTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiQueryTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiSaveDocumentToDbTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiParseErrorResponseBodyTests.cs" />
-    <Compile Include="Unit\Core\Api\CouchApiGetDocumentFromDbByIdTests.cs">
+    <Compile Include="Unit\Core\Api\DatabaseApiDeleteDocumentFromDbTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiGetLastestDocumentRevisionTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiQueryTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiSaveDocumentToDbTests.cs" />
+    <Compile Include="Unit\Core\Api\ErrorsHelperTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiGetDocumentFromDbByIdTests.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unit\Core\Api\DocumentTests.cs" />

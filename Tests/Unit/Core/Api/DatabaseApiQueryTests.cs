@@ -27,7 +27,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class CouchApiQueryTests
+	public class DatabaseApiQueryTests
 	{
 		[Fact]
 		public void ShouldMapTipicalResponseToGetAllQuery()
@@ -45,9 +45,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 				}
 			}.ToJsonString());
 
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 			var result = couchApi.Synchronously.Query(
-				"testdb",
 				new ViewQuery {
 					ViewName = "_all_docs",
 					Key = new object[] {"key", 0},
@@ -75,9 +74,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 				}
 			.ToJsonString());
 
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 			couchApi.Synchronously.Query(
-				"testdb", 
 				new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "v1",
@@ -95,17 +93,15 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnNullQuery()
 		{
-			var couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query("testdb", null));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query("", new ViewQuery()));
-			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query(null, new ViewQuery()));
+			var couchApi = GetDatabaseApi();
+			Assert.Throws<ArgumentNullException>(() => couchApi.Synchronously.Query(null));
 		}
 
 		[Fact]
 		public void ShouldThrowOnSkipMoreThen9()
 		{
-			var couchApi = CreateCouchApi();
-			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.Query("testdb", new ViewQuery { Skip = 10 }));
+			var couchApi = GetDatabaseApi();
+			Assert.Throws<ArgumentException>(() => couchApi.Synchronously.Query(new ViewQuery { Skip = 10 }));
 		}
 
 		[Fact]
@@ -117,11 +113,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
 
-			var couchApi = CreateCouchApi(httpClientMock);
+			var couchApi = GetDatabaseApi(httpClientMock);
 
 			var exception = Assert.Throws<CouchCommunicationException>(
 				() => couchApi.Synchronously.Query(
-					"testdb", 
 					new ViewQuery {
 						ViewName = "_all_docs",
 						Key = new object[] {"key", 0},
@@ -133,10 +128,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static ICouchApi CreateCouchApi(IHttpClient httpClientMock = null)
+		private static IDatabaseApi GetDatabaseApi(IHttpClient httpClientMock = null)
 		{
-			httpClientMock = httpClientMock ?? new HttpClientMock();
-			return new CouchApi(httpClientMock, new Uri("http://example.com:5984/"));
+			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock ?? new HttpClientMock()).Db("testdb");
 		}
 	}
 }
