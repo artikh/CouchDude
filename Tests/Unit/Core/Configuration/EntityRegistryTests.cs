@@ -16,7 +16,6 @@
 */
 #endregion
 
-
 using CouchDude.Configuration;
 using CouchDude.Tests.SampleData;
 using Moq;
