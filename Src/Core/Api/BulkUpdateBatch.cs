@@ -28,6 +28,8 @@ namespace CouchDude.Api
 {
 	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
+		private readonly string databaseName;
+
 		private enum OperationType
 		{
 			Create,
@@ -60,6 +62,9 @@ namespace CouchDude.Api
 		readonly IList<Exception> exceptions = new List<Exception>();
 		readonly IDictionary<string, DocumentInfo> result = new Dictionary<string, DocumentInfo>();
 
+		/// <constructor />
+		public BulkUpdateBatch(string databaseName) { this.databaseName = databaseName; }
+
 		private void Add(UpdateDescriptor updateDescriptor)
 		{
 			updateDescriptors.Add(updateDescriptor);
@@ -69,21 +74,30 @@ namespace CouchDude.Api
 		public void Create(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
+			if (document.Id.HasNoValue())
+				throw new ArgumentException("Document in order to be created shoud have an ID.", "document");
 			if (document.Revision.HasValue()) 
 				throw new ArgumentException("Document seems to have been previously saved as it has a revision.", "document");
+
 			Add(new UpdateDescriptor{ Document = document, Operation = OperationType.Create });
 		}
 
 		public void Update(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
-			if (document.Revision.HasNoValue()) throw new ArgumentException("Document should have a revision to be updated", "document");
+			if (document.Id.HasNoValue())
+				throw new ArgumentException("Document in order to be updated shoud have an ID.", "document");
+			if (document.Revision.HasNoValue()) 
+				throw new ArgumentException("Document should have a revision to be updated", "document");
+
 			Add(new UpdateDescriptor { Document = document, Operation = OperationType.Update });
 		}
 
 		public void Delete(IDocument document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
+			if (document.Id.HasNoValue())
+				throw new ArgumentException("Document should have ID to be deleted.", "document");
 			if (document.Revision.HasNoValue())
 				throw new ArgumentException("Document should have a revision to be deleted", "document");
 			Add(new UpdateDescriptor { Document = document, Operation = OperationType.Delete });
@@ -109,7 +123,11 @@ namespace CouchDude.Api
 				{
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
-						new CouchError(response).ThrowCouchCommunicationException();
+					{
+						var error = new CouchError(response);
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowCouchCommunicationException();
+					}
 
 					dynamic responseDescriptors = new JsonFragment(response.GetContentTextReader());
 					foreach (var responseDescriptor in responseDescriptors)

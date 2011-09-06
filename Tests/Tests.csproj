@@ -70,6 +70,7 @@
     </Compile>
     <Compile Include="IntegrationTestAttribute.cs" />
     <Compile Include="Integration\CouchApiBulkLoad.cs" />
+    <Compile Include="Integration\DatabaseMissingExceptionTests.cs" />
     <Compile Include="Integration\GetByPages.cs" />
     <Compile Include="Integration\SaveEntitiesAndSearchByKeyword.cs" />
     <Compile Include="Integration\SaveAndGetAll.cs" />

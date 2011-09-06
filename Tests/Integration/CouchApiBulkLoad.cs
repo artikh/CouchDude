@@ -17,8 +17,6 @@
 #endregion
 
 using System;
-using CouchDude.Api;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Integration

@@ -87,7 +87,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
-				var result = session.Synchronously.LuceneQuery<Entity>(
+				var result = session.Synchronously.QueryLucene<Entity>(
 					new LuceneQuery { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
 				Assert.True(result.Count >= 2);
 

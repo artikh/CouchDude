@@ -31,6 +31,7 @@ namespace CouchDude.Api
 	internal class DatabaseApi : IDatabaseApi
 	{
 		private readonly IHttpClient httpClient;
+		private readonly string databaseName;
 		private readonly Uri databaseUri;
 
 		/// <constructor />
@@ -41,6 +42,7 @@ namespace CouchDude.Api
 			if (serverUri == null) throw new ArgumentNullException("serverUri");
 
 			this.httpClient = httpClient;
+			this.databaseName = databaseName;
 			databaseUri = new Uri(serverUri, databaseName + "/");
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
@@ -59,12 +61,13 @@ namespace CouchDude.Api
 			return StartRequest(request).ContinueWith<IDocument>(
 				rt => {
 					var response = rt.Result;
-					if (response.StatusCode == HttpStatusCode.NotFound)
-						return null;
 					if (!response.IsSuccessStatusCode)
 					{
-						var couchApiError = new CouchError(response);
-						couchApiError.ThrowCouchCommunicationException();
+						var error = new CouchError(response);
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						if (response.StatusCode == HttpStatusCode.NotFound)
+							return null;
+						error.ThrowCouchCommunicationException();
 					}
 					return new Document(response.GetContentTextReader());
 				});
@@ -83,11 +86,10 @@ namespace CouchDude.Api
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
 					{
-						var couchApiError = new CouchError(response);
-						if(response.StatusCode == HttpStatusCode.Conflict)
-							couchApiError.ThrowStaleStateException("delete", documentId, revision);
-						else
-							couchApiError.ThrowCouchCommunicationException();
+						var error = new CouchError(response);
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowStaleStateExceptionIfNedded("delete", documentId, revision);
+						error.ThrowCouchCommunicationException();
 					}
 					return ReadDocumentInfo(response);
 				});
@@ -108,12 +110,11 @@ namespace CouchDude.Api
 					var documentId = document.Id;
 					if(!response.IsSuccessStatusCode)
 					{
-						var couchApiError = new CouchError(response);
-						if (response.StatusCode == HttpStatusCode.Conflict)
-							couchApiError.ThrowStaleStateException("update", documentId);
-						else if (response.StatusCode == HttpStatusCode.Forbidden)
-							couchApiError.ThrowInvalidDocumentException(documentId);
-						else couchApiError.ThrowCouchCommunicationException();
+						var error = new CouchError(response);
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowStaleStateExceptionIfNedded("update", documentId);
+						error.ThrowInvalidDocumentExceptionIfNedded(documentId);
+						error.ThrowCouchCommunicationException();
 					}
 					return ReadDocumentInfo(response);
 				});
@@ -124,9 +125,8 @@ namespace CouchDude.Api
 		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
 			if (updateCommandBuilder == null) throw new ArgumentNullException("updateCommandBuilder");
-
-
-			var unitOfWork = new BulkUpdateBatch();
+			
+			var unitOfWork = new BulkUpdateBatch(databaseName);
 			updateCommandBuilder(unitOfWork);
 			return unitOfWork.IsEmpty 
 				? Task.Factory.StartNew(() => EmptyDictionary) 
@@ -142,20 +142,18 @@ namespace CouchDude.Api
 			return StartRequest(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
-
-					if (response.StatusCode == HttpStatusCode.NotFound)
-						return (string)null;
-
+					
 					if (!response.IsSuccessStatusCode)
 					{
 						var couchApiError = new CouchError(response);
-						if (response.StatusCode == HttpStatusCode.Conflict)
-							couchApiError.ThrowStaleStateException("update", docId);
-						else if (response.StatusCode == HttpStatusCode.Forbidden)
-							couchApiError.ThrowInvalidDocumentException(docId);
-						else 
-							couchApiError.ThrowCouchCommunicationException();
+						couchApiError.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						couchApiError.ThrowStaleStateExceptionIfNedded("update", docId);
+						couchApiError.ThrowInvalidDocumentExceptionIfNedded(docId);
+						if (response.StatusCode == HttpStatusCode.NotFound)
+							return (string)null;
+						couchApiError.ThrowCouchCommunicationException();
 					}
+
 					var etag = response.Headers.ETag;
 					if (etag == null || etag.Tag == null)
 						throw new ParseException("Etag header expected but was not found.");
@@ -175,10 +173,9 @@ namespace CouchDude.Api
 					if(!response.IsSuccessStatusCode)
 					{
 						var error = new CouchError(response);
-						if (response.StatusCode == HttpStatusCode.NotFound)
-							error.ThrowViewNotFoundException(query);
-						else
-							error.ThrowCouchCommunicationException();
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowViewNotFoundExceptionIfNedded(query);
+						error.ThrowCouchCommunicationException();
 					}
 					return ViewQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});
@@ -194,10 +191,9 @@ namespace CouchDude.Api
 					if (!response.IsSuccessStatusCode)
 					{
 						var error = new CouchError(response);
-						if (response.StatusCode == HttpStatusCode.NotFound)
-							error.ThrowLuceneIndexNotFoundException(query);
-						else
-							error.ThrowCouchCommunicationException();
+						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowLuceneIndexNotFoundExceptionIfNedded(query);
+						error.ThrowCouchCommunicationException();
 					}
 					return LuceneQueryResultParser.Parse(rt.Result.GetContentTextReader(), query);
 				});

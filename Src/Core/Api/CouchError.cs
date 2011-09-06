@@ -29,20 +29,21 @@ namespace CouchDude.Api
 	/// <summary>Represents CouchDB error.</summary>
 	internal struct CouchError
 	{
-		public const string Conflict = "conflict";
-		public const string Forbidden = "forbidden";
-		public const string NoDbFile = "no_db_file";
-		public const string NotFound = "not_found";
-		public const string FileExists = "file_exists";
+		public const string Conflict     = "conflict";
+		public const string Forbidden    = "forbidden";
+		public const string NoDbFile     = "no_db_file";
+		public const string NotFound     = "not_found";
+		public const string Missing      = "missing";
+		public const string FileExists   = "file_exists";
 
 		public readonly string Error;
 		public readonly string Reason;
-		public readonly HttpStatusCode? HttpStatusCode;
+		public readonly HttpStatusCode? StatusCode;
 
 		public CouchError(dynamic responseObject)
 		{
 			Error = Reason = String.Empty;
-			HttpStatusCode = null;
+			StatusCode = null;
 
 			if (responseObject != null) 
 				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
@@ -54,7 +55,7 @@ namespace CouchDude.Api
 			if(response.IsSuccessStatusCode)
 				throw new ArgumentException("Successfull response message could not be basis of the error object.", "response");
 
-			HttpStatusCode = response.StatusCode;
+			StatusCode = response.StatusCode;
 
 			// last resort values
 			Error = response.StatusCode.ToString();
@@ -102,10 +103,10 @@ namespace CouchDude.Api
 
 		public CouchCommunicationException CreateCouchCommunicationException() { return new CouchCommunicationException(ToString()); }
 
-		[TerminatesProgram]
-		public StaleObjectStateException ThrowStaleStateException(string operation, string docId, string revision = null) 
+		public void ThrowStaleStateExceptionIfNedded(string operation, string docId, string revision = null) 
 		{
-			throw CreateStaleStateException(operation, docId, revision);
+			if (StatusCode == HttpStatusCode.Conflict)
+				throw CreateStaleStateException(operation, docId, revision);
 		}
 
 		public Exception CreateStaleStateException(string operation, string docId, string revision)
@@ -117,10 +118,10 @@ namespace CouchDude.Api
 				return new StaleObjectStateException("Document {0} {1} conflict detected", docId, operation);
 		}
 
-		[TerminatesProgram]
-		public InvalidDocumentException ThrowInvalidDocumentException(string docId)
+		public void ThrowInvalidDocumentExceptionIfNedded(string docId)
 		{
-			throw CreateInvalidDocumentException(docId);
+			if (StatusCode == HttpStatusCode.Forbidden)
+				throw CreateInvalidDocumentException(docId);
 		}
 
 		public InvalidDocumentException CreateInvalidDocumentException(string docId)
@@ -128,16 +129,22 @@ namespace CouchDude.Api
 			return new InvalidDocumentException("Document {0} is invalid: {1}", docId, ToString());
 		}
 
-		[TerminatesProgram]
-		public InvalidDocumentException ThrowViewNotFoundException(ViewQuery query)
+		public void ThrowViewNotFoundExceptionIfNedded(ViewQuery query)
 		{
-			throw new ViewNotFoundException(query);
+			if (StatusCode == HttpStatusCode.NotFound && Reason == Missing)
+				throw new ViewNotFoundException(query);
 		}
 
-		[TerminatesProgram]
-		public InvalidDocumentException ThrowLuceneIndexNotFoundException(LuceneQuery query)
+		public void ThrowLuceneIndexNotFoundExceptionIfNedded(LuceneQuery query)
 		{
-			throw new LuceneIndexNotFoundException(query);
+			if (StatusCode == HttpStatusCode.NotFound && Reason == Missing)
+				throw new LuceneIndexNotFoundException(query);
+		}
+
+		public void ThrowDatabaseMissingExceptionIfNedded(string databaseName)
+		{
+			if (StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile)
+				throw new DatabaseMissingException(databaseName);
 		}
 
 		public override string ToString() 
@@ -151,12 +158,12 @@ namespace CouchDude.Api
 			if (message.Length > 0 && reasonMessage.Length > 0) message.Append(": ");
 			message.Append(reasonMessage);
 
-			if (HttpStatusCode.HasValue)
+			if (StatusCode.HasValue)
 			{
 				if (message.Length <= 0)
-					message.Append("Error returned by CouchDB: ").Append((int) HttpStatusCode);
+					message.Append("Error returned by CouchDB: ").Append((int) StatusCode);
 				else
-					message.Append(" [").Append((int)HttpStatusCode).Append("]");
+					message.Append(" [").Append((int)StatusCode).Append("]");
 			}
 
 			return message.Length > 0 ? message.ToString() : "Error returned from CouchDB";

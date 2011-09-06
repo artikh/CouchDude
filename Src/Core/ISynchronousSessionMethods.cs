@@ -25,7 +25,7 @@ namespace CouchDude
 		IViewQueryResult<T> Query<T>(ViewQuery query);
 
 		/// <summary>Queries lucene-couchdb index waiting for the result.</summary>
-		ILuceneQueryResult<T> LuceneQuery<T>(LuceneQuery query);
+		ILuceneQueryResult<T> QueryLucene<T>(LuceneQuery query);
 
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
 		TEntity Load<TEntity>(string entityId) where TEntity : class;

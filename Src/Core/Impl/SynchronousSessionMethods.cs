@@ -38,7 +38,7 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public ILuceneQueryResult<T> LuceneQuery<T>(LuceneQuery query)
+		public ILuceneQueryResult<T> QueryLucene<T>(LuceneQuery query)
 		{
 			return session.QueryLucene<T>(query).WaitForResult();
 		}

@@ -22,6 +22,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
+using CouchDude.Tests.SampleData;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
@@ -51,9 +52,13 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Create(null)));
 			// Save of the document with revision 
 			Assert.Throws<ArgumentException>(    () => bulkUpdate(x => x.Create(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8" }.ToDocument())));
+			Assert.Throws<ArgumentException>(    () => bulkUpdate(x => x.Create(new {  }.ToDocument())));
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Update(null)));
 			// Update of the document without revision
 			Assert.Throws<ArgumentException>(    () => bulkUpdate(x => x.Update(new { _id = "doc2" }.ToDocument())));
+			Assert.Throws<ArgumentException>(    () => bulkUpdate(x => x.Update(new { }.ToDocument())));
+
+			Assert.Throws<ArgumentException>(() => bulkUpdate(x => x.Delete(new { }.ToDocument())));
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Delete(null)));
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Delete("", "1-1a517022a0c2d4814d51abfedf9bfee0")));
 			Assert.Throws<ArgumentNullException>(() => bulkUpdate(x => x.Delete("doc3", "")));
@@ -85,7 +90,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 			Assert.Throws<DatabaseMissingException>(
-				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.BulkUpdate(x => { })
+				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.BulkUpdate(
+					x => x.Create(Entity.CreateDocWithoutRevision()))
 			);
 		}
 
