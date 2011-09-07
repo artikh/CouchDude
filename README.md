@@ -6,9 +6,11 @@ implements low-level CouchDB API wrappers as well as useful Unit of Work impleme
 CouchDude features are:
 
   * CRUD operations over documents;
+  * database management;
+  * replication support;
   *	document bulk update functionality;
   *	CouchDB views querying;
-  * Semi-automatic paging support (ASP.NET integration coming soon);
+  * Semi-automatic pagination support (ASP.NET integration coming soon);
   *	lucene-couchdb indexes querying;
   *	transparent document-entity mapping;
   *	NHibernate-like first level cache and Unit of Work implementation;
