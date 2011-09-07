@@ -17,7 +17,6 @@
 #endregion
 
 using System;
-
 using System.Dynamic;
 using System.IO;
 using System.Linq.Expressions;
@@ -26,6 +25,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Newtonsoft.Json.Utilities;
 
 namespace CouchDude.Api
 {
@@ -34,7 +34,7 @@ namespace CouchDude.Api
 	{
 		/// <summary>Standard set of JSON value convertors.</summary>
 		internal static readonly JsonConverter[] Converters =
-			new JsonConverter[] { new IsoDateTimeConverter(), new StringEnumConverter() };
+			new JsonConverter[] { new IsoUtcDateTimeConverter(), new StringEnumConverter(), new StringEnumConverter(), new UriConverter() };
 
 		private static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
 
@@ -68,6 +68,12 @@ namespace CouchDude.Api
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
 
 			JsonToken = jsonToken;
+		}
+
+		/// <summary>Creates json fragment of type "string"</summary>
+		public static JsonFragment JsonString(string @string)
+		{
+			return new JsonFragment(JToken.FromObject(@string));
 		}
 
 		private static JToken Parse(string jsonString)
@@ -109,24 +115,27 @@ namespace CouchDude.Api
 			return jsonToken;
 		}
 
-		/// <summary>Grabs required property value throwing
-		/// <see cref="ParseException"/> if not found or empty.</summary>
-		public string GetRequiredProperty(string name, string additionalMessage = null)
+		/// <summary>Sets and gets string properties.</summary>
+		public IJsonFragment this[string propertyName]
 		{
-			var propertyValue = JsonToken[name] as JValue;
-			if (propertyValue == null)
-				throw new ParseException(
-					"Required field '{0}' have not found on document{1}:\n {2}",
-					name,
-					additionalMessage == null ? string.Empty : ". " + additionalMessage,
-					ToString()
+			get
+			{
+				var propertyValue = JsonToken[propertyName] as JValue;
+				return propertyValue == null ? null : new JsonFragment(propertyValue);
+			} 
+			set
+			{
+				JToken jValue;
+				if(value == null)
+					jValue = null;
+				else
+				{
+					var jsonFragment = value as JsonFragment;
+					jValue = jsonFragment != null ? jsonFragment.JsonToken : Parse(value.ToString());
+				}
 
-				);
-			var value = propertyValue.Value<string>();
-			if (string.IsNullOrWhiteSpace(value))
-				throw new ParseException("Required field '{0}' is empty", name);
-
-			return value;
+				JsonToken[propertyName] = jValue;
+			}
 		}
 
 		/// <summary>Converts document to JSON string.</summary>

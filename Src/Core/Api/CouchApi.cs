@@ -32,14 +32,18 @@ namespace CouchDude.Api
 		private readonly ISynchronousCouchApi synchronousCouchApi;
 		private readonly IHttpClient httpClient;
 		private readonly Uri serverUri;
-		
+		private readonly IReplicatorApi replicatorApi;
+
 		/// <constructor />
 		public CouchApi(IHttpClient httpClient, Uri serverUri)
 		{
 			this.httpClient = httpClient;
 			this.serverUri = serverUri;
 			synchronousCouchApi = new SynchronousCouchApi(this);
+			replicatorApi = new ReplicatorApi(this);
 		}
+
+		public IReplicatorApi Replicator { get { return replicatorApi; } }
 
 		public IDatabaseApi Db(string databaseName)
 		{
@@ -71,6 +75,8 @@ namespace CouchDude.Api
 		}
 
 		public ISynchronousCouchApi Synchronously { get { return synchronousCouchApi; } }
+
+		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
 		internal static Task<HttpResponseMessage> StartRequest(HttpRequestMessage request, IHttpClient htmlClient)
 		{

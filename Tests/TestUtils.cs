@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using CouchDude.Api;
@@ -51,9 +52,14 @@ namespace CouchDude.Tests
 
 		public static void WaitOrThrowOnTimeout(this Task task)
 		{
-			if (!
-				task.Wait(TaskTimeout))
+			if (!task.Wait(TaskTimeout))
 				throw new TimeoutException("Task wait timeout expired");
+		}
+
+		public static void WaitOrThrowOnTimeout(this WaitHandle task)
+		{
+			if (!task.WaitOne(TaskTimeout))
+				throw new TimeoutException("Wait handle wait timeout expired");
 		}
 
 		public static string ToJsonString(this object self)

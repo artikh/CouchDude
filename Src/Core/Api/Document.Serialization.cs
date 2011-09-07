@@ -221,7 +221,7 @@ namespace CouchDude.Api
 			protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
 			{
 				var jsonProperty = base.CreateProperty(member, memberSerialization);
-
+				
 				if (jsonProperty.PropertyType == entityType)
 					throw new InvalidOperationException(
 						String.Format(

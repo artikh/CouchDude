@@ -101,10 +101,14 @@
     <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
+    <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
     <Compile Include="Api\JsonContent.cs" />
+    <Compile Include="Api\ReplicatorApi.cs" />
     <Compile Include="Api\SynchronousCouchApi.cs" />
     <Compile Include="Api\SynchronousDatabaseApi.cs" />
     <Compile Include="Api\LuceneQueryResultParser.cs" />
+    <Compile Include="Api\SynchronousReplicatorApi.cs" />
+    <Compile Include="Api\Serialization\UriConverter.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
@@ -134,7 +138,11 @@
     <Compile Include="IBulkUpdateBatch.cs" />
     <Compile Include="ICouchApi.cs" />
     <Compile Include="ILuceneQueryResult.cs" />
+    <Compile Include="IReplicatorApi.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
+    <Compile Include="ISynchronousReplicatorApi.cs" />
+    <Compile Include="ReplicationState.cs" />
+    <Compile Include="ReplicationTaskDescriptor.cs" />
     <Compile Include="Utils\CheckIf.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />

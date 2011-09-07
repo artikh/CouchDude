@@ -50,7 +50,7 @@ namespace CouchDude.Tests.SampleData
 				type = DocType,
 				name = "John Smith",
 				age = 42,
-				date = "1959-04-10T00:00:00"
+				date = "1959-04-10T00:00:00Z"
 			}.ToDocument();
 		}
 

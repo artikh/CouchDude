@@ -37,7 +37,7 @@ namespace CouchDude.Tests.Integration
 				Id = prefix + "1",
 				Name = "1",
 				Age = 42,
-				Date = DateTime.Now
+				Date = DateTime.UtcNow
 			};
 
 			var entityB = new Entity
@@ -45,7 +45,7 @@ namespace CouchDude.Tests.Integration
 				Id = prefix + "2",
 				Name = "Stas Girkin",
 				Age = 42,
-				Date = DateTime.Now
+				Date = DateTime.UtcNow
 			};
 
 			using (var session = sessionFactory.CreateSession())

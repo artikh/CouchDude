@@ -29,6 +29,9 @@ namespace CouchDude
 		
 		/// <summary>Requests collection of names of all avaliable databases.</summary>
 		Task<ICollection<string>> RequestAllDbNames();
+
+		/// <summary>Replicator-specific API.</summary>
+		IReplicatorApi Replicator { get; }
 		
 		/// <summary>Synchronous version of API.</summary>
 		ISynchronousCouchApi Synchronously { get; }

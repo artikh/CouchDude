@@ -103,7 +103,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			}
 
 			Assert.Equal(
-				new { _id = "entity.doc1", type = "entity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00" }.ToJsonString(), 
+				new { _id = "entity.doc1", type = "entity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00Z" }.ToJsonString(), 
 				writtenString,
 				new JTokenStringCompairer());
 		}

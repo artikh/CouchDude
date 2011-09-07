@@ -25,10 +25,13 @@ namespace CouchDude.Utils
 	/// <summary>Commonly used checks.</summary>
 	public static class CheckIf
 	{
+		private const string SpecialUserDb = "_users";
+		private const string SpecialReplicatorDb = "_replicator";
+
 		/// <summary>Checks if database name is valid.</summary>
 		public static void DatabaseNameIsOk(string dbName, [InvokerParameterName]string paramName)
 		{
-			if (!Regex.IsMatch(dbName, @"^[a-z][0-9a-z_$()+\-/]*$"))
+			if (dbName != SpecialUserDb && dbName != SpecialReplicatorDb && !Regex.IsMatch(dbName, @"^[a-z][0-9a-z_$()+\-/]*$"))
 				throw new ArgumentOutOfRangeException(
 					paramName,
 					dbName,

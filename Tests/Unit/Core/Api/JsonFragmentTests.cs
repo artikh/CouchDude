@@ -238,28 +238,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldParseDocumentInfo()
 		{
 			var obj = new JsonFragment(@"{ ""some_prop"": ""some value"" }");
-			Assert.Equal("some value", obj.GetRequiredProperty("some_prop"));
-		}
-
-		[Fact]
-		public void ShouldThrowOnMissigProperty()
-		{
-			var obj = new JsonFragment(@"{  }");
-			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
-		}
-
-		[Fact]
-		public void ShouldThrowOnEmptyProperty()
-		{
-			var obj = new JsonFragment(@"{  ""some_prop"": """"  }");
-			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
-		}
-
-		[Fact]
-		public void ShouldThrowOnWhitespaseProperty()
-		{
-			var obj = new JsonFragment(@"{  ""some_prop"": ""   ""  }");
-			Assert.Throws<ParseException>(() => obj.GetRequiredProperty("some_prop"));
+			Assert.Equal("\"some value\"", obj["some_prop"].ToString());
 		}
 	}
 }

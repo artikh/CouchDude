@@ -28,20 +28,22 @@ namespace CouchDude.Tests
 	{
 		private readonly Exception exception;
 		private readonly HttpResponseMessage response;
-		
-		public HttpClientMock(string responseText)
+
+		public HttpClientMock(string responseText): this(HttpStatusCode.OK, responseText) { }
+
+		public HttpClientMock(HttpStatusCode code, string responseText)
 		{
 			response =
 				new HttpResponseMessage
 					{
-						StatusCode = HttpStatusCode.OK,
+						StatusCode = code,
 						Content = new StringContent(responseText)
 					};
 		}
 
 		public HttpClientMock(HttpResponseMessage response = null)
 		{
-			this.response = response ?? new HttpResponseMessage {StatusCode = HttpStatusCode.OK, Content = new StringContent(string.Empty)};
+			this.response = response ?? new HttpResponseMessage {StatusCode = HttpStatusCode.OK, Content = new StringContent("\"ok\":true")};
 		}
 
 		public HttpClientMock(Exception exception)

@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Integration
 				Id = Guid.NewGuid().ToString(),
 				Name = "John Smith",
 				Age = 42,
-				Date = DateTime.Now
+				Date = DateTime.UtcNow
 			};
 
 			using (var session = sessionFactory.CreateSession())
@@ -75,7 +75,7 @@ namespace CouchDude.Tests.Integration
 			                  		Id = Guid.NewGuid().ToString(),
 			                  		Name = "John Smith",
 			                  		Age = 42,
-			                  		Date = DateTime.Now
+			                  		Date = DateTime.UtcNow
 			                  	};
 
 			using (var session = sessionFactory.CreateSession())

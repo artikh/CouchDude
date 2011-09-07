@@ -58,6 +58,9 @@ namespace CouchDude
 		/// <summary>Writes JSON string to provided text writer.</summary>
 		void WriteTo(TextWriter writer);
 
+		/// <summary>Sets and gets string properties.</summary>
+		IJsonFragment this[string propertyName] { get; set; }
+
 		/// <summary>Creates new copy of the document.</summary>
 		IDocument DeepClone();
 	}
