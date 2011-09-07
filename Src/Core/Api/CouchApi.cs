@@ -18,6 +18,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using CouchDude.Http;
 using CouchDude.Utils;
@@ -40,14 +43,59 @@ namespace CouchDude.Api
 
 		public IDatabaseApi Db(string databaseName)
 		{
-			if(string.IsNullOrWhiteSpace(databaseName)) throw new ArgumentNullException("databaseName");
+			if(String.IsNullOrWhiteSpace(databaseName)) throw new ArgumentNullException("databaseName");
 			CheckIf.DatabaseNameIsOk(databaseName, "databaseName");
 
 			return new DatabaseApi(httpClient, serverUri, databaseName);
 		}
 
-		public Task<ICollection<string>> RequestAllDbNames() { throw new NotImplementedException(); }
+		public Task<ICollection<string>> RequestAllDbNames()
+		{
+			var allDbsUri = new Uri(serverUri, "_all_dbs");
+			var request = new HttpRequestMessage(HttpMethod.Get, allDbsUri);
+			return StartRequest(request, httpClient).ContinueWith(
+				rt => {
+					var response = rt.Result;
+
+					if (!response.IsSuccessStatusCode)
+						new CouchError(response).ThrowCouchCommunicationException();
+					using (var responseReader = response.Content.GetTextReader())
+					{
+						var responseJson = new JsonFragment(responseReader);
+						var dbs = responseJson.TryDeserialize(typeof(string[])) as ICollection<string>;
+						if(dbs == null)
+							throw new CouchCommunicationException("Unknown data recived from CouchDB: {0}", responseJson);
+						return dbs;
+					}
+				});
+		}
 
 		public ISynchronousCouchApi Synchronously { get { return synchronousCouchApi; } }
+
+		internal static Task<HttpResponseMessage> StartRequest(HttpRequestMessage request, IHttpClient htmlClient)
+		{
+			return htmlClient
+				.StartRequest(request)
+				.ContinueWith(
+					t => {
+						if (t.IsFaulted && t.Exception != null)
+						{
+							var innerExceptions = t.Exception.InnerExceptions;
+							
+
+							var newInnerExceptions = new Exception[innerExceptions.Count];
+							for (var i = 0; i < innerExceptions.Count; i++)
+							{
+								var e = innerExceptions[i];
+								newInnerExceptions[i] = 
+									e is WebException || e is SocketException || e is HttpException
+										? new CouchCommunicationException(e)
+										: e;
+							}
+							throw new AggregateException(t.Exception.Message, newInnerExceptions);
+						}
+						return t.Result;
+					});
+		}
 	}
 }

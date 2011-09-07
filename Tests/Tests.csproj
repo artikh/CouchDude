@@ -82,6 +82,7 @@
     <Compile Include="SampleData\ViewData.cs" />
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiManagmentOperationsTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiFactoryTests.cs" />

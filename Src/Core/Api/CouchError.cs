@@ -143,9 +143,11 @@ namespace CouchDude.Api
 
 		public void ThrowDatabaseMissingExceptionIfNedded(string databaseName)
 		{
-			if (StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile)
+			if (IsDatabaseMissing)
 				throw new DatabaseMissingException(databaseName);
 		}
+
+		public bool IsDatabaseMissing { get { return StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile; } }
 
 		public override string ToString() 
 		{

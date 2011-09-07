@@ -68,5 +68,23 @@ namespace CouchDude.Api
 		{
 			return databaseApi.QueryLucene(query).WaitForResult();
 		}
+
+		/// <inheritdoc/>
+		public void Create()
+		{
+			databaseApi.Create().WaitForResult();
+		}
+
+		/// <inheritdoc/>
+		public void Delete()
+		{
+			databaseApi.Delete().WaitForResult();
+		}
+
+		/// <inheritdoc/>
+		public DatabaseInfo RequestInfo()
+		{
+			return databaseApi.RequestInfo().WaitForResult();
+		}
 	}
 }

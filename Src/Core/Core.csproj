@@ -120,6 +120,7 @@
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
     <Compile Include="Api\Document.Serialization.cs" />
     <Compile Include="Api\Document.cs" />
+    <Compile Include="DatabaseInfo.cs" />
     <Compile Include="DocumentInfo.cs" />
     <Compile Include="Exceptions\DatabaseMissingException.cs" />
     <Compile Include="Exceptions\InvalidDocumentException.cs">

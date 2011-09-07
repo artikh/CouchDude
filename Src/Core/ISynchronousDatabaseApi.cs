@@ -46,5 +46,14 @@ namespace CouchDude
 
 		/// <summary>Queries couchdb-lucene index and waits for the result of the operation.</summary>
 		ILuceneQueryResult QueryLucene(LuceneQuery query);
+
+		/// <summary>Demands database to be created and waits for result of the operation.</summary>
+		void Create();
+
+		/// <summary>Demands database to be deleted and waits for result of the operation.</summary>
+		void Delete();
+
+		/// <summary>Demands database status information and waits for result of the operation.</summary>
+		DatabaseInfo RequestInfo();
 	}
 }

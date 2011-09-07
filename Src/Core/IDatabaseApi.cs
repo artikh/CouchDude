@@ -53,6 +53,9 @@ namespace CouchDude
 
 		/// <summary>Demands database to be deleted.</summary>
 		Task Delete();
+
+		/// <summary>Demands database status information.</summary>
+		Task<DatabaseInfo> RequestInfo();
 		
 		/// <summary>Synchronous version of databes-level APIs.</summary>
 		ISynchronousDatabaseApi Synchronously { get; }

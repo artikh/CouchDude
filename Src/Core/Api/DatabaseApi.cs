@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using CouchDude.Utils;
@@ -47,9 +46,58 @@ namespace CouchDude.Api
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
 
-		public Task Create() { throw new NotImplementedException(); }
+		public Task Create()
+		{
+			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Put, databaseUri), httpClient)
+				.ContinueWith(
+					t => {
+						var response = t.Result;
+						if (!response.IsSuccessStatusCode)
+							new CouchError(response).ThrowCouchCommunicationException();
+					});
+		}
 
-		public Task Delete() { throw new NotImplementedException(); }
+		public Task Delete()
+		{
+			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Delete, databaseUri), httpClient)
+				.ContinueWith(
+					t =>
+					{
+						var response = t.Result;
+						if (!response.IsSuccessStatusCode)
+						{
+							var error = new CouchError(response);
+							error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+							error.ThrowCouchCommunicationException();
+						}
+					});
+		}
+
+		public Task<DatabaseInfo> RequestInfo()
+		{
+			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Get, databaseUri), httpClient)
+				.ContinueWith(
+					t => {
+						var response = t.Result;
+
+						var exists = true;
+						IJsonFragment responseJson = null;
+						if (!response.IsSuccessStatusCode)
+						{
+							var error = new CouchError(response);
+							if (error.IsDatabaseMissing)
+								exists = false;
+							else
+								error.ThrowCouchCommunicationException();
+						}
+						else
+						{
+							using (var reader = response.Content.GetTextReader())
+								responseJson = new JsonFragment(reader);
+						}
+						return new DatabaseInfo(exists, databaseName, responseJson);
+					});
+		}
 
 		public Task<IDocument> RequestDocumentById(string docId)
 		{
@@ -58,7 +106,7 @@ namespace CouchDude.Api
 
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
-			return StartRequest(request).ContinueWith<IDocument>(
+			return CouchApi.StartRequest(request, httpClient).ContinueWith<IDocument>(
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
@@ -81,7 +129,7 @@ namespace CouchDude.Api
 
 			var documentUri = GetDocumentUri(documentId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
-			return StartRequest(request).ContinueWith(
+			return CouchApi.StartRequest(request, httpClient).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
@@ -104,7 +152,7 @@ namespace CouchDude.Api
 
 			var documentUri = GetDocumentUri(document.Id);
 			var request = new HttpRequestMessage(HttpMethod.Put, documentUri) { Content = new JsonContent(document) };
-			return StartRequest(request).ContinueWith(
+			return CouchApi.StartRequest(request, httpClient).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					var documentId = document.Id;
@@ -130,7 +178,7 @@ namespace CouchDude.Api
 			updateCommandBuilder(unitOfWork);
 			return unitOfWork.IsEmpty 
 				? Task.Factory.StartNew(() => EmptyDictionary) 
-				: unitOfWork.Execute(httpClient, StartRequest, databaseUri);
+				: unitOfWork.Execute(httpClient, request => CouchApi.StartRequest(request, httpClient), databaseUri);
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string docId)
@@ -139,7 +187,7 @@ namespace CouchDude.Api
 			
 			var documentUri = GetDocumentUri(docId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
-			return StartRequest(request).ContinueWith(
+			return CouchApi.StartRequest(request, httpClient).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					
@@ -205,7 +253,7 @@ namespace CouchDude.Api
 		{
 			var viewUri = new Uri(databaseUri, uri);
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
-			var task = StartRequest(request);
+			var task = CouchApi.StartRequest(request, httpClient);
 			return task;
 		}
 
@@ -225,32 +273,6 @@ namespace CouchDude.Api
 				uriStringBuilder.Append("?rev=").Append(revision);
 
 			return new Uri(uriStringBuilder.ToString()).LeaveDotsAndSlashesEscaped();
-		}
- 
-		private Task<HttpResponseMessage> StartRequest(HttpRequestMessage request)
-		{
-			return httpClient
-				.StartRequest(request)
-				.ContinueWith(
-					t => {
-						if (t.IsFaulted && t.Exception != null)
-						{
-							var innerExceptions = t.Exception.InnerExceptions;
-							
-
-							var newInnerExceptions = new Exception[innerExceptions.Count];
-							for (var i = 0; i < innerExceptions.Count; i++)
-							{
-								var e = innerExceptions[i];
-								newInnerExceptions[i] = 
-									e is WebException || e is SocketException || e is HttpException
-										? new CouchCommunicationException(e)
-										: e;
-							}
-							throw new AggregateException(t.Exception.Message, newInnerExceptions);
-						}
-						return t.Result;
-					});
 		}
 
 		private static DocumentInfo ReadDocumentInfo(HttpResponseMessage response)
