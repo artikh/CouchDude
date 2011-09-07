@@ -73,6 +73,7 @@
     <Compile Include="Integration\DatabaseManagementAndReplication.cs" />
     <Compile Include="Integration\DatabaseMissingExceptionTests.cs" />
     <Compile Include="Integration\GetByPages.cs" />
+    <Compile Include="Integration\InheritanceSupport.cs" />
     <Compile Include="Integration\SaveEntitiesAndSearchByKeyword.cs" />
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />

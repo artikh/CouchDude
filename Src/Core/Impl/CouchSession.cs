@@ -66,6 +66,14 @@ namespace CouchDude.Impl
 		public ICouchApi RawApi { get { return couchApi; } }
 
 		/// <inheritdoc/>
+		public void Save<TEntity>(params TEntity[] entities) where TEntity : class
+		{
+			if (entities == null) throw new ArgumentNullException("entities");
+			foreach (var entity in entities)
+				Save(entity);
+		}
+
+		/// <inheritdoc/>
 		public void Save<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");
@@ -92,7 +100,15 @@ namespace CouchDude.Impl
 			Log.Info("Session flush event set - proceeding");
 		}
 
-		/// <summary>Deletes provided entity form CouchDB.</summary>
+		/// <inheritdoc/>
+		public void Delete<TEntity>(params TEntity[] entities) where TEntity : class
+		{
+			if (entities == null) throw new ArgumentNullException("entities");
+			foreach (var entity in entities)
+				Delete(entity);
+		}
+
+		/// <inheritdoc/>
 		public void Delete<TEntity>(TEntity entity) where TEntity : class
 		{
 			if(ReferenceEquals(entity, null)) throw new ArgumentNullException("entity");

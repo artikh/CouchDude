@@ -24,11 +24,20 @@ namespace CouchDude
 	/// <summary>CouchDB session interface.</summary>
 	public interface ISession: IDisposable
 	{
-		/// <summary>Attaches entity to the session, assigns it an identifier if needed.</summary>
+		/// <summary>Attaches entities to the session, assigning it an identifier if needed.</summary>
+		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Save<TEntity>(params TEntity[] entities) where TEntity : class;
+
+		/// <summary>Marks provided enties for deletion from CouchDB.</summary>
 		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Delete<TEntity>(params TEntity[] entities) where TEntity : class;
+
+		/// <summary>Attaches entity to the session, assigning it an identifier if needed.</summary>
+		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
 		void Save<TEntity>(TEntity entity) where TEntity : class;
 
-		/// <summary>Deletes provided entity form CouchDB.</summary>
+		/// <summary>Marks provided entity for deletion from CouchDB.</summary>
+		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
 		void Delete<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
