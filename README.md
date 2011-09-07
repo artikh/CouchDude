@@ -13,6 +13,7 @@ CouchDude features are:
   * Semi-automatic pagination support (ASP.NET integration coming soon);
   *	lucene-couchdb indexes querying;
   *	transparent document-entity mapping;
+  * full polymorphyic queries support;
   *	NHibernate-like first level cache and Unit of Work implementation;
   *	entity and view-data queries (deserialization of results) over CouchDB views and couchdb-lucene indexes;
   *	complete asynchronous version of API (if server communication involved).
