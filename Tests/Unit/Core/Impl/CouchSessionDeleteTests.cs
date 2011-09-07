@@ -46,7 +46,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldThrowOnNullEntity()
 		{
 			Assert.Throws<ArgumentNullException>(
-				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Delete<Entity>(entity: null));
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Delete(null as Entity));
+			Assert.Throws<ArgumentNullException>(
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Delete(null as Entity[]));
+			Assert.Throws<ArgumentNullException>(
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Delete(Entity.CreateStandard(), null));
 		}
 
 		[Fact]

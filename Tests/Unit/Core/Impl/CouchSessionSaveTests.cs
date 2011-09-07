@@ -46,7 +46,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldThrowOnNullEntity()
 		{
 			ISession session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
-			Assert.Throws<ArgumentNullException>(() => session.Save<Entity>(null));
+			Assert.Throws<ArgumentNullException>(() => session.Save(null as Entity));
+			Assert.Throws<ArgumentNullException>(() => session.Save(null as Entity[]));
+			Assert.Throws<ArgumentNullException>(() => session.Save(Entity.CreateStandardWithoutRevision(), null));
 		}
 
 		[Fact]
