@@ -29,5 +29,7 @@ namespace CouchDude.Api
 		public SynchronousCouchApi(ICouchApi couchApi) { this.couchApi = couchApi; }
 
 		public ICollection<string> RequestAllDbNames() { return couchApi.RequestAllDbNames().WaitForResult(); }
+
+		public bool CheckIfUp() { return couchApi.CheckIfUp().WaitForResult(); }
 	}
 }

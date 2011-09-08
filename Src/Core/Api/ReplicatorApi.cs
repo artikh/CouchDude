@@ -37,10 +37,10 @@ namespace CouchDude.Api
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue()) 
 				throw new ArgumentException("Replication task descriptor ID should be specified", "replicationTask");
-
+			
 			// manual generation of JSON needed to avoid sending _replicator_* properties to the server
 			var documentString = string.Format(
-				"{{\"_id\":\"{0}\",{1}\"source\":\"{2}\",\"target\":\"{3}\",\"create_target\":{4},\"continuous\":{5}}}",
+				"{{\"_id\":\"{0}\",{1}\"source\":\"{2}\",\"target\":\"{3}\",\"create_target\":{4},\"continuous\":{5}},\"user_ctx\":{{\"roles\":[\"admin\"]}}}",
 				EscapeQuotes(replicationTask.Id),
 				replicationTask.Revision.HasValue() 
 					? string.Format("\"_rev\":\"{0}\",", EscapeQuotes(replicationTask.Revision)) 

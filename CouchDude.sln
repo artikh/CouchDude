@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "tests\Tests.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchemeManager", "src\SchemeManager\SchemeManager.csproj", "{B4C845DC-F039-44EE-982D-E13E9F83DA7B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bootstrapper", "Bootstrapper", "{5EF07631-376B-45DD-B9E7-90F1244CAEFF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bootstrapper", "Src\Bootstrapper\Bootstrapper.csproj", "{158ECD08-3766-4FAD-824F-3B293FFE27C8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +74,16 @@ Global
 		{B4C845DC-F039-44EE-982D-E13E9F83DA7B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{B4C845DC-F039-44EE-982D-E13E9F83DA7B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{B4C845DC-F039-44EE-982D-E13E9F83DA7B}.Release|x86.ActiveCfg = Release|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -78,5 +92,6 @@ Global
 		{0EE56959-B986-4AAE-90B6-1F56AF5A2404} = {528868E0-1ABB-401E-A6E9-181FBE283926}
 		{E4351E8F-228F-4B6D-943E-BE765297B87A} = {528868E0-1ABB-401E-A6E9-181FBE283926}
 		{B4C845DC-F039-44EE-982D-E13E9F83DA7B} = {528868E0-1ABB-401E-A6E9-181FBE283926}
+		{158ECD08-3766-4FAD-824F-3B293FFE27C8} = {5EF07631-376B-45DD-B9E7-90F1244CAEFF}
 	EndGlobalSection
 EndGlobal

@@ -108,6 +108,7 @@
       <Abbreviation Text="ID" />
       <Abbreviation Text="OR" />
       <Abbreviation Text="AND" />
+      <Abbreviation Text="IP" />
     </Naming2>
   </CodeStyleSettings>
 </Configuration>

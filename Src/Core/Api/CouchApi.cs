@@ -17,7 +17,9 @@
 #endregion
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -72,6 +74,21 @@ namespace CouchDude.Api
 						return dbs;
 					}
 				});
+		}
+
+		public Task<bool> CheckIfUp()
+		{
+			return StartRequest(new HttpRequestMessage(HttpMethod.Get, serverUri), httpClient)
+				.ContinueWith<bool>(
+					r => {
+						Debug.Assert(!r.IsCanceled);
+						if (r.IsCompleted || r.Exception == null)
+							return true;
+						else if (r.Exception.InnerExceptions.All(e => e is CouchCommunicationException))
+							return false;
+						else
+							throw r.Exception;
+					});
 		}
 
 		public ISynchronousCouchApi Synchronously { get { return synchronousCouchApi; } }
