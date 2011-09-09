@@ -35,10 +35,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 			Assert.Equal(
 				new {
 					_id = "sourcedb_to_testdb", 
-					source = "http://example2.com/sourcedb", 
-					target = "testdb", 
-					create_target = true, 
-					continuous = true
+					target = "testdb",
+					source = "http://example2.com/sourcedb",  
+					continuous = true, 
+					create_target = true
 				}.ToJsonString(),
 				httpClientMock.Request.Content.GetTextReader().ReadToEnd()
 			);
@@ -64,10 +64,10 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new {
 					_id = "sourcedb_to_testdb",
 					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
-					source = "http://example2.com/sourcedb", 
 					target = "testdb", 
-					create_target = true,
-					continuous = true
+					source = "http://example2.com/sourcedb", 
+					continuous = true,
+					create_target = true
 				}.ToJsonString(), 
 				httpClientMock.Request.Content.GetTextReader().ReadToEnd()
 			);
@@ -98,8 +98,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new {
 					_id = "sourcedb_to_testdb",
 					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
-					source = "testdb",
 					target = "http://example2.com/sourcedb",
+					source = "testdb",
 					continuous = true,
 					create_target = true,
 					_replication_state = "triggered",

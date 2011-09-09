@@ -25,8 +25,5 @@ namespace CouchDude
 	{
 		/// <summary>Returns collection of names of all avaliable databases.</summary>
 		ICollection<string> RequestAllDbNames();
-
-		/// <summary>Detects if CouchDB is up and reachable.</summary>
-		bool CheckIfUp();
 	}
 }

@@ -76,28 +76,13 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<bool> CheckIfUp()
-		{
-			return StartRequest(new HttpRequestMessage(HttpMethod.Get, serverUri), httpClient)
-				.ContinueWith<bool>(
-					r => {
-						Debug.Assert(!r.IsCanceled);
-						if (r.IsCompleted || r.Exception == null)
-							return true;
-						else if (r.Exception.InnerExceptions.All(e => e is CouchCommunicationException))
-							return false;
-						else
-							throw r.Exception;
-					});
-		}
-
 		public ISynchronousCouchApi Synchronously { get { return synchronousCouchApi; } }
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal static Task<HttpResponseMessage> StartRequest(HttpRequestMessage request, IHttpClient htmlClient)
+		internal static Task<HttpResponseMessage> StartRequest(HttpRequestMessage request, IHttpClient httpClient)
 		{
-			return htmlClient
+			return httpClient
 				.StartRequest(request)
 				.ContinueWith(
 					t => {

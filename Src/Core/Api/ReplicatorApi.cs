@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using CouchDude.Configuration;
-using CouchDude.Http;
 using CouchDude.Utils;
+using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Api
 {
@@ -38,32 +37,19 @@ namespace CouchDude.Api
 			if (replicationTask.Id.HasNoValue()) 
 				throw new ArgumentException("Replication task descriptor ID should be specified", "replicationTask");
 			
-			// manual generation of JSON needed to avoid sending _replicator_* properties to the server
-			var documentString = string.Format(
-				"{{\"_id\":\"{0}\",{1}\"source\":\"{2}\",\"target\":\"{3}\",\"create_target\":{4},\"continuous\":{5}},\"user_ctx\":{{\"roles\":[\"admin\"]}}}",
-				EscapeQuotes(replicationTask.Id),
-				replicationTask.Revision.HasValue() 
-					? string.Format("\"_rev\":\"{0}\",", EscapeQuotes(replicationTask.Revision)) 
-					: string.Empty,
-				EscapeQuotes(replicationTask.Source),
-				EscapeQuotes(replicationTask.Target),
-				replicationTask.CreateTarget.ToString().ToLower(),
-				replicationTask.Continuous.ToString().ToLower()
-			);
-			return replicatorDbApi.SaveDocument(new Document(documentString));
-		}
+			var descriptorDocument = Document.Serialize(replicationTask, descriptorEntityConfig);
 
-		private static string EscapeQuotes(Uri uri)
-		{
-			return uri == null ? string.Empty : EscapeQuotes(uri.ToString());
-		}
+			// avoiding sending _replicator_* properties to the server, should be a better way...
+			var jObject = descriptorDocument.jsonObject;
+			foreach (var propertyName in
+					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_") || pn == "type").ToArray())
+				jObject.Remove(propertyName);
 
-		private static string EscapeQuotes(string str)
-		{
-			return string.Join(
-				string.Empty, str.SelectMany(c => c == '\\' ? "\\\\" : (c == '"' ? "\\\"" : c.ToString())));
+			return replicatorDbApi
+				.SaveDocument(descriptorDocument)
+				.ContinueWith( t => { replicationTask.Revision = t.Result.Revision; });
 		}
-
+		
 		public Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");

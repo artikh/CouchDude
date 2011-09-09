@@ -39,7 +39,7 @@ namespace CouchDude.Api
 		private static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
 
 		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
-		protected readonly JToken JsonToken;
+		protected internal readonly JToken JsonToken;
 
 		/// <constructor />
 		public JsonFragment(): this(new JObject()) { }

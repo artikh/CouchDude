@@ -31,7 +31,7 @@ namespace CouchDude.Api
 		internal const string IdPropertyName = "_id";
 
 		/// <summary>Underlying Newtonsoft Json.NET object.</summary>
-		private readonly JObject jsonObject;
+		internal readonly JObject jsonObject;
 
 		/// <constructor />
 		public Document()

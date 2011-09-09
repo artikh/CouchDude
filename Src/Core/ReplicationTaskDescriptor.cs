@@ -21,6 +21,10 @@ namespace CouchDude
 		/// <summary>Indicates that replication should go on forever.</summary>
 		public bool Continuous { get; set; }
 
+		/// <summary>User context to perform replication under.</summary>
+		[JsonProperty("user_ctx")]
+		public ReplicationUserContext UserContext { get; set; }
+
 		/// <summary>Requests target to be created if does not exists.</summary>
 		/// <remarks>Does not work in CouchDB v.1.1.0</remarks>
 		[JsonProperty("create_target")]
@@ -37,5 +41,15 @@ namespace CouchDude
 		/// <summary>Time replication have started.</summary>
 		[JsonProperty("_replication_state_time")]
 		public DateTime ReplicationStartTime { get; internal set; }
+	}
+
+	/// <summary>Replication user context descriptor.</summary>
+	public class ReplicationUserContext
+	{
+		/// <summary>User name.</summary>
+		public string Name { get; set; }
+
+		/// <summary>User's roles.</summary>
+		public string[] Roles { get; set; }
 	}
 }
