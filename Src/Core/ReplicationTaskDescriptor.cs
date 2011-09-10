@@ -7,9 +7,11 @@ namespace CouchDude
 	public class ReplicationTaskDescriptor
 	{
 		/// <summary>Identifier of the task. Should be unique.</summary>
+		[JsonProperty("_id")]
 		public string Id { get; set; }
 
 		/// <summary>Task revision.</summary>
+		[JsonProperty("_rev")]
 		public string Revision { get; internal set; }
 
 		/// <summary>Replication target URI. Could be absolute for remote databases or relative for local.</summary>

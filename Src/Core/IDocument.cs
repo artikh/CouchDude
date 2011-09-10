@@ -48,18 +48,19 @@ namespace CouchDude
 		/// <param name="entityConfig">Entity configuration used to deserialize it properly.</param>
 		object TryDeserialize(IEntityConfig entityConfig);
 
+		/// <summary>Deserializes document to object of provided <paramref name="type"/>.</summary>
+		object Deserialize(Type type);
+
+		/// <summary>Deserializes document to object of provided <paramref name="type"/> returning
+		/// <c>null</c> if deserialization was unsuccessful.</summary>
+		object TryDeserialize(Type type);
+
 		/// <summary>Produces <see cref="TextReader"/> over content of the JSON fragmet.</summary>
 		/// <remarks>Client code is responsible for disposing it.</remarks>
 		TextReader Read();
-
-		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/>.</summary>
-		object Deserialize(Type type);
-
+		
 		/// <summary>Writes JSON string to provided text writer.</summary>
 		void WriteTo(TextWriter writer);
-
-		/// <summary>Sets and gets string properties.</summary>
-		IJsonFragment this[string propertyName] { get; set; }
 
 		/// <summary>Creates new copy of the document.</summary>
 		IDocument DeepClone();

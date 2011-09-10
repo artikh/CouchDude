@@ -21,7 +21,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using CouchDude.Configuration;
-using CouchDude.Impl;
 using CouchDude.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -52,12 +51,40 @@ namespace CouchDude.Api
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			return CheckAndDeserializeIfPossible(entityConfig, (JObject)jsonObject.DeepClone());
+			var document = (JObject)jsonObject.DeepClone();
+			string documentId, revision, documentType;
+			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
+
+			if (entityConfig.DocumentType == documentType)
+			{
+				var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
+				if (!String.IsNullOrWhiteSpace(entityId))
+					return DeserializeInternal(document, entityConfig, entityId, revision);
+			}
+			return null;
+		}
+
+		/// <summary>Serializes entity in simple mode not using configuration settings. Entity required 
+		/// to have _id  property.</summary>
+		public new static IDocument Serialize(object entity)
+		{
+			JObject jObject;
+			using (var jTokenWriter = new JTokenWriter())
+			{
+				Serializer.Serialize(jTokenWriter, entity);
+				jObject = (JObject)jTokenWriter.Token;
+			}
+
+			var document = new Document(jObject);
+			if (document.Id.HasNoValue())
+				throw new ArgumentOutOfRangeException(
+					"entity", "Entity _id property should be set prior serializing to document.");
+			return document;
 		}
 
 		/// <summary>Serializes entity using provided <paramref name="entityConfig"/> producing
 		/// new <see cref="Document"/> instance.</summary>
-		public static Document Serialize(object entity, IEntityConfig entityConfig)
+		public static IDocument Serialize(object entity, IEntityConfig entityConfig)
 		{
 			if (entity == null)
 				throw new ArgumentNullException("entity");
@@ -70,7 +97,7 @@ namespace CouchDude.Api
 
 			var entityId = entityConfig.GetId(entity);
 			if (String.IsNullOrWhiteSpace(entityId))
-				throw new ArgumentException("Document ID should be set prior calling deserializer.", "entity");
+				throw new ArgumentException("Entity ID should be set prior calling deserializer.", "entity");
 
 			var documentId = entityConfig.ConvertEntityIdToDocumentId(entityId);
 			if (String.IsNullOrWhiteSpace(documentId))
@@ -121,20 +148,6 @@ namespace CouchDude.Api
 					"IEntityConfig.ConvertDocumentIdToEntityId() should not ever return null, empty or whitespace string.");
 
 			return DeserializeInternal(clonedJObject, entityConfig, entityId, revision);
-		}
-
-		private static object CheckAndDeserializeIfPossible(IEntityConfig entityConfig, JObject document)
-		{
-			string documentId, revision, documentType;
-			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
-
-			if (entityConfig.DocumentType == documentType)
-			{
-				var entityId = entityConfig.ConvertDocumentIdToEntityId(documentId);
-				if (!String.IsNullOrWhiteSpace(entityId))
-					return DeserializeInternal(document, entityConfig, entityId, revision);
-			}
-			return null;
 		}
 
 		private static object DeserializeInternal(JObject document, IEntityConfig entityConfig, string entityId, string revision)

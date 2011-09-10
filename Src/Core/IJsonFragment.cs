@@ -33,15 +33,12 @@ namespace CouchDude
 		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/>.</summary>
 		object Deserialize(Type type);
 
-		/// <summary>Writes JSON string to provided text writer.</summary>
-		void WriteTo(TextWriter writer);
-
 		/// <summary>Deserializes current <see cref="JsonFragment"/> to object of provided <paramref name="type"/> returning
 		/// <c>null</c> if deserialization was unsuccessful..</summary>
 		object TryDeserialize(Type type);
 
-		/// <summary>Sets and gets string properties.</summary>
-		IJsonFragment this[string propertyName] { get; set; }
+		/// <summary>Writes JSON string to provided text writer.</summary>
+		void WriteTo(TextWriter writer);
 		
 		/// <summary>Creates new copy of the JSON fragment.</summary>
 		IJsonFragment DeepClone();

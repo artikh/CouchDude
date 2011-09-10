@@ -17,6 +17,7 @@ namespace CouchDude.Tests.Integration
 
 	public class Chinchilla: Animal { }
 
+	[IntegrationTest]
 	public class InheritanceSupport
 	{
 		[Fact]

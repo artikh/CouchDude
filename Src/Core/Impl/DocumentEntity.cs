@@ -171,7 +171,7 @@ namespace CouchDude.Impl
 			this.entityConfiguration = entityConfiguration;
 		}
 
-		private Document SerializeToDocument()
+		private IDocument SerializeToDocument()
 		{
 			var document = Api.Document.Serialize(Entity, entityConfiguration);
 

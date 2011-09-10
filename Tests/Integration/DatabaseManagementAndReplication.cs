@@ -6,6 +6,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class DatabaseManagementAndReplication
 	{
 		[Fact]

@@ -153,6 +153,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Src\Bootstrapper\Bootstrapper.csproj">
+      <Project>{158ECD08-3766-4FAD-824F-3B293FFE27C8}</Project>
+      <Name>Bootstrapper %28Bootstrapper\Bootstrapper%29</Name>
+    </ProjectReference>
     <ProjectReference Include="..\src\Core\Core.csproj">
       <Project>{81B07B94-A04A-4178-8465-7BF668519DD7}</Project>
       <Name>Core</Name>

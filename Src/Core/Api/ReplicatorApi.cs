@@ -14,18 +14,6 @@ namespace CouchDude.Api
 		private readonly ISynchronousReplicatorApi synchronousReplicatorApi;
 		private readonly IDatabaseApi replicatorDbApi;
 
-		private readonly IEntityConfig descriptorEntityConfig = new EntityConfig(
-			typeof (ReplicationTaskDescriptor),
-			entityTypeToDocumentType: et => "replicationDescriptor",
-			idMember:
-				new ParticularyNamedPropertyOrPubilcFieldSpecialMember(typeof (ReplicationTaskDescriptor), "Id"),
-			revisionMember:
-				new ParticularyNamedPropertyOrPubilcFieldSpecialMember(
-					typeof (ReplicationTaskDescriptor), "Revision"),
-			documentIdToEntityId: (documentId, documentType, entityType) => documentId,
-			entityIdToDocumentId: (entityId, entityType, documentType) => entityId
-		);
-
 		public ReplicatorApi(ICouchApi couchApi)
 		{
 			synchronousReplicatorApi = new SynchronousReplicatorApi(this);
@@ -37,31 +25,16 @@ namespace CouchDude.Api
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue()) 
 				throw new ArgumentException("Replication task descriptor ID should be specified", "replicationTask");
-			
-			// manual generation of JSON needed to avoid sending _replicator_* properties to the server
-			var documentString = string.Format(
-				"{{\"_id\":\"{0}\",{1}\"source\":\"{2}\",\"target\":\"{3}\",\"create_target\":{4},\"continuous\":{5}},\"user_ctx\":{{\"roles\":[\"admin\"]}}}",
-				EscapeQuotes(replicationTask.Id),
-				replicationTask.Revision.HasValue() 
-					? string.Format("\"_rev\":\"{0}\",", EscapeQuotes(replicationTask.Revision)) 
-					: string.Empty,
-				EscapeQuotes(replicationTask.Source),
-				EscapeQuotes(replicationTask.Target),
-				replicationTask.CreateTarget.ToString().ToLower(),
-				replicationTask.Continuous.ToString().ToLower()
-			);
-			return replicatorDbApi.SaveDocument(new Document(documentString));
-		}
 
-		private static string EscapeQuotes(Uri uri)
-		{
-			return uri == null ? string.Empty : EscapeQuotes(uri.ToString());
-		}
+			var document = Document.Serialize(replicationTask);
 
-		private static string EscapeQuotes(string str)
-		{
-			return string.Join(
-				string.Empty, str.SelectMany(c => c == '\\' ? "\\\\" : (c == '"' ? "\\\"" : c.ToString())));
+			//TODO Avoid using internal APIs
+			var jObject = ((Document)document).jsonObject;
+			foreach (var propertyToRemove in
+					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_")).ToArray())
+				jObject.Remove(propertyToRemove);
+
+			return replicatorDbApi.SaveDocument(document);
 		}
 
 		public Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
@@ -73,8 +46,7 @@ namespace CouchDude.Api
 					var result = t.Result;
 					if (result != null)
 					{
-						result["type"] = JsonFragment.JsonString("replicationDescriptor");
-						return (ReplicationTaskDescriptor) result.Deserialize(descriptorEntityConfig);
+						return (ReplicationTaskDescriptor) result.Deserialize(typeof(ReplicationTaskDescriptor));
 					}
 					return null;
 				});
