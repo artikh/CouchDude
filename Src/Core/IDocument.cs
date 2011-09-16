@@ -19,7 +19,6 @@
 using System;
 using System.Dynamic;
 using System.IO;
-using CouchDude.Api;
 using CouchDude.Configuration;
 
 namespace CouchDude
@@ -38,6 +37,9 @@ namespace CouchDude
 		/// <summary>Type of the document or <c>null</c> if no type property 
 		/// found or it's empty.</summary>
 		string Type { get; set; }
+
+		/// <summary>List of documet attachments.</summary>
+		IAttachmentBag Attachments { get;}
 
 		/// <summary>Deserializes document to new entity object.</summary>
 		/// <param name="entityConfig">Entity configuration used to deserialize it properly.</param>
@@ -61,8 +63,5 @@ namespace CouchDude
 		
 		/// <summary>Writes JSON string to provided text writer.</summary>
 		void WriteTo(TextWriter writer);
-
-		/// <summary>Creates new copy of the document.</summary>
-		IDocument DeepClone();
 	}
 }

@@ -70,7 +70,7 @@ namespace CouchDude.Api
 			JsonToken = jsonToken;
 		}
 
-		private static JToken Parse(string jsonString)
+		internal static JToken Parse(string jsonString)
 		{
 			if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
 			
@@ -232,9 +232,6 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc />
-		public IJsonFragment DeepClone() { return new JsonFragment(JsonToken.DeepClone()); }
-
-		/// <inheritdoc />
 		public bool Equals(JsonFragment other)
 		{
 			if (ReferenceEquals(null, other)) return false;
@@ -256,19 +253,7 @@ namespace CouchDude.Api
 		{
 			return JsonToken.GetHashCode();
 		}
-
-		/// <summary>Compares JSON fragments for equality.</summary>
-		public static bool operator ==(JsonFragment left, JsonFragment right)
-		{
-			return Equals(left, right);
-		}
-
-		/// <summary>Compares JSON fragments for inequality.</summary>
-		public static bool operator !=(JsonFragment left, JsonFragment right)
-		{
-			return !Equals(left, right);
-		}
-
+		
 		/// <summary>Forward dynamic behaviour to another object.</summary>
 		/// <remarks>See. http://matousek.wordpress.com/2009/11/07/forwarding-meta-object </remarks>
 		private class ForwardingMetaObject : DynamicMetaObject

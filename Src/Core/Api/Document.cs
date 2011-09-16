@@ -17,13 +17,15 @@
 #endregion
 
 using System;
-
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Api
 {
-	/// <summary>CouchDB document implementing wrapping <see cref="JObject"/>.</summary>
+	/// <summary>CouchDB document implemented wrapping <see cref="JObject"/>.</summary>
+	/// <remarks>Document object is not thread safe and should not be used concurrently.</remarks>
 	public partial class Document : JsonFragment, IDocument
 	{
 		internal const string RevisionPropertyName = "_rev";
@@ -31,12 +33,12 @@ namespace CouchDude.Api
 		internal const string IdPropertyName = "_id";
 
 		/// <summary>Underlying Newtonsoft Json.NET object.</summary>
-		internal readonly JObject jsonObject;
+		internal readonly JObject JsonObject;
 
 		/// <constructor />
 		public Document()
 		{
-			jsonObject = (JObject)JsonToken;
+			JsonObject = (JObject)JsonToken;
 		}
 
 		/// <summary>Parses CouchDB document string.</summary>
@@ -44,7 +46,7 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
 		public Document(string jsonString): base(jsonString)
 		{
-			jsonObject = (JObject)JsonToken;
+			JsonObject = (JObject)JsonToken;
 		}
 
 		/// <summary>Loads CouchDB document from provided text reader.</summary>
@@ -54,28 +56,28 @@ namespace CouchDude.Api
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
 		public Document(TextReader textReader): base(textReader)
 		{
-			jsonObject = (JObject)JsonToken;
+			JsonObject = (JObject)JsonToken;
 		}
 		
 		/// <constructor />
 		internal Document(JObject jsonToken): base(jsonToken)
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
-			jsonObject = (JObject)JsonToken;
+			JsonObject = (JObject)JsonToken;
 		}
 
 		/// <summary>Document identifier or <c>null</c> if no _id property 
 		/// found or it's empty.</summary>
 		public string Id
 		{
-			get { return jsonObject.Value<string>(IdPropertyName); }
+			get { return JsonObject.Value<string>(IdPropertyName); }
 			set
 			{
 				if (Id != value)
 					SetOrCreateAndInsertSpecialProperty(
 						IdPropertyName,
 						value,
-						jsonObject,
+						JsonObject,
 						GetIdProperty,
 						insertAfterIndex: -1,
 						propertyGettersInOrder: new Func<JProperty>[] { GetIdProperty, GetRevisionProperty, GetTypeProperty });
@@ -86,14 +88,14 @@ namespace CouchDude.Api
 		/// found or it's empty.</summary>
 		public string Revision
 		{
-			get { return jsonObject.Value<string>(RevisionPropertyName); }
+			get { return JsonObject.Value<string>(RevisionPropertyName); }
 			set
 			{
 				if (Revision != value)
 					SetOrCreateAndInsertSpecialProperty(
 						RevisionPropertyName,
 						value,
-						jsonObject,
+						JsonObject,
 						GetRevisionProperty,
 						insertAfterIndex: 0,
 						propertyGettersInOrder: new Func<JProperty>[] {GetIdProperty, GetRevisionProperty, GetTypeProperty});
@@ -104,23 +106,28 @@ namespace CouchDude.Api
 		/// found or it's empty.</summary>
 		public string Type
 		{
-			get { return jsonObject.Value<string>(TypePropertyName); }
+			get { return JsonObject.Value<string>(TypePropertyName); }
 			set
 			{
 				if (Type != value)
 					SetOrCreateAndInsertSpecialProperty(
 						TypePropertyName,
 						value,
-						jsonObject,
+						JsonObject,
 						GetTypeProperty,
 						insertAfterIndex: 1,
 						propertyGettersInOrder: new Func<JProperty>[] {GetIdProperty, GetRevisionProperty, GetTypeProperty});
 			}
 		}
 
+		private IAttachmentBag attachmentBag;
+
 		/// <inheritdoc />
-		public new IDocument DeepClone() { return new Document((JObject) jsonObject.DeepClone()); }
-		
+		public IAttachmentBag Attachments
+		{
+			get { return attachmentBag ?? (attachmentBag = new AttachmentBag(JsonObject)); }
+		}
+
 		/// <inheritdoc />
 		public override bool Equals(object obj)
 		{
@@ -133,18 +140,6 @@ namespace CouchDude.Api
 		public override int GetHashCode()
 		{
 			return base.GetHashCode();
-		}
-
-		/// <summary>Compares CouchDB documents for equality.</summary>
-		public static bool operator ==(Document left, Document right)
-		{
-			return Equals(left, right);
-		}
-
-		/// <summary>Compares CouchDB documents for inequality.</summary>
-		public static bool operator !=(Document left, Document right)
-		{
-			return !Equals(left, right);
 		}
 
 		private static void SetOrCreateAndInsertSpecialProperty(
@@ -187,17 +182,17 @@ namespace CouchDude.Api
 
 		private JProperty GetRevisionProperty()
 		{
-			return jsonObject.Property(RevisionPropertyName);
+			return JsonObject.Property(RevisionPropertyName);
 		}
 
 		private JProperty GetIdProperty()
 		{
-			return jsonObject.Property(IdPropertyName);
+			return JsonObject.Property(IdPropertyName);
 		}
 
 		private JProperty GetTypeProperty()
 		{
-			return jsonObject.Property(TypePropertyName);
+			return JsonObject.Property(TypePropertyName);
 		}
 	}
 }

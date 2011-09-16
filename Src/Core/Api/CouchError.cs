@@ -45,7 +45,7 @@ namespace CouchDude.Api
 			Error = Reason = String.Empty;
 			StatusCode = null;
 
-			if (responseObject != null) 
+			if (ReferenceEquals(responseObject, null)) 
 				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
 		}
 
@@ -67,9 +67,9 @@ namespace CouchDude.Api
 			using (var reader = response.Content.GetTextReader())
 				responseText = reader.ReadToEnd();
 
-			var responseObject = TryGetResponseObject(responseText);
+			dynamic responseObject = TryGetResponseObject(responseText);
 
-			if (responseObject == null)
+			if (ReferenceEquals(responseObject, null))
 				Reason = responseText;
 			else
 				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);

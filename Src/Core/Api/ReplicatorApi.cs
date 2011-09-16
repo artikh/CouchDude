@@ -29,7 +29,7 @@ namespace CouchDude.Api
 			var document = Document.Serialize(replicationTask);
 
 			//TODO Avoid using internal APIs
-			var jObject = ((Document)document).jsonObject;
+			var jObject = ((Document)document).JsonObject;
 			foreach (var propertyToRemove in
 					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_")).ToArray())
 				jObject.Remove(propertyToRemove);

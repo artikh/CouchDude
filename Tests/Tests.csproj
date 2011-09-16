@@ -88,6 +88,7 @@
     <Compile Include="Unit\Core\Api\CouchApiTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiFactoryTests.cs" />
+    <Compile Include="Unit\Core\Api\DocumentAttachmentTests.cs" />
     <Compile Include="Unit\Core\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Core\Api\ReplicatorApiTests.cs" />
     <Compile Include="Unit\Core\Api\ViewResultParserTests.cs" />

@@ -40,7 +40,7 @@ namespace CouchDude.Api
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			return CheckAndDeserialize(entityConfig, jsonObject, this);
+			return CheckAndDeserialize(entityConfig, JsonObject, this);
 		}
 
 		/// <summary>Deserializes document to new entity object returning <c>null</c> insted of exception if
@@ -51,7 +51,7 @@ namespace CouchDude.Api
 			if (entityConfig == null)
 				throw new ArgumentNullException("entityConfig");
 
-			var document = (JObject)jsonObject.DeepClone();
+			var document = (JObject)JsonObject.DeepClone();
 			string documentId, revision, documentType;
 			GetDocumentTypeAndRevision(document, out documentId, out revision, out documentType);
 

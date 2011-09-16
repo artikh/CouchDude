@@ -39,8 +39,5 @@ namespace CouchDude
 
 		/// <summary>Writes JSON string to provided text writer.</summary>
 		void WriteTo(TextWriter writer);
-		
-		/// <summary>Creates new copy of the JSON fragment.</summary>
-		IJsonFragment DeepClone();
 	}
 }
