@@ -143,7 +143,7 @@ namespace CouchDude.Impl
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			return databaseApi.RequestDocumentById(docId).ContinueWith(rt => {
+			return databaseApi.RequestDocument(docId).ContinueWith(rt => {
 				var document = rt.Result;
 				if (document == null)
 					return default(TEntity);

@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Integration
 				() => couchApi.Replicator.RequestDescriptorById(replicationDescriptorId), replicationDoneEvent);
 			replicationDoneEvent.WaitOrThrowOnTimeout();
 
-			var loadedDocument = couchApi.Db(dbB).Synchronously.RequestDocumentById(savedDocument.Id);
+			var loadedDocument = couchApi.Db(dbB).Synchronously.RequestDocument(savedDocument.Id);
 
 			Assert.Equal(savedDocument.Id, loadedDocument.Id);
 			Assert.Equal(docInfo.Revision, loadedDocument.Revision);

@@ -32,9 +32,9 @@ namespace CouchDude.Api
 			this.databaseApi = databaseApi;
 		}
 
-		public IDocument RequestDocumentById(string docId)
+		public IDocument RequestDocument(string docId, string revision = null)
 		{
-			return databaseApi.RequestDocumentById(docId).WaitForResult();
+			return databaseApi.RequestDocument(docId, revision).WaitForResult();
 		}
 
 		public DocumentInfo DeleteDocument(string docId, string revision)

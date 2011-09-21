@@ -49,16 +49,16 @@ namespace CouchDude.Tests.Integration
 			Assert.Equal(doc2Id, result[doc2Id].Id);
 			Assert.Equal(doc3Id, result[doc3Id].Id);
 
-			dynamic loadedDoc1 = dbApi.Synchronously.RequestDocumentById(doc1Id);
+			dynamic loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
 			Assert.NotNull(loadedDoc1);
 			Assert.Equal("James Scully", (string)loadedDoc1.name);
 
-			dynamic loadedDoc2 = dbApi.Synchronously.RequestDocumentById(doc2Id);
+			dynamic loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
 			Assert.NotNull(loadedDoc2);
 			Assert.Equal("John Smith", (string)loadedDoc2.name);
 			Assert.Equal(42, (int)loadedDoc2.age);
 
-			var loadedDoc3 = dbApi.Synchronously.RequestDocumentById(doc3Id);
+			var loadedDoc3 = dbApi.Synchronously.RequestDocument(doc3Id);
 			Assert.Null(loadedDoc3);
 
 			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1._rev);

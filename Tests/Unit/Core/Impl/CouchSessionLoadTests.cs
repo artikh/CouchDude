@@ -54,8 +54,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			dbApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(_ => Entity.CreateDocWithRevision().ToTask());
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns(
+					(string id, string revision) => Entity.CreateDocWithRevision().ToTask());
 			dbApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
 				.Returns(Entity.StandardDococumentInfo.ToTask());
@@ -75,7 +76,8 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var couchApi = Mock.Of<ICouchApi>(
 				c => c.Db("testdb") ==  Mock.Of<IDatabaseApi>(
-					api => api.RequestDocumentById(It.IsAny<string>()) == EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
+					api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>()) == 
+						EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
 			));
 
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Synchronously.Load<EntityWithoutRevision>("doc1");
@@ -87,8 +89,10 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldThrowOnNullOrEmptyId()
 		{
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Load<Entity>(null));
-			Assert.Throws<ArgumentNullException>(() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Load<Entity>(""));
+			Assert.Throws<ArgumentNullException>(
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Load<Entity>(null));
+			Assert.Throws<ArgumentNullException>(
+				() => new CouchSession(Default.Settings, Mock.Of<ICouchApi>()).Synchronously.Load<Entity>(""));
 		}
 
 		[Fact]
@@ -98,9 +102,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 
 			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			dbApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(
-					id => {
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns(
+					(string id, string revision) => {
 						requestedId = id;
 						return Entity.CreateDocWithRevision().ToTask();
 					});
@@ -114,9 +118,9 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var databaseApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			databaseApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(
-					id => Task.Factory.StartNew(
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns(
+					(string id, string revision) => Task.Factory.StartNew(
 						() => new {
 							_id = "entity" + ".doc1",
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",

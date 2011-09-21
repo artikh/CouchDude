@@ -99,12 +99,12 @@ namespace CouchDude.Api
 					});
 		}
 
-		public Task<IDocument> RequestDocumentById(string docId)
+		public Task<IDocument> RequestDocument(string docId, string revision)
 		{
 			if (string.IsNullOrEmpty(docId)) throw new ArgumentNullException("docId");
-			
 
-			var documentUri = GetDocumentUri(docId);
+
+			var documentUri = GetDocumentUri(docId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
 			return CouchApi.StartRequest(request, httpClient).ContinueWith<IDocument>(
 				rt => {

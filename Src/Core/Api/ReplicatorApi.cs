@@ -42,7 +42,7 @@ namespace CouchDude.Api
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
-			return replicatorDbApi.RequestDocumentById(id).ContinueWith(
+			return replicatorDbApi.RequestDocument(id).ContinueWith(
 				t => {
 					var result = t.Result;
 					if (result != null)

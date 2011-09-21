@@ -38,7 +38,7 @@ namespace CouchDude.Tests.Integration
 
 			dbApi.Synchronously.SaveDocument(newDoc);
 
-			var loadedDoc = dbApi.Synchronously.RequestDocumentById(docId);
+			var loadedDoc = dbApi.Synchronously.RequestDocument(docId);
 
 			Assert.Equal(2, loadedDoc.Attachments.Count);
 			var firstAttachment = loadedDoc.Attachments["attachment1"];

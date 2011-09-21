@@ -121,7 +121,7 @@
     <Compile Include="Unit\Core\Api\DatabaseApiQueryTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiSaveDocumentToDbTests.cs" />
     <Compile Include="Unit\Core\Api\CouchErrorTests.cs" />
-    <Compile Include="Unit\Core\Api\DatabaseApiGetDocumentFromDbByIdTests.cs">
+    <Compile Include="Unit\Core\Api\DatabaseApiRequestDocumentTests.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unit\Core\Api\DocumentTests.cs" />

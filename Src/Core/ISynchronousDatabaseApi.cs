@@ -24,8 +24,9 @@ namespace CouchDude
 	/// <summary>Synchronous version of databes-level APIs.</summary>
 	public interface ISynchronousDatabaseApi
 	{
-		/// <summary>Requests CouchDB for document and waits for an answer.</summary>
-		IDocument RequestDocumentById(string docId);
+		/// <summary>Requests CouchDB for document using <paramref name="docId"/> 
+		/// and <paramref name="revision"/> and waits for result of the operation.</summary>
+		IDocument RequestDocument(string docId, string revision = null);
 
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
 		DocumentInfo SaveDocument(IDocument document);

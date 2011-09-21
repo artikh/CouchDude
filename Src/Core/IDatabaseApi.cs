@@ -25,8 +25,9 @@ namespace CouchDude
 	/// <summary>Represents low-level CouchDB API.</summary>
 	public interface IDatabaseApi
 	{
-		/// <summary>Requests CouchDB for document of <paramref name="docId"/>.</summary>
-		Task<IDocument> RequestDocumentById(string docId);
+		/// <summary>Requests CouchDB for document using <paramref name="docId"/> 
+		/// and <paramref name="revision"/>.</summary>
+		Task<IDocument> RequestDocument(string docId, string revision = null);
 
 		/// <summary>Saves new document to CouchDB.</summary>
 		Task<DocumentInfo> SaveDocument(IDocument document);
