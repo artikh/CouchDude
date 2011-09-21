@@ -8,9 +8,9 @@ namespace CouchDude.Api
 		private readonly ReplicatorApi replicatorApi;
 		public SynchronousReplicatorApi(ReplicatorApi replicatorApi) { this.replicatorApi = replicatorApi; }
 
-		public void SaveDescriptor(ReplicationTaskDescriptor replicationTask)
+		public DocumentInfo SaveDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
-			replicatorApi.SaveDescriptor(replicationTask).WaitForResult();
+			return replicatorApi.SaveDescriptor(replicationTask).WaitForResult();
 		}
 
 		public ReplicationTaskDescriptor RequestDescriptorById(string id)
@@ -18,9 +18,9 @@ namespace CouchDude.Api
 			return replicatorApi.RequestDescriptorById(id).WaitForResult();
 		}
 
-		public void Delete(ReplicationTaskDescriptor replicationTask)
+		public DocumentInfo Delete(ReplicationTaskDescriptor replicationTask)
 		{
-			replicatorApi.DeleteDescriptor(replicationTask).WaitForResult();
+			return replicatorApi.DeleteDescriptor(replicationTask).WaitForResult();
 		}
 
 		public IEnumerable<string> GetAllDescriptorNames()

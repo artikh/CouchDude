@@ -103,6 +103,7 @@
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\DocumentAttachment.cs" />
+    <Compile Include="Api\DocumentAttachmentExtentions.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
     <Compile Include="Api\JsonContent.cs" />
     <Compile Include="Api\ReplicatorApi.cs" />
@@ -112,6 +113,7 @@
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
     <Compile Include="Api\Serialization\UriConverter.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
+    <Compile Include="Api\AttachmentBagExtentions.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
     <Compile Include="Configuration\EntityConfig.cs" />

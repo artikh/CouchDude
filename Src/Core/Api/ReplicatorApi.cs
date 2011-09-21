@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using CouchDude.Configuration;
-using CouchDude.Http;
 using CouchDude.Utils;
 
 namespace CouchDude.Api
@@ -20,7 +17,7 @@ namespace CouchDude.Api
 			replicatorDbApi = couchApi.Db("_replicator");
 		}
 
-		public Task SaveDescriptor(ReplicationTaskDescriptor replicationTask)
+		public Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue()) 
@@ -34,7 +31,11 @@ namespace CouchDude.Api
 					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_")).ToArray())
 				jObject.Remove(propertyToRemove);
 
-			return replicatorDbApi.SaveDocument(document);
+			return replicatorDbApi.SaveDocument(document).ContinueWith(
+				saveTask => {
+					replicationTask.Revision = saveTask.Result.Revision;
+					return saveTask.Result;
+				});
 		}
 
 		public Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
@@ -52,7 +53,7 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
+		public Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue())

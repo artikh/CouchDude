@@ -27,7 +27,7 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldDoUpdateInBulkFlowlessly()
 		{
-			var couchApi = Factory.CreateCouchApi("http://localhost:5984/");
+			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
 			var dbApi = couchApi.Db("testdb");
 
 			var doc1Id = Guid.NewGuid() + ".doc1";

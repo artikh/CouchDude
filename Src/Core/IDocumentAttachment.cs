@@ -16,8 +16,6 @@
 */
 #endregion
 
-using System.IO;
-
 namespace CouchDude
 {
 	/// <summary>Describes document attachment</summary>
@@ -35,12 +33,8 @@ namespace CouchDude
 		/// <inheritdoc />
 		int Length { get; set; }
 
-		/// <summary>Opens inline attachment for read.</summary>
-		Stream OpenRead();
-
-		/// <summary>Opens attachment for write marking it as inline if it is not yet.</summary>
-		/// <remarks>Data written to stream <b>replaces</b> content of the attachment.</remarks>
-		Stream OpenWrite();
+		/// <inheritdoc />
+		byte[] InlineData { get; set; } 
 
 		/// <summary>Converts document attachment object to corresponding CouchDB JSON.</summary>
 		string ToString();

@@ -40,13 +40,13 @@ namespace CouchDude.Api
 		public readonly string Reason;
 		public readonly HttpStatusCode? StatusCode;
 
-		public CouchError(dynamic responseObject)
+		public CouchError(string responseString)
 		{
 			Error = Reason = String.Empty;
 			StatusCode = null;
 
-			if (ReferenceEquals(responseObject, null)) 
-				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
+			if (responseString.HasValue()) 
+				UpdateUsingErrorDescriptor(responseString, ref Error, ref Reason);
 		}
 
 		public CouchError(HttpResponseMessage response)
@@ -66,27 +66,39 @@ namespace CouchDude.Api
 			string responseText;
 			using (var reader = response.Content.GetTextReader())
 				responseText = reader.ReadToEnd();
-
-			dynamic responseObject = TryGetResponseObject(responseText);
-
-			if (ReferenceEquals(responseObject, null))
-				Reason = responseText;
-			else
-				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
+			
+			UpdateUsingErrorDescriptor(responseText, ref Error, ref Reason);
 		}
 
-		private static void UpdateUsingErrorDescriptor(dynamic responseObject, ref string error, ref string reason)
+		internal class CouchErrorDescriptor
 		{
-			string errorMessage = responseObject.error;
-			if (!String.IsNullOrWhiteSpace(errorMessage))
-				error = errorMessage;
-
-			string reasonMessage = responseObject.reason;
-			if (!String.IsNullOrWhiteSpace(reasonMessage))
-				reason = reasonMessage;
+			public string Error;
+			public string Reason;
 		}
 
-		private static dynamic TryGetResponseObject(string responseText)
+		private static void UpdateUsingErrorDescriptor(string responseString, ref string error, ref string reason)
+		{
+			var couchErrorDescriptorJsonFragment = TryGetResponseObject(responseString);
+			if(couchErrorDescriptorJsonFragment != null)
+			{
+				var couchErrorDescriptor =
+					(CouchErrorDescriptor)couchErrorDescriptorJsonFragment.Deserialize(typeof (CouchErrorDescriptor));
+				if(couchErrorDescriptor != null)
+				{
+					if (!String.IsNullOrWhiteSpace(couchErrorDescriptor.Error))
+						error = couchErrorDescriptor.Error;
+
+					if (!String.IsNullOrWhiteSpace(couchErrorDescriptor.Reason))
+						reason = couchErrorDescriptor.Reason;
+
+					return;
+				}
+			}
+
+			reason = responseString;
+		}
+
+		private static IJsonFragment TryGetResponseObject(string responseText)
 		{
 			try
 			{

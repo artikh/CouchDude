@@ -74,7 +74,8 @@ namespace CouchDude.Api
 			if (attachmentJObject != null)
 				attachmentJObject.Remove();
 
-			attachmentsJObject.Add(attachment.Name, JObject.Parse(attachment.ToString()));
+			attachmentJObject = JObject.Parse(attachment.ToString());
+			attachmentsJObject.Add(attachment.Name, attachmentJObject);
 		}
 
 		/// <inheritdoc />
@@ -115,7 +116,13 @@ namespace CouchDude.Api
 			{
 				// This should be dynamic as properties of _attachment property could be something other then objects resulting
 				// in not counting them as attachment descriptors. Unlikely, but possible.
-				return this.Count();
+				var count = 0;
+				using (var enumerator = GetEnumerator())
+					checked
+					{
+						while (enumerator.MoveNext()) count++;
+					}
+				return count;
 			}
 		}
 

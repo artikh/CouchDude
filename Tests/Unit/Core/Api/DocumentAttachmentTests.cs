@@ -17,7 +17,7 @@
 #endregion
 
 using System;
-using System.IO;
+using System.Text;
 using CouchDude.Api;
 using Newtonsoft.Json.Linq;
 using Xunit;
@@ -80,13 +80,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			var jObject = new JObject();
 			IDocumentAttachment attachment = new DocumentAttachment("attachment1", jObject);
 
-			using(var writeStream = attachment.OpenWrite())
-			using (var writer = new StreamWriter(writeStream))
-			{
-				writer.Write("test");
-				writer.Write(" ");
-				writer.Write("test!");
-			}
+			attachment.InlineData = Encoding.UTF8.GetBytes("test test!");
 
 			Assert.Equal("dGVzdCB0ZXN0IQ==", jObject.Value<string>("data"));
 		}
@@ -95,9 +89,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldMakeAttachmentInlineOnFirstWrite() 
 		{
 			IDocumentAttachment attachment = new DocumentAttachment("attachment1");
-			using(var writingStream = attachment.OpenWrite())
-				writingStream.Write(new byte[] { 42 }, 0, 1);
-
+			attachment.InlineData = new byte[] { 42 };
 			Assert.True(attachment.Inline);
 		}
 
@@ -116,9 +108,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldReadData()
 		{
 			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new { data = "dGVzdCB0ZXN0IQ==" }.ToJObject());
-			using (var readStream = attachment.OpenRead())
-			using (var reader = new StreamReader(readStream))
-				Assert.Equal("test test!", reader.ReadToEnd());
+			var stringData = Encoding.UTF8.GetString(attachment.InlineData);
+			Assert.Equal("test test!", stringData);
 		}
 	}
 }

@@ -17,38 +17,23 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
+using System.IO;
+using System.Text;
 
-namespace CouchDude.Utils
+namespace CouchDude.Api
 {
-	/// <summary><see cref="Task"/> utility methods.</summary>
-	public static class TaskUtils
+	/// <summary>Convinience methods for <see cref="DocumentAttachment"/>.</summary>
+	public static class DocumentAttachmentExtentions
 	{
-		/// <summary>Waits for result of the task returning it result.</summary>
-		public static void WaitForResult(this Task task)
+		/// <summary>Returns attachment's data as string </summary>
+		public static string ReadAsString(this IDocumentAttachment self, Encoding encoding = null)
 		{
-			try
-			{
-				task.Wait();
-			}
-			catch (AggregateException e)
-			{
-				throw e.Extract();
-			}
-		}
-		/// <summary>Waits for result of the task returning it result.</summary>
-		public static T WaitForResult<T>(this Task<T> task)
-		{
-			try
-			{
-				return task.Result;
-			}
-			catch (AggregateException e)
-			{
-				throw e.Extract();
-			}
+			if (self == null) throw new ArgumentNullException("self");
+			if (!self.Inline)
+				throw new ArgumentOutOfRangeException(
+					"self", self, "Attachment should be inline to use this attachment");
+
+			return (encoding ?? Encoding.UTF8).GetString(self.InlineData);
 		}
 	}
 }

@@ -16,39 +16,15 @@
 */
 #endregion
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
+using System.IO;
+using CouchDude.Api;
+using Newtonsoft.Json.Linq;
+using Xunit;
 
-namespace CouchDude.Utils
+namespace CouchDude.Tests.Unit.Core.Api
 {
-	/// <summary><see cref="Task"/> utility methods.</summary>
-	public static class TaskUtils
+	public class DocumentAttachmentExtensionsTests
 	{
-		/// <summary>Waits for result of the task returning it result.</summary>
-		public static void WaitForResult(this Task task)
-		{
-			try
-			{
-				task.Wait();
-			}
-			catch (AggregateException e)
-			{
-				throw e.Extract();
-			}
-		}
-		/// <summary>Waits for result of the task returning it result.</summary>
-		public static T WaitForResult<T>(this Task<T> task)
-		{
-			try
-			{
-				return task.Result;
-			}
-			catch (AggregateException e)
-			{
-				throw e.Extract();
-			}
-		}
+
 	}
 }

@@ -69,6 +69,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="IntegrationTestAttribute.cs" />
+    <Compile Include="Integration\CouchApiAttachmentSupport.cs" />
     <Compile Include="Integration\CouchApiBulkLoad.cs" />
     <Compile Include="Integration\DatabaseManagementAndReplication.cs" />
     <Compile Include="Integration\DatabaseMissingExceptionTests.cs" />
@@ -84,10 +85,13 @@
     <Compile Include="SampleData\ViewData.cs" />
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
+    <Compile Include="Unit\Core\Api\AttachmentBagExtentionsTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiManagmentOperationsTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiFactoryTests.cs" />
+    <Compile Include="Unit\Core\Api\DocumentAttachmentExtensionsTests.cs" />
+    <Compile Include="Unit\Core\Api\DocumentAttachmentExtentionsTests.cs" />
     <Compile Include="Unit\Core\Api\DocumentAttachmentTests.cs" />
     <Compile Include="Unit\Core\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Core\Api\ReplicatorApiTests.cs" />

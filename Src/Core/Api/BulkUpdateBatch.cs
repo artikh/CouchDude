@@ -135,7 +135,7 @@ namespace CouchDude.Api
 						string errorName = responseDescriptor.error;
 						string documentId = responseDescriptor.id;
 						if(errorName != null) 
-							CollectError(documentId, responseDescriptor);
+							CollectError(documentId, responseDescriptor.ToString());
 						else
 						{
 							var documentInfo = new DocumentInfo(documentId, (string)responseDescriptor.rev);
@@ -155,12 +155,12 @@ namespace CouchDude.Api
 				});
 		}
 
-		private void CollectError(string documentId, dynamic errorDescriptor)
+		private void CollectError(string documentId, string errorString)
 		{
 			var docIdToUpdateDescriptor = docIdToUpdateDescriptorMap[documentId];
 			var operation = docIdToUpdateDescriptor.Operation.ToString().ToLower();
 
-			var error = new CouchError(errorDescriptor);
+			var error = new CouchError(errorString);
 
 			switch (error.Error)
 			{

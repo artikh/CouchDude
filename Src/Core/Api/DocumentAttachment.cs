@@ -31,7 +31,6 @@ namespace CouchDude.Api
 		private const string ContentTypePropertyName = "content_type";
 		private const string LengthPropertyName = "length";
 
-		private readonly string name;
 		internal JObject AttachmentDescriptor;
 
 		/// <summary>Creates attachment wrapping existing attachment 
@@ -43,19 +42,16 @@ namespace CouchDude.Api
 			if (attachmentDescriptor == null)
 				throw new ArgumentNullException("attachmentDescriptor");
 
-
-			this.name = name;
-			AttachmentDescriptor = attachmentDescriptor;
+			Initialize(name, attachmentDescriptor);
 		}
 
 		/// <constructor />
-		public DocumentAttachment(string name): this(name, new JObject())
+		public DocumentAttachment(string name)
 		{
 			if (name.HasNoValue())
 				throw new ArgumentNullException("name");
 
-			this.name = name;
-			AttachmentDescriptor = new JObject();
+			Initialize(name, new JObject());
 		}
 
 		/// <constructor />
@@ -69,12 +65,20 @@ namespace CouchDude.Api
 			var attachmentDescriptor = JsonFragment.Parse(attachmentDescriptorJson) as JObject;
 			if(attachmentDescriptor == null)
 				throw new ParseException("Provided string should be valid JSON object.");
-			this.name = name;
+
+			Initialize(name, attachmentDescriptor);
+		}
+
+		private void Initialize(string attachmentName, JObject attachmentDescriptor)
+		{
+			Name = attachmentName;
 			AttachmentDescriptor = attachmentDescriptor;
+			if (ContentType.HasNoValue())
+				ContentType = "application/octet-stream";
 		}
 
 		/// <inheritdoc />
-		public string Name { get { return name; } }
+		public string Name { get; private set; }
 
 		/// <inheritdoc />
 		public string ContentType
@@ -110,39 +114,21 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc />
-		public Stream OpenRead()
+		public byte[] InlineData
 		{
-			var dataString = AttachmentDescriptor.Value<string>(DataPropertyName);
-			var bytes = Convert.FromBase64String(dataString);
-			return new MemoryStream(bytes);
-		}
-
-		/// <inheritdoc />
-		public Stream OpenWrite()
-		{
-			Inline = true;
-			return new DataStreamWrapper(this);
+			get
+			{
+				var base64String = AttachmentDescriptor.Value<string>(DataPropertyName);
+				return base64String.HasNoValue()? null: Convert.FromBase64String(base64String);
+			}
+			set
+			{
+				AttachmentDescriptor[DataPropertyName] =
+					value == null ? null : JToken.FromObject(Convert.ToBase64String(value));
+			}
 		}
 
 		/// <inheritdoc />
 		public override string ToString() { return AttachmentDescriptor.ToString(); }
-
-		private void SaveData(byte[] buffer, int length) 
-		{ 
-			var base64String = Convert.ToBase64String(buffer, offset: 0, length: length);
-			AttachmentDescriptor[DataPropertyName] = JToken.FromObject(base64String);
-		}
-
-		private class DataStreamWrapper: MemoryStream
-		{
-			private readonly DocumentAttachment parent;
-			public DataStreamWrapper(DocumentAttachment parent) { this.parent = parent; }
-
-			public override void Flush()
-			{
-				parent.SaveData(GetBuffer(), (int)Length);
-				base.Flush();
-			}
-		}
 	}
 }
