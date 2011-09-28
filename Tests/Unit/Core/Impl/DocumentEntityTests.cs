@@ -172,13 +172,13 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldPreserveAttachmentsAcrossEntitySerializations() 
 		{
 			var document = new Document(Entity.CreateDocWithRevision().ToString());
-			document.Attachments.Add(
-				new DocumentAttachment("attachment1", new { content_type = "text/plain", stub = true, length = 42 }.ToJsonString()));
+			document.DocumentAttachments.Add(
+				new WrappingDocumentAttachment("attachment1", new { content_type = "text/plain", stub = true, length = 42 }.ToJsonString()));
 
 			var documentEntity = DocumentEntity.FromDocument(document, Default.Settings);
 			documentEntity.DoMap();
 
-			var newAttachments = documentEntity.Document.Attachments;
+			var newAttachments = documentEntity.Document.DocumentAttachments;
 
 			var attachment = newAttachments["attachment1"];
 			Assert.NotNull(attachment);

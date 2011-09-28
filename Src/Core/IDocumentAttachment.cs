@@ -16,27 +16,34 @@
 */
 #endregion
 
+using System.IO;
+using System.Threading.Tasks;
+
 namespace CouchDude
 {
 	/// <summary>Describes document attachment</summary>
-	public interface IDocumentAttachment
+	public interface IDocumentAttachment: IJsonFragment
 	{
 		/// <summary>Name of the attachment. Could not be changed - create new attachment insted.</summary>
-		string Name { get; }
+		string Id { get; }
 
 		/// <summary>Attachment content type.</summary>
 		string ContentType { get; set; }
 
 		/// <summary>Indicates whether attachment data. is loaded as part of document (base64 encoded).</summary>
-		bool Inline { get; set; }
+		bool Inline { get; }
 
-		/// <inheritdoc />
+		/// <summary>Length of the </summary>
 		int Length { get; set; }
 
-		/// <inheritdoc />
-		byte[] InlineData { get; set; } 
+		/// <summary>Sets attachment's inline data.</summary>
+		void SetData(Stream dataStream);
 
-		/// <summary>Converts document attachment object to corresponding CouchDB JSON.</summary>
-		string ToString();
+		/// <summary>Opens attachment for read.</summary>
+		/// <remarks>This is remote call if <see cref="Inline"/> is false.</remarks>
+		Task<Stream> OpenRead();
+
+		/// <summary>Returns syncronous version of the async attachment method.</summary>
+		ISyncronousDocumentAttachment Syncronously { get; }
 	}
 }

@@ -98,22 +98,26 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="Api\AttachmentBag.cs" />
+    <Compile Include="Api\DbUriConstructor.cs" />
+    <Compile Include="Api\DocumentAttachmentBag.cs" />
     <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
-    <Compile Include="Api\DocumentAttachment.cs" />
+    <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
+    <Compile Include="Api\UriConstructor.cs" />
+    <Compile Include="Api\WrappingDocumentAttachment.cs" />
     <Compile Include="Api\DocumentAttachmentExtentions.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
     <Compile Include="Api\JsonContent.cs" />
+    <Compile Include="Api\LoadContext.cs" />
     <Compile Include="Api\ReplicatorApi.cs" />
     <Compile Include="Api\SynchronousCouchApi.cs" />
     <Compile Include="Api\SynchronousDatabaseApi.cs" />
     <Compile Include="Api\LuceneQueryResultParser.cs" />
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
     <Compile Include="Api\Serialization\UriConverter.cs" />
+    <Compile Include="Api\SyncronousDocumentAttachmentWrapper.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
-    <Compile Include="Api\AttachmentBagExtentions.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
     <Compile Include="Configuration\EntityConfig.cs" />
@@ -130,6 +134,12 @@
     <Compile Include="Api\Document.cs" />
     <Compile Include="DatabaseInfo.cs" />
     <Compile Include="DocumentInfo.cs" />
+    <Compile Include="Exceptions\DocumentAttachmentMissingException.cs" />
+    <Compile Include="Exceptions\LazyLoadingException.cs">
+      <DependentUpon>LazyLoadingException.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="Exceptions\DatabaseMissingException.cs" />
     <Compile Include="Exceptions\InvalidDocumentException.cs">
       <DependentUpon>InvalidDocumentException.tt</DependentUpon>
@@ -139,7 +149,7 @@
     <Compile Include="Exceptions\LuceneIndexNotFoundException.cs" />
     <Compile Include="Exceptions\ViewNotFoundException.cs" />
     <Compile Include="Factory.cs" />
-    <Compile Include="IAttachmentBag.cs" />
+    <Compile Include="IDocumentAttachmentBag.cs" />
     <Compile Include="IBulkUpdateBatch.cs" />
     <Compile Include="ICouchApi.cs" />
     <Compile Include="IDocumentAttachment.cs" />
@@ -147,6 +157,7 @@
     <Compile Include="IReplicatorApi.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
     <Compile Include="ISynchronousReplicatorApi.cs" />
+    <Compile Include="ISyncronousDocumentAttachment.cs" />
     <Compile Include="ReplicationState.cs" />
     <Compile Include="ReplicationTaskDescriptor.cs" />
     <Compile Include="Utils\CheckIf.cs" />
@@ -256,6 +267,10 @@
     <None Include="Exceptions\ConfigurationException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ConfigurationException.cs</LastGenOutput>
+    </None>
+    <None Include="Exceptions\LazyLoadingException.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>LazyLoadingException.cs</LastGenOutput>
     </None>
     <None Include="Exceptions\InvalidDocumentException.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

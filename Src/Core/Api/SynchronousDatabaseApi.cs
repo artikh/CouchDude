@@ -47,6 +47,20 @@ namespace CouchDude.Api
 			return databaseApi.SaveDocument(document).WaitForResult();
 		}
 
+		public DocumentInfo CopyDocument(
+			string originalDocumentId, 
+			string targetDocumentId, 
+			string originalDocumentRevision = null,
+			string targetDocumentRevision = null)
+		{
+			return databaseApi.CopyDocument(
+					originalDocumentId, 
+					targetDocumentId,
+					originalDocumentRevision, 
+					targetDocumentRevision
+				).WaitForResult();
+		}
+
 		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
 			return databaseApi.BulkUpdate(updateCommandBuilder).WaitForResult();

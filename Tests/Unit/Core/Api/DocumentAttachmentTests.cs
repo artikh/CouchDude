@@ -29,7 +29,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldReadContentType() 
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new { content_type = "application/json" }.ToJObject());
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", new { content_type = "application/json" }.ToJObject());
 			Assert.Equal("application/json", attachment.ContentType);
 		}
 
@@ -37,7 +37,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldWriteContentType() 
 		{
 			var jObject = new { content_type = "application/json" }.ToJObject();
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", jObject);
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", jObject);
 			attachment.ContentType = "text/plain";
 
 			Assert.Equal("text/plain", jObject.Value<string>("content_type"));
@@ -46,21 +46,21 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldReadNegativeStubFlag() 
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new { stub = false }.ToJObject());
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", new { stub = false }.ToJObject());
 			Assert.True(attachment.Inline);
 		}
 
 		[Fact]
 		public void ShouldReadAbsentStubFlag() 
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new {  }.ToJObject());
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", new {  }.ToJObject());
 			Assert.True(attachment.Inline);
 		}
 
 		[Fact]
 		public void ShouldReadPositiveStubFlag() 
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new { stub = true }.ToJObject());
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", new { stub = true }.ToJObject());
 			Assert.False(attachment.Inline);
 		}
 
@@ -68,7 +68,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldWriteStubFlag() 
 		{
 			var jObject = new JObject();
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", jObject);
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", jObject);
 			attachment.Inline = true;
 
 			Assert.False(jObject.Value<bool>("stub"));
@@ -78,7 +78,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldWriteData() 
 		{
 			var jObject = new JObject();
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", jObject);
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", jObject);
 
 			attachment.InlineData = Encoding.UTF8.GetBytes("test test!");
 
@@ -88,7 +88,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldMakeAttachmentInlineOnFirstWrite() 
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1");
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1");
 			attachment.InlineData = new byte[] { 42 };
 			Assert.True(attachment.Inline);
 		}
@@ -96,18 +96,18 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnIncorrectConstructorParameters() 
 		{
-			Assert.Throws<ArgumentNullException>(() => new DocumentAttachment(null));
-			Assert.Throws<ArgumentNullException>(() => new DocumentAttachment(string.Empty));
-			Assert.Throws<ParseException>(() => new DocumentAttachment("attachment1", "{{{ some incorrect JSON"));
-			Assert.Throws<ParseException>(() => new DocumentAttachment("attachment1", "[\"correct JSON, but array\"]"));
-			Assert.Throws<ParseException>(() => new DocumentAttachment("attachment1", "\"correct JSON, but string\""));
-			Assert.Throws<ParseException>(() => new DocumentAttachment("attachment1", "42"));
+			Assert.Throws<ArgumentNullException>(() => new WrappingDocumentAttachment(null));
+			Assert.Throws<ArgumentNullException>(() => new WrappingDocumentAttachment(string.Empty));
+			Assert.Throws<ParseException>(() => new WrappingDocumentAttachment("attachment1", "{{{ some incorrect JSON"));
+			Assert.Throws<ParseException>(() => new WrappingDocumentAttachment("attachment1", "[\"correct JSON, but array\"]"));
+			Assert.Throws<ParseException>(() => new WrappingDocumentAttachment("attachment1", "\"correct JSON, but string\""));
+			Assert.Throws<ParseException>(() => new WrappingDocumentAttachment("attachment1", "42"));
 		}
 
 		[Fact]
 		public void ShouldReadData()
 		{
-			IDocumentAttachment attachment = new DocumentAttachment("attachment1", new { data = "dGVzdCB0ZXN0IQ==" }.ToJObject());
+			IDocumentAttachment attachment = new WrappingDocumentAttachment("attachment1", new { data = "dGVzdCB0ZXN0IQ==" }.ToJObject());
 			var stringData = Encoding.UTF8.GetString(attachment.InlineData);
 			Assert.Equal("test test!", stringData);
 		}

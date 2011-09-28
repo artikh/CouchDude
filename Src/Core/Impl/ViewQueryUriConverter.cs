@@ -23,6 +23,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using CouchDude.Utils;
+using JetBrains.Annotations;
 
 namespace CouchDude.Impl
 {
@@ -172,6 +173,7 @@ namespace CouchDude.Impl
 			return false;
 		}
 
+		[Pure]
 		internal static Uri ToUri(ViewQuery viewQuery)
 		{
 			var uriString = ToUriString(viewQuery);

@@ -16,15 +16,20 @@
 */
 #endregion
 
-using System.IO;
-using CouchDude.Api;
-using Newtonsoft.Json.Linq;
-using Xunit;
+using System;
+using JetBrains.Annotations;
 
-namespace CouchDude.Tests.Unit.Core.Api
+namespace CouchDude.Api
 {
-	public class DocumentAttachmentExtensionsTests
+	internal struct UriConstructor
 	{
+		public readonly Uri ServerUri;
+		private Uri allDbUri;
 
+		public UriConstructor(Uri serverUri) : this() { this.ServerUri = serverUri; }
+		public Uri AllDbUri { get { return allDbUri ?? (allDbUri = new Uri(ServerUri, "_all_dbs")); } }
+
+		[Pure]
+		public DbUriConstructor Db(string databaseName) { return new DbUriConstructor(this, databaseName); }
 	}
 }

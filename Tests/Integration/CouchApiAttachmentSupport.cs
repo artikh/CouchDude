@@ -33,20 +33,20 @@ namespace CouchDude.Tests.Integration
 
 			var docId = Guid.NewGuid().ToString();
 			var newDoc = new {_id = docId}.ToDocument();
-			newDoc.Attachments.AddInline("attachment1", new byte[] { 42, 42, 42 });
-			newDoc.Attachments.AddInline("attachment2", "LUE");
+			newDoc.DocumentAttachments.AddInline("attachment1", new byte[] { 42, 42, 42 });
+			newDoc.DocumentAttachments.AddInline("attachment2", "LUE");
 
 			dbApi.Synchronously.SaveDocument(newDoc);
 
 			var loadedDoc = dbApi.Synchronously.RequestDocument(docId);
 
-			Assert.Equal(2, loadedDoc.Attachments.Count);
-			var firstAttachment = loadedDoc.Attachments["attachment1"];
+			Assert.Equal(2, loadedDoc.DocumentAttachments.Count);
+			var firstAttachment = loadedDoc.DocumentAttachments["attachment1"];
 			Assert.False(firstAttachment.Inline);
 			Assert.Equal("application/octet-stream", firstAttachment.ContentType);
 			Assert.Equal(3, firstAttachment.Length);
 			
-			var secondAttachment = loadedDoc.Attachments["attachment2"];
+			var secondAttachment = loadedDoc.DocumentAttachments["attachment2"];
 			Assert.False(secondAttachment.Inline);
 			Assert.Equal("text/plain", secondAttachment.ContentType);
 			Assert.Equal(3, secondAttachment.Length);

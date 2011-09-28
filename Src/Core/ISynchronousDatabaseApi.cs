@@ -30,6 +30,13 @@ namespace CouchDude
 
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
 		DocumentInfo SaveDocument(IDocument document);
+		
+		/// <summary>Creates new document by copying another document's content.</summary>
+		DocumentInfo CopyDocument(
+			string originalDocumentId,
+			string targetDocumentId,
+			string originalDocumentRevision = null,
+			string targetDocumentRevision = null);
 
 		/// <summary>Retrives current document revision from CouchDB and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>

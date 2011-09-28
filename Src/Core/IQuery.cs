@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using JetBrains.Annotations;
 
 namespace CouchDude
 {
@@ -36,6 +37,7 @@ namespace CouchDude
 		int? Skip { get; set; }
 
 		/// <summary>Expreses query as relative URI.</summary>
+		[Pure]
 		Uri ToUri();
 
 		/// <summary>Expreses query as relative URI string.</summary>

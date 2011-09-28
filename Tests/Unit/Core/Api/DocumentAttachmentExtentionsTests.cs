@@ -27,7 +27,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldReadInlineAttachmentAsString()
 		{
-			var attachment = new DocumentAttachment(
+			var attachment = new WrappingDocumentAttachment(
 				"attachment1", new {data = "dGVzdCDRgtC10YHRgiE=", length = 14}.ToJsonString());
 
 			Assert.Equal("test тест!", attachment.ReadAsString());
@@ -36,14 +36,14 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowOnAttemtToReadNoneInlineAttachment() 
 		{
-			var attachment = new DocumentAttachment("attachment1") {Inline = false};
+			var attachment = new WrappingDocumentAttachment("attachment1") {Inline = false};
 			Assert.Throws<ArgumentOutOfRangeException>(() => attachment.ReadAsString());
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullAttachment()
 		{
-			DocumentAttachment attachment = null;
+			WrappingDocumentAttachment attachment = null;
 			// ReSharper disable ConditionIsAlwaysTrueOrFalse
 			Assert.Throws<ArgumentNullException>(() => attachment.ReadAsString());
 			// ReSharper restore ConditionIsAlwaysTrueOrFalse

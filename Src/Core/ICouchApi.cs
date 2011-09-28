@@ -29,10 +29,7 @@ namespace CouchDude
 		
 		/// <summary>Requests collection of names of all avaliable databases.</summary>
 		Task<ICollection<string>> RequestAllDbNames();
-
-		/// <summary>Detects if CouchDB is up and reachable.</summary>
-		Task<bool> CheckIfUp();
-
+		
 		/// <summary>Replicator-specific API.</summary>
 		IReplicatorApi Replicator { get; }
 		

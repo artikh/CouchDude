@@ -86,11 +86,11 @@
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
     <Compile Include="Unit\Core\Api\AttachmentBagExtentionsTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiDeleteDocumentTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiManagmentOperationsTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Core\Api\CouchApiFactoryTests.cs" />
-    <Compile Include="Unit\Core\Api\DocumentAttachmentExtensionsTests.cs" />
     <Compile Include="Unit\Core\Api\DocumentAttachmentExtentionsTests.cs" />
     <Compile Include="Unit\Core\Api\DocumentAttachmentTests.cs" />
     <Compile Include="Unit\Core\Api\FullTextSearchResultParserTests.cs" />
@@ -116,7 +116,7 @@
     <Compile Include="Unit\SchemeManager\DesignDocumentTests.cs" />
     <Compile Include="Unit\SchemeManager\DirectoryTests.cs" />
     <Compile Include="Unit\SchemeManager\EngineTests.cs" />
-    <Compile Include="Unit\Core\Api\DatabaseApiDeleteDocumentFromDbTests.cs" />
+    <Compile Include="Unit\Core\Api\DatabaseApiCopyDocumentTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiGetLastestDocumentRevisionTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiQueryTests.cs" />
     <Compile Include="Unit\Core\Api\DatabaseApiSaveDocumentToDbTests.cs" />

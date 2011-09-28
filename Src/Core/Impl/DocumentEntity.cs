@@ -181,9 +181,9 @@ namespace CouchDude.Impl
 					newVersionOfDocument.Revision = Document.Revision;
 
 				// likewise attachment info shourd be restored from previous version of the document
-				newVersionOfDocument.Attachments.Clear();
-				foreach (var attachment in Document.Attachments)
-					newVersionOfDocument.Attachments.Add(attachment);
+				newVersionOfDocument.DocumentAttachments.Clear();
+				foreach (var attachment in Document.DocumentAttachments)
+					newVersionOfDocument.DocumentAttachments.Add(attachment);
 			}
 			return newVersionOfDocument;
 		}

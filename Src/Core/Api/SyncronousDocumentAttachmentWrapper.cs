@@ -16,14 +16,17 @@
 */
 #endregion
 
-using System.Collections.Generic;
+using System.IO;
+using CouchDude.Utils;
 
-namespace CouchDude
+namespace CouchDude.Api
 {
-	/// <summary>Document attachments.</summary>
-	public interface IAttachmentBag: ICollection<IDocumentAttachment>
+	internal struct SyncronousDocumentAttachmentWrapper: ISyncronousDocumentAttachment
 	{
-		/// <summary>Provides access to collection of document's attachments.</summary>
-		IDocumentAttachment this[string attachmentId] { get; }
+		private readonly IDocumentAttachment parent;
+
+		public SyncronousDocumentAttachmentWrapper(IDocumentAttachment parent) : this() { this.parent = parent; }
+
+		public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }
 	}
 }

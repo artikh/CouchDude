@@ -25,16 +25,33 @@ namespace CouchDude
 	/// <summary>Represents low-level CouchDB API.</summary>
 	public interface IDatabaseApi
 	{
-		/// <summary>Requests CouchDB for document using <paramref name="docId"/> 
+		/// <summary>Requests CouchDB for document using <paramref name="documentId"/> 
 		/// and <paramref name="revision"/>.</summary>
-		Task<IDocument> RequestDocument(string docId, string revision = null);
+		Task<IDocument> RequestDocument(string documentId, string revision = null);
 
 		/// <summary>Saves new document to CouchDB.</summary>
 		Task<DocumentInfo> SaveDocument(IDocument document);
 
+		/// <summary>Creates new document by copying another document's content.</summary>
+		Task<DocumentInfo> CopyDocument(
+			string originalDocumentId,
+			string targetDocumentId,
+			string originalDocumentRevision = null, 
+			string targetDocumentRevision = null);
+
+		/// <summary>Requests document attachment directly from database.</summary>
+		Task<IDocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
+
+		/// <summary>Saves document attachment directly to database. If <paramref name="documentRevision"/> is <c>null</c>
+		/// creates new document for attachment.</summary>
+		Task<DocumentInfo> SaveAttachment(IDocumentAttachment attachment, string documentId, string documentRevision = null);
+
+		/// <summary>Requests document attachment directly from database.</summary>
+		Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision = null);
+
 		/// <summary>Retrives current document revision from CouchDB. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
-		Task<string> RequestLastestDocumentRevision(string docId);
+		Task<string> RequestLastestDocumentRevision(string documentId);
 
 		/// <summary>Deletes document of provided <paramref name="documentId"/> if it's revision
 		/// is equal to provided <paramref name="revision"/> from CouchDB.</summary>

@@ -29,12 +29,13 @@ namespace CouchDude.Api
 	/// <summary>Represents CouchDB error.</summary>
 	internal struct CouchError
 	{
-		public const string Conflict     = "conflict";
-		public const string Forbidden    = "forbidden";
-		public const string NoDbFile     = "no_db_file";
-		public const string NotFound     = "not_found";
-		public const string Missing      = "missing";
-		public const string FileExists   = "file_exists";
+		public const string Conflict          = "conflict";
+		public const string Forbidden         = "forbidden";
+		public const string NoDbFile          = "no_db_file";
+		public const string NotFound          = "not_found";
+		public const string Missing           = "missing";
+		public const string FileExists        = "file_exists";
+		public const string AttachmentMissing = "Document is missing attachment";
 
 		public readonly string Error;
 		public readonly string Reason;
@@ -153,11 +154,30 @@ namespace CouchDude.Api
 				throw new LuceneIndexNotFoundException(query);
 		}
 
+		public void ThrowDocumentNotFoundIfNedded(string documentId, string revisionId)
+		{
+			if (StatusCode == HttpStatusCode.NotFound && Reason == Missing)
+				throw new DocumentNotFoundException(documentId, revisionId);
+		}
+
+		public void ThrowDatabaseMissingExceptionIfNedded(DbUriConstructor uriConstructor)
+		{
+			ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
+		}
+
 		public void ThrowDatabaseMissingExceptionIfNedded(string databaseName)
 		{
 			if (IsDatabaseMissing)
 				throw new DatabaseMissingException(databaseName);
 		}
+
+		public void ThrowAttachmentMissingException(string attachmentId, string documentId, string documentRevision = null)
+		{
+			if (IsAttachmentMissingFromDocument)
+				throw new DocumentAttachmentMissingException(attachmentId, documentId, documentRevision);
+		}
+
+		public bool IsAttachmentMissingFromDocument { get { return StatusCode == HttpStatusCode.NotFound && Reason == AttachmentMissing; } }
 
 		public bool IsDatabaseMissing { get { return StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile; } }
 

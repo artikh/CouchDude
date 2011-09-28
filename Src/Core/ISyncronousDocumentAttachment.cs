@@ -16,14 +16,15 @@
 */
 #endregion
 
-using System.Collections.Generic;
+using System.IO;
 
 namespace CouchDude
 {
-	/// <summary>Synchronous version of low-level CouchDB API.</summary>
-	public interface ISynchronousCouchApi
+	/// <summary>Describes document attachment</summary>
+	public interface ISyncronousDocumentAttachment
 	{
-		/// <summary>Returns collection of names of all avaliable databases.</summary>
-		ICollection<string> RequestAllDbNames();
+		/// <summary>Opens attachment for read and waits for result of the operation.</summary>
+		/// <remarks>This is remote call if <see cref="IDocumentAttachment.Inline"/> is false.</remarks>
+		Stream OpenRead();
 	}
 }

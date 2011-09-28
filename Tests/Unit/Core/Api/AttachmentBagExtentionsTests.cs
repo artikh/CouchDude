@@ -29,7 +29,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var jObject = new JObject();
 			var document = new Document(jObject);
-			document.Attachments.AddInline("attachment1", new byte[] { 42, 42 }, contentType: "application/binary");
+			document.DocumentAttachments.AddInline("attachment1", new byte[] { 42, 42 }, contentType: "application/binary");
 			
 			var attachment = jObject["_attachments"]["attachment1"];
 			
@@ -44,9 +44,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldSetApplicationOctetStreamByDefaultWhenCreatingByteArrayInlineAttachment() 
 		{
 			var document = new Document();
-			document.Attachments.AddInline("attachment1", new byte[] { 42, 42 });
+			document.DocumentAttachments.AddInline("attachment1", new byte[] { 42, 42 });
 
-			Assert.Equal("application/octet-stream", document.Attachments["attachment1"].ContentType);
+			Assert.Equal("application/octet-stream", document.DocumentAttachments["attachment1"].ContentType);
 		}
 
 		[Fact]
@@ -54,7 +54,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var jObject = new JObject();
 			var document = new Document(jObject);
-			document.Attachments.AddInline("attachment1", "test тест!", contentType: "text/test");
+			document.DocumentAttachments.AddInline("attachment1", "test тест!", contentType: "text/test");
 			
 			var attachment = jObject["_attachments"]["attachment1"];
 			
@@ -69,9 +69,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldSetTextPlainByDefaultWhenCreatingStringInlineAttachment() 
 		{
 			var document = new Document();
-			document.Attachments.AddInline("attachment1", "test");
+			document.DocumentAttachments.AddInline("attachment1", "test");
 
-			Assert.Equal("text/plain", document.Attachments["attachment1"].ContentType);
+			Assert.Equal("text/plain", document.DocumentAttachments["attachment1"].ContentType);
 		}
 	}
 }

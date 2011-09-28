@@ -17,8 +17,6 @@
 #endregion
 
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using Newtonsoft.Json.Linq;
 
@@ -33,37 +31,27 @@ namespace CouchDude.Api
 		internal const string IdPropertyName = "_id";
 
 		/// <summary>Underlying Newtonsoft Json.NET object.</summary>
-		internal readonly JObject JsonObject;
+		internal JObject JsonObject { get { return (JObject) JsonToken; } }
 
 		/// <constructor />
-		public Document()
-		{
-			JsonObject = (JObject)JsonToken;
-		}
+		public Document() { }
 
 		/// <summary>Parses CouchDB document string.</summary>
 		/// <exception cref="ArgumentNullException">Provided string is null or empty.</exception>
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
-		public Document(string jsonString): base(jsonString)
-		{
-			JsonObject = (JObject)JsonToken;
-		}
+		public Document(string jsonString): base(jsonString) { }
 
 		/// <summary>Loads CouchDB document from provided text reader.</summary>
 		/// <param name="textReader"><see cref="TextReader"/> to read JSON from. Should be closed (disposed) by caller.</param>
 		/// <remarks>Text reader should be disposed outside of the constructor,</remarks>
 		/// <exception cref="ArgumentNullException">Provided text reader is null.</exception>
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
-		public Document(TextReader textReader): base(textReader)
-		{
-			JsonObject = (JObject)JsonToken;
-		}
+		public Document(TextReader textReader): base(textReader) { }
 		
 		/// <constructor />
 		internal Document(JObject jsonToken): base(jsonToken)
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
-			JsonObject = (JObject)JsonToken;
 		}
 
 		/// <summary>Document identifier or <c>null</c> if no _id property 
@@ -120,13 +108,15 @@ namespace CouchDude.Api
 			}
 		}
 
-		private IAttachmentBag attachmentBag;
+		private IDocumentAttachmentBag documentAttachmentBag;
 
 		/// <inheritdoc />
-		public IAttachmentBag Attachments
+		public IDocumentAttachmentBag DocumentAttachments
 		{
-			get { return attachmentBag ?? (attachmentBag = new AttachmentBag(JsonObject)); }
+			get { return documentAttachmentBag ?? (documentAttachmentBag = new DocumentAttachmentBag(this)); }
 		}
+
+		internal DatabaseApiReference DatabaseApiReference = DatabaseApiReference.Empty;
 
 		/// <inheritdoc />
 		public override bool Equals(object obj)

@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using CouchDude.Impl;
+using JetBrains.Annotations;
 
 namespace CouchDude
 {
@@ -66,6 +67,7 @@ namespace CouchDude
 		public bool DoNotBlockIfStale { get; set; }
 		
 		/// <summary>Expreses query as relative URL.</summary>
+		[Pure]
 		public Uri ToUri()
 		{
 			return LuceneQueryUriConverter.ToUri(this);

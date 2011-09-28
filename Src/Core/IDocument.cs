@@ -39,7 +39,7 @@ namespace CouchDude
 		string Type { get; set; }
 
 		/// <summary>List of documet attachments.</summary>
-		IAttachmentBag Attachments { get;}
+		IDocumentAttachmentBag DocumentAttachments { get;}
 
 		/// <summary>Deserializes document to new entity object.</summary>
 		/// <param name="entityConfig">Entity configuration used to deserialize it properly.</param>

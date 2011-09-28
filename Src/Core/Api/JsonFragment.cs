@@ -39,7 +39,7 @@ namespace CouchDude.Api
 		protected static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
 
 		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
-		protected readonly JToken JsonToken;
+		private readonly JToken jsonToken;
 
 		/// <constructor />
 		public JsonFragment(): this(new JObject()) { }
@@ -67,8 +67,11 @@ namespace CouchDude.Api
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
 
-			JsonToken = jsonToken;
+			this.jsonToken = jsonToken;
 		}
+
+		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
+		protected internal virtual JToken JsonToken { get { return jsonToken; } }
 
 		internal static JToken Parse(string jsonString)
 		{

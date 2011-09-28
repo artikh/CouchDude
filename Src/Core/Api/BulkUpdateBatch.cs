@@ -28,7 +28,7 @@ namespace CouchDude.Api
 {
 	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
-		private readonly string databaseName;
+		private readonly DbUriConstructor uriConstructor;
 
 		private enum OperationType
 		{
@@ -63,7 +63,7 @@ namespace CouchDude.Api
 		readonly IDictionary<string, DocumentInfo> result = new Dictionary<string, DocumentInfo>();
 
 		/// <constructor />
-		public BulkUpdateBatch(string databaseName) { this.databaseName = databaseName; }
+		public BulkUpdateBatch(DbUriConstructor uriConstructor) { this.uriConstructor = uriConstructor; }
 
 		private void Add(UpdateDescriptor updateDescriptor)
 		{
@@ -113,9 +113,9 @@ namespace CouchDude.Api
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
 		public Task<IDictionary<string, DocumentInfo>> Execute(
-			IHttpClient httpClient, Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest, Uri databaseUri)
+			IHttpClient httpClient, Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
-			var bulkUpdateUri = new Uri(databaseUri, "_bulk_docs");
+			var bulkUpdateUri = new Uri(uriConstructor.DatabaseUri, "_bulk_docs");
 			var request =
 				new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
 			return startRequest(request).ContinueWith(
@@ -125,7 +125,7 @@ namespace CouchDude.Api
 					if (!response.IsSuccessStatusCode)
 					{
 						var error = new CouchError(response);
-						error.ThrowDatabaseMissingExceptionIfNedded(databaseName);
+						error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 						error.ThrowCouchCommunicationException();
 					}
 
