@@ -17,9 +17,7 @@
 #endregion
 
 using System;
-using System.Diagnostics;
 using System.IO;
-using CouchDude.Api;
 using CouchDude.Configuration;
 using CouchDude.Utils;
 
@@ -171,15 +169,23 @@ namespace CouchDude.Impl
 			this.entityConfiguration = entityConfiguration;
 		}
 
-		private Document SerializeToDocument()
+		private IDocument SerializeToDocument()
 		{
-			var document = Api.Document.Serialize(Entity, entityConfiguration);
+			var newVersionOfDocument = Api.Document.Serialize(Entity, entityConfiguration);
 
-			// if revision info is not stored in entity it should be copied from current document (if present)
-			if (!entityConfiguration.IsRevisionPresent && Document != null)
-				document.Revision = Document.Revision;
+			var currentVersionOfDocument = Document != null;
+			if (currentVersionOfDocument)
+			{
+				// if revision info is not stored in entity it should be copied from current document (if present)
+				if (!entityConfiguration.IsRevisionPresent)
+					newVersionOfDocument.Revision = Document.Revision;
 
-			return document;
+				// likewise attachment info shourd be restored from previous version of the document
+				newVersionOfDocument.DocumentAttachments.Clear();
+				foreach (var attachment in Document.DocumentAttachments)
+					newVersionOfDocument.DocumentAttachments.Add(attachment);
+			}
+			return newVersionOfDocument;
 		}
 	}
 }

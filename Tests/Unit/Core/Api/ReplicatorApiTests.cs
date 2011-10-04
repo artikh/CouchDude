@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new {
 					_id = "sourcedb_to_testdb", 
 					target = "testdb",
-					source = "http://example2.com/sourcedb",  
+					source = "http://example2.com/sourcedb", 
 					continuous = true, 
 					create_target = true
 				}.ToJsonString(),
@@ -127,8 +127,8 @@ namespace CouchDude.Tests.Unit.Core.Api
 				new {
 					_id = "sourcedb_to_testdb",
 					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
-					source = "testdb",
 					target = "http://example2.com/sourcedb",
+					source = "testdb",
 					continuous = true,
 					create_target = true,
 					_replication_state = "triggered",

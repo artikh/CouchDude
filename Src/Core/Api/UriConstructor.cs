@@ -19,28 +19,17 @@
 using System;
 using JetBrains.Annotations;
 
-namespace CouchDude
+namespace CouchDude.Api
 {
-	/// <summary>CouchDB query common members.</summary>
-	public interface IQuery
+	internal struct UriConstructor
 	{
-		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
-		string DesignDocumentName { get; set; }
+		public readonly Uri ServerUri;
+		private Uri allDbUri;
 
-		/// <summary>Indicates that we need documents from couchdb in result.</summary>
-		bool IncludeDocs { get; set; }
+		public UriConstructor(Uri serverUri) : this() { this.ServerUri = serverUri; }
+		public Uri AllDbUri { get { return allDbUri ?? (allDbUri = new Uri(ServerUri, "_all_dbs")); } }
 
-		/// <summary>Maximum rows should be returned from database.</summary>
-		int? Limit { get; set; }
-
-		/// <summary>Rows should be skipped before first being returned.</summary>
-		int? Skip { get; set; }
-
-		/// <summary>Expreses query as relative URI.</summary>
 		[Pure]
-		Uri ToUri();
-
-		/// <summary>Expreses query as relative URI string.</summary>
-		string ToString();
+		public DbUriConstructor Db(string databaseName) { return new DbUriConstructor(this, databaseName); }
 	}
 }

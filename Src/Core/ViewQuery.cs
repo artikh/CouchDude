@@ -19,6 +19,7 @@
 using System;
 using System.ComponentModel;
 using CouchDude.Impl;
+using JetBrains.Annotations;
 
 namespace CouchDude
 {
@@ -95,6 +96,7 @@ namespace CouchDude
 		}
 
 		/// <summary>Gets query URI.</summary>
+		[Pure]
 		public Uri ToUri()
 		{
 			return ViewQueryUriConverter.ToUri(this);

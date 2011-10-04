@@ -81,7 +81,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							.ToTask<IDictionary<string, DocumentInfo>>();
 					});
 			dbApiMock
-				.Setup(ca => ca.RequestDocumentById(It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
 				.Returns(EntityWithoutRevision.CreateDocumentWithRevision().ToTask());
 			dbApiMock
 				.Setup(ca => ca.Synchronously).Returns(new SynchronousDatabaseApi(dbApiMock.Object));

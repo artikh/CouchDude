@@ -16,31 +16,17 @@
 */
 #endregion
 
-using System;
-using JetBrains.Annotations;
+using System.IO;
+using CouchDude.Utils;
 
-namespace CouchDude
+namespace CouchDude.Api
 {
-	/// <summary>CouchDB query common members.</summary>
-	public interface IQuery
+	internal struct SyncronousDocumentAttachmentWrapper: ISyncronousDocumentAttachment
 	{
-		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
-		string DesignDocumentName { get; set; }
+		private readonly IDocumentAttachment parent;
 
-		/// <summary>Indicates that we need documents from couchdb in result.</summary>
-		bool IncludeDocs { get; set; }
+		public SyncronousDocumentAttachmentWrapper(IDocumentAttachment parent) : this() { this.parent = parent; }
 
-		/// <summary>Maximum rows should be returned from database.</summary>
-		int? Limit { get; set; }
-
-		/// <summary>Rows should be skipped before first being returned.</summary>
-		int? Skip { get; set; }
-
-		/// <summary>Expreses query as relative URI.</summary>
-		[Pure]
-		Uri ToUri();
-
-		/// <summary>Expreses query as relative URI string.</summary>
-		string ToString();
+		public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }
 	}
 }

@@ -16,12 +16,10 @@
 */
 #endregion
 
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
-using CouchDude.Impl;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api

@@ -25,7 +25,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
-using Newtonsoft.Json.Utilities;
 
 namespace CouchDude.Api
 {
@@ -36,10 +35,11 @@ namespace CouchDude.Api
 		internal static readonly JsonConverter[] Converters =
 			new JsonConverter[] { new IsoUtcDateTimeConverter(), new StringEnumConverter(), new StringEnumConverter(), new UriConverter() };
 
-		private static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
+		/// <summary>Default serializer instance.</summary>
+		protected static readonly JsonSerializer Serializer = JsonSerializer.Create(CreateSerializerSettings());
 
 		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
-		protected internal readonly JToken JsonToken;
+		private readonly JToken jsonToken;
 
 		/// <constructor />
 		public JsonFragment(): this(new JObject()) { }
@@ -67,16 +67,13 @@ namespace CouchDude.Api
 		{
 			if (jsonToken == null) throw new ArgumentNullException("jsonToken");
 
-			JsonToken = jsonToken;
+			this.jsonToken = jsonToken;
 		}
 
-		/// <summary>Creates json fragment of type "string"</summary>
-		public static JsonFragment JsonString(string @string)
-		{
-			return new JsonFragment(JToken.FromObject(@string));
-		}
+		/// <summary>Underlying Newtonsoft Json.NET token.</summary>
+		protected internal virtual JToken JsonToken { get { return jsonToken; } }
 
-		private static JToken Parse(string jsonString)
+		internal static JToken Parse(string jsonString)
 		{
 			if (string.IsNullOrWhiteSpace(jsonString)) throw new ArgumentNullException("jsonString");
 			
@@ -113,29 +110,6 @@ namespace CouchDude.Api
 				throw new ParseException("CouchDB was expected to return JSON object.");
 
 			return jsonToken;
-		}
-
-		/// <summary>Sets and gets string properties.</summary>
-		public IJsonFragment this[string propertyName]
-		{
-			get
-			{
-				var propertyValue = JsonToken[propertyName] as JValue;
-				return propertyValue == null ? null : new JsonFragment(propertyValue);
-			} 
-			set
-			{
-				JToken jValue;
-				if(value == null)
-					jValue = null;
-				else
-				{
-					var jsonFragment = value as JsonFragment;
-					jValue = jsonFragment != null ? jsonFragment.JsonToken : Parse(value.ToString());
-				}
-
-				JsonToken[propertyName] = jValue;
-			}
 		}
 
 		/// <summary>Converts document to JSON string.</summary>
@@ -261,9 +235,6 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc />
-		public IJsonFragment DeepClone() { return new JsonFragment(JsonToken.DeepClone()); }
-
-		/// <inheritdoc />
 		public bool Equals(JsonFragment other)
 		{
 			if (ReferenceEquals(null, other)) return false;
@@ -284,18 +255,6 @@ namespace CouchDude.Api
 		public override int GetHashCode()
 		{
 			return JsonToken.GetHashCode();
-		}
-
-		/// <summary>Compares JSON fragments for equality.</summary>
-		public static bool operator ==(JsonFragment left, JsonFragment right)
-		{
-			return Equals(left, right);
-		}
-
-		/// <summary>Compares JSON fragments for inequality.</summary>
-		public static bool operator !=(JsonFragment left, JsonFragment right)
-		{
-			return !Equals(left, right);
 		}
 
 		/// <summary>Forward dynamic behaviour to another object.</summary>

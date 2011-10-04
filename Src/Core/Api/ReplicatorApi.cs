@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CouchDude.Configuration;
 using CouchDude.Utils;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Api
 {
@@ -13,60 +11,49 @@ namespace CouchDude.Api
 		private readonly ISynchronousReplicatorApi synchronousReplicatorApi;
 		private readonly IDatabaseApi replicatorDbApi;
 
-		private readonly IEntityConfig descriptorEntityConfig = new EntityConfig(
-			typeof (ReplicationTaskDescriptor),
-			entityTypeToDocumentType: et => "replicationDescriptor",
-			idMember:
-				new ParticularyNamedPropertyOrPubilcFieldSpecialMember(typeof (ReplicationTaskDescriptor), "Id"),
-			revisionMember:
-				new ParticularyNamedPropertyOrPubilcFieldSpecialMember(
-					typeof (ReplicationTaskDescriptor), "Revision"),
-			documentIdToEntityId: (documentId, documentType, entityType) => documentId,
-			entityIdToDocumentId: (entityId, entityType, documentType) => entityId
-		);
-
 		public ReplicatorApi(ICouchApi couchApi)
 		{
 			synchronousReplicatorApi = new SynchronousReplicatorApi(this);
 			replicatorDbApi = couchApi.Db("_replicator");
 		}
 
-		public Task SaveDescriptor(ReplicationTaskDescriptor replicationTask)
+		public Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue()) 
 				throw new ArgumentException("Replication task descriptor ID should be specified", "replicationTask");
 			
-			var descriptorDocument = Document.Serialize(replicationTask, descriptorEntityConfig);
+			var document = Document.Serialize(replicationTask);
 
-			// avoiding sending _replicator_* properties to the server, should be a better way...
-			var jObject = descriptorDocument.jsonObject;
-			foreach (var propertyName in
-					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_") || pn == "type").ToArray())
-				jObject.Remove(propertyName);
+			//TODO Avoid using internal APIs
+			var jObject = ((Document)document).JsonObject;
+			foreach (var propertyToRemove in
+					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_")).ToArray())
+				jObject.Remove(propertyToRemove);
 
-			return replicatorDbApi
-				.SaveDocument(descriptorDocument)
-				.ContinueWith( t => { replicationTask.Revision = t.Result.Revision; });
+			return replicatorDbApi.SaveDocument(document).ContinueWith(
+				saveTask => {
+					replicationTask.Revision = saveTask.Result.Revision;
+					return saveTask.Result;
+				});
 		}
-		
+
 		public Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
-			return replicatorDbApi.RequestDocumentById(id).ContinueWith(
+			return replicatorDbApi.RequestDocument(id).ContinueWith(
 				t => {
 					var result = t.Result;
 					if (result != null)
 					{
-						result["type"] = JsonFragment.JsonString("replicationDescriptor");
-						return (ReplicationTaskDescriptor) result.Deserialize(descriptorEntityConfig);
+						return (ReplicationTaskDescriptor) result.Deserialize(typeof(ReplicationTaskDescriptor));
 					}
 					return null;
 				});
 		}
 
-		public Task DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
+		public Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue())

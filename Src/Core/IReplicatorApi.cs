@@ -7,13 +7,13 @@ namespace CouchDude
 	public interface IReplicatorApi
 	{
 		/// <summary>Creates new or updates existing replication task.</summary>
-		Task SaveDescriptor(ReplicationTaskDescriptor replicationTask);
+		Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask);
 
 		/// <summary>Requests replication task by it's ID.</summary>
 		Task<ReplicationTaskDescriptor> RequestDescriptorById(string id);
 
 		/// <summary>Demands replication task from replicator database deletion.</summary>
-		Task DeleteDescriptor(ReplicationTaskDescriptor replicationTask);
+		Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask);
 
 		/// <summary>Requests all replication task namess.</summary>
 		Task<IEnumerable<string>> GetAllDescriptorNames();

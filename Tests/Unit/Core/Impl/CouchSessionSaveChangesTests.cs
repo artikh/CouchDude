@@ -30,8 +30,6 @@ namespace CouchDude.Tests.Unit.Core.Impl
 {
 	public class CouchSessionSaveChangesTests
 	{
-		private const int Timeout = 5000;
-
 		[Fact]
 		public void ShouldDelegateChangesSaveToApi()
 		{
@@ -166,11 +164,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 							LuceneQueryResult.Empty.ToTask();
 					});
 			dbApiMock
-				.Setup(api => api.RequestDocumentById(It.IsAny<string>()))
-				.Returns<string>(
-					_ => {
+				.Setup(api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Returns<string, string>(
+					(_, __) => {
 						lock (executedOperations)
-							executedOperations.Add("RequestDocumentById");
+							executedOperations.Add("RequestDocument");
 						return SimpleEntity.CreateDocument().ToTask();
 					});
 			dbApiMock

@@ -29,24 +29,25 @@ namespace CouchDude.Api
 	/// <summary>Represents CouchDB error.</summary>
 	internal struct CouchError
 	{
-		public const string Conflict     = "conflict";
-		public const string Forbidden    = "forbidden";
-		public const string NoDbFile     = "no_db_file";
-		public const string NotFound     = "not_found";
-		public const string Missing      = "missing";
-		public const string FileExists   = "file_exists";
+		public const string Conflict          = "conflict";
+		public const string Forbidden         = "forbidden";
+		public const string NoDbFile          = "no_db_file";
+		public const string NotFound          = "not_found";
+		public const string Missing           = "missing";
+		public const string FileExists        = "file_exists";
+		public const string AttachmentMissing = "Document is missing attachment";
 
 		public readonly string Error;
 		public readonly string Reason;
 		public readonly HttpStatusCode? StatusCode;
 
-		public CouchError(dynamic responseObject)
+		public CouchError(string responseString)
 		{
 			Error = Reason = String.Empty;
 			StatusCode = null;
 
-			if (responseObject != null) 
-				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
+			if (responseString.HasValue()) 
+				UpdateUsingErrorDescriptor(responseString, ref Error, ref Reason);
 		}
 
 		public CouchError(HttpResponseMessage response)
@@ -66,27 +67,39 @@ namespace CouchDude.Api
 			string responseText;
 			using (var reader = response.Content.GetTextReader())
 				responseText = reader.ReadToEnd();
-
-			var responseObject = TryGetResponseObject(responseText);
-
-			if (responseObject == null)
-				Reason = responseText;
-			else
-				UpdateUsingErrorDescriptor(responseObject, ref Error, ref Reason);
+			
+			UpdateUsingErrorDescriptor(responseText, ref Error, ref Reason);
 		}
 
-		private static void UpdateUsingErrorDescriptor(dynamic responseObject, ref string error, ref string reason)
+		internal class CouchErrorDescriptor
 		{
-			string errorMessage = responseObject.error;
-			if (!String.IsNullOrWhiteSpace(errorMessage))
-				error = errorMessage;
-
-			string reasonMessage = responseObject.reason;
-			if (!String.IsNullOrWhiteSpace(reasonMessage))
-				reason = reasonMessage;
+			public string Error;
+			public string Reason;
 		}
 
-		private static dynamic TryGetResponseObject(string responseText)
+		private static void UpdateUsingErrorDescriptor(string responseString, ref string error, ref string reason)
+		{
+			var couchErrorDescriptorJsonFragment = TryGetResponseObject(responseString);
+			if(couchErrorDescriptorJsonFragment != null)
+			{
+				var couchErrorDescriptor =
+					(CouchErrorDescriptor)couchErrorDescriptorJsonFragment.Deserialize(typeof (CouchErrorDescriptor));
+				if(couchErrorDescriptor != null)
+				{
+					if (!String.IsNullOrWhiteSpace(couchErrorDescriptor.Error))
+						error = couchErrorDescriptor.Error;
+
+					if (!String.IsNullOrWhiteSpace(couchErrorDescriptor.Reason))
+						reason = couchErrorDescriptor.Reason;
+
+					return;
+				}
+			}
+
+			reason = responseString;
+		}
+
+		private static IJsonFragment TryGetResponseObject(string responseText)
 		{
 			try
 			{
@@ -141,11 +154,30 @@ namespace CouchDude.Api
 				throw new LuceneIndexNotFoundException(query);
 		}
 
+		public void ThrowDocumentNotFoundIfNedded(string documentId, string revisionId)
+		{
+			if (StatusCode == HttpStatusCode.NotFound && Reason == Missing)
+				throw new DocumentNotFoundException(documentId, revisionId);
+		}
+
+		public void ThrowDatabaseMissingExceptionIfNedded(DbUriConstructor uriConstructor)
+		{
+			ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
+		}
+
 		public void ThrowDatabaseMissingExceptionIfNedded(string databaseName)
 		{
 			if (IsDatabaseMissing)
 				throw new DatabaseMissingException(databaseName);
 		}
+
+		public void ThrowAttachmentMissingException(string attachmentId, string documentId, string documentRevision = null)
+		{
+			if (IsAttachmentMissingFromDocument)
+				throw new DocumentAttachmentMissingException(attachmentId, documentId, documentRevision);
+		}
+
+		public bool IsAttachmentMissingFromDocument { get { return StatusCode == HttpStatusCode.NotFound && Reason == AttachmentMissing; } }
 
 		public bool IsDatabaseMissing { get { return StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile; } }
 

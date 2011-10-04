@@ -238,7 +238,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldParseDocumentInfo()
 		{
 			var obj = new JsonFragment(@"{ ""some_prop"": ""some value"" }");
-			Assert.Equal("\"some value\"", obj["some_prop"].ToString());
+			Assert.Equal(@"{""some_prop"":""some value""}", obj.ToString());
 		}
 	}
 }

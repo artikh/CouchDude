@@ -17,30 +17,22 @@
 #endregion
 
 using System;
-using JetBrains.Annotations;
+using System.Text;
 
-namespace CouchDude
+namespace CouchDude.Api
 {
-	/// <summary>CouchDB query common members.</summary>
-	public interface IQuery
+	/// <summary>Convinience methods for <see cref="WrappingDocumentAttachment"/>.</summary>
+	public static class DocumentAttachmentExtentions
 	{
-		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
-		string DesignDocumentName { get; set; }
+		/// <summary>Returns attachment's data as string </summary>
+		public static string ReadAsString(this IDocumentAttachment self, Encoding encoding = null)
+		{
+			if (self == null) throw new ArgumentNullException("self");
+			if (!self.Inline)
+				throw new ArgumentOutOfRangeException(
+					"self", self, "Attachment should be inline to use this attachment");
 
-		/// <summary>Indicates that we need documents from couchdb in result.</summary>
-		bool IncludeDocs { get; set; }
-
-		/// <summary>Maximum rows should be returned from database.</summary>
-		int? Limit { get; set; }
-
-		/// <summary>Rows should be skipped before first being returned.</summary>
-		int? Skip { get; set; }
-
-		/// <summary>Expreses query as relative URI.</summary>
-		[Pure]
-		Uri ToUri();
-
-		/// <summary>Expreses query as relative URI string.</summary>
-		string ToString();
+			return (encoding ?? Encoding.UTF8).GetString(self.InlineData);
+		}
 	}
 }

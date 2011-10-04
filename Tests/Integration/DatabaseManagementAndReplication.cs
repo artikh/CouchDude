@@ -6,6 +6,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Integration
 {
+	[IntegrationTest]
 	public class DatabaseManagementAndReplication
 	{
 		[Fact]
@@ -15,7 +16,7 @@ namespace CouchDude.Tests.Integration
 			var dbB = "db_" + Guid.NewGuid();
 			var savedDocument = Entity.CreateDocWithoutRevision();
 
-			var couchApi = Factory.CreateCouchApi("http://localhost:5984/");
+			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
 			couchApi.Db(dbA).Synchronously.Create();
 			var docInfo = couchApi.Db(dbA).Synchronously.SaveDocument(savedDocument);
 
@@ -29,13 +30,13 @@ namespace CouchDude.Tests.Integration
 				Source = new Uri(dbA, UriKind.Relative)
 			};
 			couchApi.Replicator.Synchronously.SaveDescriptor(replicationTaskDescriptor);
-
+			
 			var replicationDoneEvent = new ManualResetEvent(false);
 			WatchForReplicationToFinish(
 				() => couchApi.Replicator.RequestDescriptorById(replicationDescriptorId), replicationDoneEvent);
 			replicationDoneEvent.WaitOrThrowOnTimeout();
 
-			var loadedDocument = couchApi.Db(dbB).Synchronously.RequestDocumentById(savedDocument.Id);
+			var loadedDocument = couchApi.Db(dbB).Synchronously.RequestDocument(savedDocument.Id);
 
 			Assert.Equal(savedDocument.Id, loadedDocument.Id);
 			Assert.Equal(docInfo.Revision, loadedDocument.Revision);

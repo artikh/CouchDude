@@ -17,9 +17,7 @@
 #endregion
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -33,14 +31,14 @@ namespace CouchDude.Api
 	{
 		private readonly ISynchronousCouchApi synchronousCouchApi;
 		private readonly IHttpClient httpClient;
-		private readonly Uri serverUri;
+		private readonly UriConstructor uriConstructor;
 		private readonly IReplicatorApi replicatorApi;
 
 		/// <constructor />
 		public CouchApi(IHttpClient httpClient, Uri serverUri)
 		{
 			this.httpClient = httpClient;
-			this.serverUri = serverUri;
+			uriConstructor = new UriConstructor(serverUri);
 			synchronousCouchApi = new SynchronousCouchApi(this);
 			replicatorApi = new ReplicatorApi(this);
 		}
@@ -52,13 +50,12 @@ namespace CouchDude.Api
 			if(String.IsNullOrWhiteSpace(databaseName)) throw new ArgumentNullException("databaseName");
 			CheckIf.DatabaseNameIsOk(databaseName, "databaseName");
 
-			return new DatabaseApi(httpClient, serverUri, databaseName);
+			return new DatabaseApi(httpClient, uriConstructor.Db(databaseName));
 		}
 
 		public Task<ICollection<string>> RequestAllDbNames()
 		{
-			var allDbsUri = new Uri(serverUri, "_all_dbs");
-			var request = new HttpRequestMessage(HttpMethod.Get, allDbsUri);
+			var request = new HttpRequestMessage(HttpMethod.Get, uriConstructor.AllDbUri);
 			return StartRequest(request, httpClient).ContinueWith(
 				rt => {
 					var response = rt.Result;

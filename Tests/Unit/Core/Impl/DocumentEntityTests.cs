@@ -17,12 +17,13 @@
 #endregion
 
 using System.IO;
-
+using CouchDude.Api;
 using CouchDude.Configuration;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Impl
@@ -165,6 +166,25 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					new { _id = "entity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), 
 					Default.Settings
 			));
+		}
+
+		[Fact]
+		public void ShouldPreserveAttachmentsAcrossEntitySerializations() 
+		{
+			var document = new Document(Entity.CreateDocWithRevision().ToString());
+			document.DocumentAttachments.Add(
+				new WrappingDocumentAttachment("attachment1", new { content_type = "text/plain", stub = true, length = 42 }.ToJsonString()));
+
+			var documentEntity = DocumentEntity.FromDocument(document, Default.Settings);
+			documentEntity.DoMap();
+
+			var newAttachments = documentEntity.Document.DocumentAttachments;
+
+			var attachment = newAttachments["attachment1"];
+			Assert.NotNull(attachment);
+			Assert.Equal("text/plain", attachment.ContentType);
+			Assert.Equal(42, attachment.Length);
+			Assert.False(attachment.Inline);
 		}
 	}
 }

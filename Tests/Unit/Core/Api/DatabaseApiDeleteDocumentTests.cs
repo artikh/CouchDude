@@ -25,7 +25,7 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Core.Api
 {
-	public class DatabaseApiDeleteDocumentFromDbTests
+	public class DatabaseApiDeleteDocumentTests
 	{
 		[Fact]
 		public void ShouldSendDeleteRequestOnDeletion()
@@ -62,7 +62,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.DeleteDocument("doc1", "rev-123")
-			);
+				);
 		}
 
 		private static ICouchApi CreateCouchApi(IHttpClient httpClient)

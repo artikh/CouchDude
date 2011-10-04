@@ -32,9 +32,9 @@ namespace CouchDude.Api
 			this.databaseApi = databaseApi;
 		}
 
-		public IDocument RequestDocumentById(string docId)
+		public IDocument RequestDocument(string docId, string revision = null)
 		{
-			return databaseApi.RequestDocumentById(docId).WaitForResult();
+			return databaseApi.RequestDocument(docId, revision).WaitForResult();
 		}
 
 		public DocumentInfo DeleteDocument(string docId, string revision)
@@ -45,6 +45,20 @@ namespace CouchDude.Api
 		public DocumentInfo SaveDocument(IDocument document)
 		{
 			return databaseApi.SaveDocument(document).WaitForResult();
+		}
+
+		public DocumentInfo CopyDocument(
+			string originalDocumentId, 
+			string targetDocumentId, 
+			string originalDocumentRevision = null,
+			string targetDocumentRevision = null)
+		{
+			return databaseApi.CopyDocument(
+					originalDocumentId, 
+					targetDocumentId,
+					originalDocumentRevision, 
+					targetDocumentRevision
+				).WaitForResult();
 		}
 
 		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
