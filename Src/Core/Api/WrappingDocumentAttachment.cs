@@ -130,8 +130,8 @@ namespace CouchDude.Api
 							ContentType = recivedAttachment.ContentType;
 							Inline = recivedAttachment.Inline;
 							return recivedAttachment.OpenRead();
-						},
-						TaskContinuationOptions.OnlyOnRanToCompletion)
+						}
+					)
 					.Unwrap();
 			}
 		}

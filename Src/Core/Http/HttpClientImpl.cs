@@ -33,7 +33,7 @@ namespace CouchDude.Http
 		/// <summary>Makes HTTP request and waits for result.</summary>
 		public HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage)
 		{
-			return HttpClient.Value.Send(requestMessage, HttpCompletionOption.ResponseContentRead);
+			return HttpClient.Value.Send(requestMessage);
 		}
 
 		/// <summary>Starts HTTP request and returs task.</summary>
@@ -43,7 +43,7 @@ namespace CouchDude.Http
 			 * Async version sadly throws Exception on none-null return codes at the time of witing. Should revise later.
 			 * return HttpClient.Value.SendAsync(requestMessage, HttpCompletionOption.ResponseHeadersRead);
 			 */
-			return Task.Factory.StartNew(() => HttpClient.Value.Send(requestMessage, HttpCompletionOption.ResponseContentRead));
+			return Task.Factory.StartNew(() => HttpClient.Value.Send(requestMessage));
 		}
 
 		/// <inheritdoc/>

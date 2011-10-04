@@ -89,8 +89,7 @@ namespace CouchDude.Api
 							error.ThrowCouchCommunicationException();
 						}
 						return new HttpResponseMessageDocumentAttachment(attachmentId, response);
-					},
-					TaskContinuationOptions.OnlyOnRanToCompletion);
+					});
 		}
 
 		public Task<DocumentInfo> SaveAttachment(IDocumentAttachment attachment, string documentId, string documentRevision = null)
@@ -106,7 +105,7 @@ namespace CouchDude.Api
 					ort => {
 						requestMessage.Content = new StreamContent(ort.Result, attachment.Length);
 						return CouchApi.StartRequest(requestMessage, httpClient);
-					}, TaskContinuationOptions.OnlyOnRanToCompletion)
+					})
 				.Unwrap()
 				.ContinueWith(
 					rt =>
@@ -119,8 +118,7 @@ namespace CouchDude.Api
 							error.ThrowCouchCommunicationException();
 						}
 						return ReadDocumentInfo(response);
-					},
-					TaskContinuationOptions.OnlyOnRanToCompletion);
+					});
 		}
 
 		public Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision = null)
@@ -131,7 +129,7 @@ namespace CouchDude.Api
 			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Delete, attachmentUri);
 			return CouchApi.StartRequest(requestMessage, httpClient)
-				.ContinueWith<DocumentInfo>(
+				.ContinueWith(
 					rt =>
 					{
 						var response = rt.Result;
@@ -144,8 +142,7 @@ namespace CouchDude.Api
 							error.ThrowCouchCommunicationException();
 						}
 						return ReadDocumentInfo(response);
-					},
-					TaskContinuationOptions.OnlyOnRanToCompletion);
+					});
 			
 		}
 

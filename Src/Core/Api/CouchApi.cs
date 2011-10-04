@@ -83,24 +83,22 @@ namespace CouchDude.Api
 				.StartRequest(request)
 				.ContinueWith(
 					t => {
-						if (t.IsFaulted && t.Exception != null)
-						{
-							var innerExceptions = t.Exception.InnerExceptions;
-							
+						if (!t.IsFaulted)
+							return t.Result;
 
-							var newInnerExceptions = new Exception[innerExceptions.Count];
-							for (var i = 0; i < innerExceptions.Count; i++)
-							{
-								var e = innerExceptions[i];
-								newInnerExceptions[i] = 
-									e is WebException || e is SocketException || e is HttpException
-										? new CouchCommunicationException(e)
-										: e;
-							}
-							throw new AggregateException(t.Exception.Message, newInnerExceptions);
+						var innerExceptions = t.Exception.InnerExceptions;
+						var newInnerExceptions = new Exception[innerExceptions.Count];
+						for (var i = 0; i < innerExceptions.Count; i++)
+						{
+							var e = innerExceptions[i];
+							newInnerExceptions[i] = 
+								e is WebException || e is SocketException || e is HttpException
+									? new CouchCommunicationException(e)
+									: e;
 						}
-						return t.Result;
-					});
+						throw new AggregateException(t.Exception.Message, newInnerExceptions);
+					}
+				);
 		}
 	}
 }
