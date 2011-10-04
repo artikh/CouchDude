@@ -32,6 +32,7 @@ namespace CouchDude.Api
 		private readonly IHttpClient httpClient;
 		private readonly string databaseName;
 		private readonly Uri databaseUri;
+		private readonly Uri databaseUriWithTrailingSlash;
 
 		/// <constructor />
 		public DatabaseApi(IHttpClient httpClient, Uri serverUri, string databaseName)
@@ -42,7 +43,8 @@ namespace CouchDude.Api
 
 			this.httpClient = httpClient;
 			this.databaseName = databaseName;
-			databaseUri = new Uri(serverUri, databaseName + "/");
+			databaseUri = new Uri(serverUri, databaseName);
+			databaseUriWithTrailingSlash = new Uri(databaseUri + "/");
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
 
@@ -177,8 +179,8 @@ namespace CouchDude.Api
 			var unitOfWork = new BulkUpdateBatch(databaseName);
 			updateCommandBuilder(unitOfWork);
 			return unitOfWork.IsEmpty 
-				? Task.Factory.StartNew(() => EmptyDictionary) 
-				: unitOfWork.Execute(httpClient, request => CouchApi.StartRequest(request, httpClient), databaseUri);
+				? Task.Factory.StartNew(() => EmptyDictionary)
+				: unitOfWork.Execute(httpClient, request => CouchApi.StartRequest(request, httpClient), databaseUriWithTrailingSlash);
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string docId)
@@ -251,7 +253,7 @@ namespace CouchDude.Api
 
 		private Task<HttpResponseMessage> StartQuery(Uri uri)
 		{
-			var viewUri = new Uri(databaseUri, uri);
+			var viewUri = new Uri(databaseUriWithTrailingSlash, uri);
 			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
 			var task = CouchApi.StartRequest(request, httpClient);
 			return task;
@@ -260,8 +262,8 @@ namespace CouchDude.Api
 		private Uri GetDocumentUri(string docId, string revision = null)
 		{
 			const string designDocumentPrefix = "_design/";
-			
-			var uriStringBuilder = new StringBuilder(databaseUri.ToString());
+
+			var uriStringBuilder = new StringBuilder(databaseUriWithTrailingSlash.ToString());
 			if (docId.StartsWith(designDocumentPrefix))
 				uriStringBuilder
 					.Append(designDocumentPrefix)

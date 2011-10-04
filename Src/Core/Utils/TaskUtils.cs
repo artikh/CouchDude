@@ -43,7 +43,6 @@ namespace CouchDude.Utils
 		{
 			try
 			{
-				task.Wait();
 				return task.Result;
 			}
 			catch (AggregateException e)
