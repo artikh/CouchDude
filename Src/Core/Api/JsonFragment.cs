@@ -230,7 +230,7 @@ namespace CouchDude.Api
 			  // JObject's meta-object needs to know where to find the instance of JObject it is operating on.
 			  // Assuming that an instance of Document is passed to the 'parameter' expression
 			  // we get the corresponding instance of JObject by reading the "jsonObject" field.
-				document => Expression.Field(document, "JsonToken")
+				document => Expression.Property(document, "JsonToken")
 			);
 		}
 

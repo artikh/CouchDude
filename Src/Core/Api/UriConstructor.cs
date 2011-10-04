@@ -26,7 +26,8 @@ namespace CouchDude.Api
 		public readonly Uri ServerUri;
 		private Uri allDbUri;
 
-		public UriConstructor(Uri serverUri) : this() { this.ServerUri = serverUri; }
+		public UriConstructor(Uri serverUri) : this() { ServerUri = serverUri; }
+		public UriConstructor(string serverUriString) : this(new Uri(serverUriString, UriKind.Absolute)) {}
 		public Uri AllDbUri { get { return allDbUri ?? (allDbUri = new Uri(ServerUri, "_all_dbs")); } }
 
 		[Pure]

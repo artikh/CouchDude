@@ -115,7 +115,7 @@ namespace CouchDude.Api
 		public Task<IDictionary<string, DocumentInfo>> Execute(
 			IHttpClient httpClient, Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
-			var bulkUpdateUri = new Uri(uriConstructor.DatabaseUri, "_bulk_docs");
+			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
 			var request =
 				new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
 			return startRequest(request).ContinueWith(

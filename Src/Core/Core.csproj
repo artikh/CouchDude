@@ -106,7 +106,6 @@
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
     <Compile Include="Api\UriConstructor.cs" />
     <Compile Include="Api\WrappingDocumentAttachment.cs" />
-    <Compile Include="Api\DocumentAttachmentExtentions.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
     <Compile Include="Api\JsonContent.cs" />
     <Compile Include="Api\LoadContext.cs" />

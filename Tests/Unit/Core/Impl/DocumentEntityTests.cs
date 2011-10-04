@@ -167,24 +167,5 @@ namespace CouchDude.Tests.Unit.Core.Impl
 					Default.Settings
 			));
 		}
-
-		[Fact]
-		public void ShouldPreserveAttachmentsAcrossEntitySerializations() 
-		{
-			var document = new Document(Entity.CreateDocWithRevision().ToString());
-			document.DocumentAttachments.Add(
-				new WrappingDocumentAttachment("attachment1", new { content_type = "text/plain", stub = true, length = 42 }.ToJsonString()));
-
-			var documentEntity = DocumentEntity.FromDocument(document, Default.Settings);
-			documentEntity.DoMap();
-
-			var newAttachments = documentEntity.Document.DocumentAttachments;
-
-			var attachment = newAttachments["attachment1"];
-			Assert.NotNull(attachment);
-			Assert.Equal("text/plain", attachment.ContentType);
-			Assert.Equal(42, attachment.Length);
-			Assert.False(attachment.Inline);
-		}
 	}
 }

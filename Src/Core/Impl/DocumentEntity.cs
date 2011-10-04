@@ -179,11 +179,6 @@ namespace CouchDude.Impl
 				// if revision info is not stored in entity it should be copied from current document (if present)
 				if (!entityConfiguration.IsRevisionPresent)
 					newVersionOfDocument.Revision = Document.Revision;
-
-				// likewise attachment info shourd be restored from previous version of the document
-				newVersionOfDocument.DocumentAttachments.Clear();
-				foreach (var attachment in Document.DocumentAttachments)
-					newVersionOfDocument.DocumentAttachments.Add(attachment);
 			}
 			return newVersionOfDocument;
 		}

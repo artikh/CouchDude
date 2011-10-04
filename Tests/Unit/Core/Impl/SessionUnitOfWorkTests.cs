@@ -29,11 +29,12 @@ namespace CouchDude.Tests.Unit.Core.Impl
 	public class SessionUnitOfWorkTests
 	{
 		readonly SessionUnitOfWork unitOfWork = new SessionUnitOfWork(Default.Settings);
+		private readonly DbUriConstructor dbUriConstructor = new UriConstructor("http://example.com").Db("testdb");
 
 		[Fact]
 		public void ShouldIdicateEmptyIfNoWorkDone() 
 		{
-			var bulkUpdateBatch = new BulkUpdateBatch("testdb");
+			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
@@ -44,7 +45,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			unitOfWork.Attach(SimpleEntity.CreateStandard(), markAsUnchanged: true);
 			unitOfWork.Attach(Entity.CreateStandard(), markAsUnchanged: true);
 
-			var bulkUpdateBatch = new BulkUpdateBatch("testdb");
+			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
@@ -56,7 +57,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			unitOfWork.Attach(entity);
 			unitOfWork.MarkAsRemoved(entity);
 
-			var bulkUpdateBatch = new BulkUpdateBatch("testdb");
+			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
 			Assert.True(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.False(bulkUpdateBatch.IsEmpty);
 		}
@@ -69,7 +70,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			unitOfWork.MarkAsRemoved(entity);
 			unitOfWork.AddNew(EntityWithoutRevision.CreateStandard());
 
-			unitOfWork.ApplyChanges(new BulkUpdateBatch("testdb")); // Starting saving changes
+			unitOfWork.ApplyChanges(new BulkUpdateBatch(dbUriConstructor)); // Starting saving changes
 			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
 				new [] {
 					new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968"), 
@@ -77,7 +78,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 				}
 			);
 
-			var bulkUpdateBatch = new BulkUpdateBatch("testdb");
+			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
@@ -89,11 +90,11 @@ namespace CouchDude.Tests.Unit.Core.Impl
 			unitOfWork.Attach(entity, markAsUnchanged: true);
 			unitOfWork.MarkAsRemoved(entity);
 
-			unitOfWork.ApplyChanges(new BulkUpdateBatch("testdb")); // Starting saving changes
+			unitOfWork.ApplyChanges(new BulkUpdateBatch(dbUriConstructor)); // Starting saving changes
 			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
 				new[] { new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968")});
 
-			var bulkUpdateBatch = new BulkUpdateBatch("testdb");
+			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}

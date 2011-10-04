@@ -63,7 +63,7 @@ namespace CouchDude.Api
 		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
 
 		private JToken jsonToken;
-		protected override JToken JsonToken
+		protected internal override JToken JsonToken
 		{
 			get
 			{

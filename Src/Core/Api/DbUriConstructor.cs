@@ -26,26 +26,31 @@ namespace CouchDude.Api
 	internal struct DbUriConstructor
 	{
 		public readonly string DatabaseName;
-		public Uri DatabaseUri;
-			
+		public readonly Uri DatabaseUri;
+		private readonly Uri databaseUriWithSlash;
+		private Uri bulkUpdateUri;
+
 		public DbUriConstructor(UriConstructor parent, string databaseName): this()
 		{
 			DatabaseName = databaseName;
-			DatabaseUri = new Uri(parent.ServerUri, databaseName + "/");
+			DatabaseUri = new Uri(parent.ServerUri, databaseName);
+			databaseUriWithSlash = new Uri(DatabaseUri + "/");
 		}
+
+		public Uri BulkUpdateUri { get { return bulkUpdateUri ?? (bulkUpdateUri = new Uri(databaseUriWithSlash, "_bulk_docs")); } }
 
 		[Pure]
 		public Uri GetFullDocumentUri(string docId, string revision = null)
 		{
 			var documentUriString = GetDocumentUriString(docId, revision);
-			return new Uri(DatabaseUri, documentUriString).LeaveDotsAndSlashesEscaped();
+			return new Uri(databaseUriWithSlash, documentUriString).LeaveDotsAndSlashesEscaped();
 		}
 
 		[Pure]
 		public Uri GetFullAttachmentUri(string attachmentId, string docId, string revision = null)
 		{
 			var attachmentUriString = GetAttachmentUriString(attachmentId, docId, revision);
-			return new Uri(DatabaseUri, attachmentUriString).LeaveDotsAndSlashesEscaped();
+			return new Uri(databaseUriWithSlash, attachmentUriString).LeaveDotsAndSlashesEscaped();
 		}
 
 		[Pure]
@@ -58,7 +63,7 @@ namespace CouchDude.Api
 		}
 
 		[Pure]
-		private string GetAttachmentUriString(string attachmentId, string docId, string revision = null)
+		private static string GetAttachmentUriString(string attachmentId, string docId, string revision = null)
 		{
 			var uriStringBuilder = new StringBuilder();
 			AppendDocId(uriStringBuilder, docId);
@@ -83,7 +88,7 @@ namespace CouchDude.Api
 				AppendReplacingFowardSlash(uriStringBuilder, docId.Substring(designDocumentPrefix.Length));
 			}
 			else
-				uriStringBuilder.Append(docId);
+				AppendReplacingFowardSlash(uriStringBuilder, docId);
 		}
 
 		private static void AppendReplacingFowardSlash(StringBuilder stringBuilder, string stringToAppend)
@@ -96,7 +101,7 @@ namespace CouchDude.Api
 		[Pure]
 		public Uri GetQueryUri(IQuery query)
 		{
-			return new Uri(DatabaseUri, query.ToUri());
+			return new Uri(databaseUriWithSlash, query.ToUri());
 		}
 	}
 }
