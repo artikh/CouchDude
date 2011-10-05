@@ -30,7 +30,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		{
 			var error =
 				new CouchError(
-					new HttpResponseMessage(HttpStatusCode.InternalServerError, "Internal server error") {
+					new HttpResponseMessage(HttpStatusCode.InternalServerError) {
 						Content = new StringContent(responseString, Encoding.UTF8)
 					});
 			return error.ToString();

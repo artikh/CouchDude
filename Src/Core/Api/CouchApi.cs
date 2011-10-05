@@ -22,6 +22,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using System.Web;
 using CouchDude.Http;
 using CouchDude.Utils;
 
@@ -91,8 +92,8 @@ namespace CouchDude.Api
 						for (var i = 0; i < innerExceptions.Count; i++)
 						{
 							var e = innerExceptions[i];
-							newInnerExceptions[i] = 
-								e is WebException || e is SocketException || e is HttpException
+							newInnerExceptions[i] =
+								e is WebException || e is SocketException || e is HttpException || e is HttpRequestException
 									? new CouchCommunicationException(e)
 									: e;
 						}

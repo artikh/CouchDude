@@ -172,7 +172,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 
 		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString, out HttpClientMock httpClientMock)
 		{
-			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode, statusCode.ToString()) {
+			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode) {
 				Content = new StringContent(responseString)
 			});
 			return GetDbApi(httpClientMock);
@@ -183,15 +183,9 @@ namespace CouchDude.Tests.Unit.Core.Api
 			return GetCouchApi(httpClient).Db("testdb");
 		}
 
-		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseString)
-		{
-			HttpClientMock httpClientMock;
-			return GetCouchApi(statusCode, responseString, out httpClientMock);
-		}
-
 		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseString, out HttpClientMock httpClientMock)
 		{
-			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode, statusCode.ToString()) {
+			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode) {
 				Content = new StringContent(responseString)
 			});
 			return GetCouchApi(httpClientMock);

@@ -55,7 +55,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "Object Not Found")
+			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound)
 			{
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
@@ -88,7 +88,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		[Fact]
 		public void ShouldReturnNullIfNoDocumentFound()
 		{
-			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound, "not found"));
+			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound));
 			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
 
 			var version = databaseApi.Synchronously.RequestLastestDocumentRevision("doc1");
@@ -115,7 +115,7 @@ namespace CouchDude.Tests.Unit.Core.Api
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
 			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest, "")
+				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
