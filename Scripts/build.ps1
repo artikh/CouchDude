@@ -37,15 +37,19 @@ task test -depends build {
     exec { ..\Tools\xunit\xunit.console.clr4.x86.exe "$rootDir\Tests\bin\$config\CouchDude.Tests.dll" /silent /-trait "level=integration" /html $buildDir\testResult.html }
 }
 
-task package -depends build {
-    $packageDir = "$buildDir\package"
-    mkdir -Force $packageDir
-    copy -Force $rootDir\Src\Core\bin\$config\*.* $packageDir
-    mkdir -Force $packageDir\SchemeManager
-    mkdir -Force $packageDir\SchemeManager\Console
-    copy -Force $rootDir\Src\SchemeManager.Console\bin\$config\*.* $packageDir\SchemeManager\Console
-    mkdir -Force $packageDir\SchemeManager\Gui
-    copy -Force $rootDir\Src\SchemeManager.Gui\bin\$config\*.* $packageDir\SchemeManager\Gui
-    
-    exec { ..\Tools\7zip\7za.exe a -mx=9 -bd -r -y $buildDir\couchdude.$version.zip $packageDir\*.* }
+function prepareNspec([string]$templateFileName, [string]$targetFileName, [array]$files) {
+    $specXml = [xml](get-content $templateFileName)
+    $filesNode = $specXml.CreateElement('files');
+
+    foreach($file in $files) {
+        $fileNode = $specXml.CreateElement('file');
+        $fileNode.
+    }
+
+    $specXml.package.metadata.AppendChild($filesNode);
 }
+
+task packageCore -depends build {
+}
+
+task package -depends packageCore, packageSchemeManager, packageBootstrapper, packageAzureBootstrapper 

@@ -1,6 +1,6 @@
 #region Licence Info 
 /*
-	Copyright 2011 · Artem Tikhomirov																					
+	Copyright 2011 · Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					

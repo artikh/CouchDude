@@ -1,6 +1,6 @@
 #region Licence Info 
 /*
-	Copyright 2011 · Artem Tikhomirov																					
+	Copyright 2011 · Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -17,7 +17,10 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace CouchDude.Utils
 {
@@ -51,6 +54,16 @@ namespace CouchDude.Utils
 			fieldInfo.SetValue(uriParser, uriSyntaxFlags);
 
 			return uri;
+		}
+		
+		/// <summary>Parses query string into dictionary.</summary>
+		public static IDictionary<string, string> ParseQueryString(string queryString)
+		{
+			var matches = Regex.Matches(queryString, @"[\?&](([^&=]+)=([^&=#]*))", RegexOptions.Compiled);
+			return matches.Cast<Match>().ToDictionary(
+					m => Uri.UnescapeDataString(m.Groups[2].Value),
+					m => Uri.UnescapeDataString(m.Groups[3].Value)
+			);
 		}
 	}
 }

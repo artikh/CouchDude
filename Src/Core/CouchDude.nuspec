@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>$id$</id>
+    <version>$version$</version>
+    <authors>Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko</authors>
+    <owners>Artem Tikhomirov</owners>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0	</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>
+			CouchDude is easy to use and flexible library for accessing CouchDB. 
+			CouchDude implements low-level CouchDB API wrappers as well as useful 
+			Unit of Work implementation.
+		</description>
+    <releaseNotes>This is pre-release version of the library and APIs are subject to change.</releaseNotes>
+    <copyright>Copyright 2011</copyright>
+		<tags>couchdb</tags>
+    <dependencies>
+			<package id="Common.Logging" version="2.0.0" />
+			<package id="HttpClient" version="0.5.0" />
+			<package id="JsonValue" version="0.5.0" />
+			<package id="Newtonsoft.Json" version="4.0.3" />
+    </dependencies>
+  </metadata>
+</package>

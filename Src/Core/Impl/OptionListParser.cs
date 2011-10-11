@@ -1,6 +1,6 @@
 ﻿#region Licence Info 
 /*
-	Copyright 2011 · Artem Tikhomirov																					
+	Copyright 2011 · Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko																					
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -281,7 +281,7 @@ namespace CouchDude.Utils
 				var stringValue = option.Get(optionListObject);
 				if (stringValue != null)
 				{
-					var encodedValue = HttpUtility.UrlEncode(stringValue);
+					var encodedValue = Uri.EscapeUriString(stringValue);
 					result.Append(option.Name).Append("=").Append(encodedValue).Append("&");
 				}
 			}
@@ -293,13 +293,13 @@ namespace CouchDude.Utils
 
 		public void Parse(string queryString, ref T optionListObject)
 		{
-			var values = HttpUtility.ParseQueryString(queryString);
-			foreach (string key in values)
+			var values = UriUtils.ParseQueryString(queryString);
+			foreach (var kvp in values)
 			{
 				IOption<T> option;
-				if (optionsMap.TryGetValue(key, out option))
+				if (optionsMap.TryGetValue(kvp.Key, out option))
 				{
-					var stringValue = values[key];
+					var stringValue = kvp.Value;
 					if (stringValue != option.DefaultValue)
 						option.Set(optionListObject, stringValue);
 				}
