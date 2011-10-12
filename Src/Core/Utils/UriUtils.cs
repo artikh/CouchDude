@@ -56,14 +56,26 @@ namespace CouchDude.Utils
 			return uri;
 		}
 		
+		private static readonly Regex QueryStringRegex = new Regex(
+			@"(?:(?<key>[^&=]+)(?:=(?<value>[^&=#]*))?)&?"
+#if RELEASE
+			, RegexOptions.Compiled
+#endif
+		);
+
 		/// <summary>Parses query string into dictionary.</summary>
 		public static IDictionary<string, string> ParseQueryString(string queryString)
 		{
-			var matches = Regex.Matches(queryString, @"[\?&](([^&=]+)=([^&=#]*))", RegexOptions.Compiled);
-			return matches.Cast<Match>().ToDictionary(
-					m => Uri.UnescapeDataString(m.Groups[2].Value),
-					m => Uri.UnescapeDataString(m.Groups[3].Value)
-			);
+			var matches = QueryStringRegex.Matches(queryString);
+			var result = new Dictionary<string, string>();
+			foreach (Match match in matches)
+			{
+				var key = Uri.UnescapeDataString(match.Groups["key"].Value);
+				var valueGroup = match.Groups["value"];
+				var value = valueGroup.Success? Uri.UnescapeDataString(valueGroup.Value): null;
+				result.Add(key, value);
+			}
+			return result;
 		}
 	}
 }

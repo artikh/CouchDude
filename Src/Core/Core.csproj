@@ -267,7 +267,9 @@
     <None Include="..\..\CouchDude.licenseheader">
       <Link>CouchDude.licenseheader</Link>
     </None>
-    <None Include="CouchDude.nuspec" />
+    <None Include="CouchDude.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="Exceptions\BoilerplateEcxeptionConstructors.ttinclude" />
     <None Include="Exceptions\BoilerplateExeption.ttinclude" />
     <None Include="Exceptions\ConventionException.tt">

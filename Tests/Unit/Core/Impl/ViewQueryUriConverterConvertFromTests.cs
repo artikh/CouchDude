@@ -70,7 +70,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		[Fact]
 		public void ShouldParseKeyRangeViewLookup() 
 		{
-			var viewQuery = ConvertFromString("_design/dd/_view/pointOfView?startkey=%5b%22first+key%22%2c0%5d&endkey=%5b%22second+key%22%2c9%5d");
+			var viewQuery = ConvertFromString("_design/dd/_view/pointOfView?startkey=%5b%22first%20key%22%2c0%5d&endkey=%5b%22second%20key%22%2c9%5d");
 
 			Assert.Equal("[\"first key\",0]", viewQuery.StartKey.ToString());
 			Assert.Equal("[\"second key\",9]", viewQuery.EndKey.ToString());
@@ -81,7 +81,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		{
 			var viewQuery =
 				ConvertFromString(
-					"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey");
+					"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start%20dockey&endkey=%22second%20key%22&endkey_docid=end%20dockey");
 			Assert.Equal("start dockey", viewQuery.StartDocumentId);
 			Assert.Equal("end dockey", viewQuery.EndDocumentId);
 		}

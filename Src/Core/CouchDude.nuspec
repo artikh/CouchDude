@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<package >
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
-    <id>$id$</id>
+    <id>CouchDude</id>
     <version>$version$</version>
     <authors>Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko</authors>
     <owners>Artem Tikhomirov</owners>
@@ -16,10 +16,10 @@
     <copyright>Copyright 2011</copyright>
 		<tags>couchdb</tags>
     <dependencies>
-			<package id="Common.Logging" version="2.0.0" />
-			<package id="HttpClient" version="0.5.0" />
-			<package id="JsonValue" version="0.5.0" />
-			<package id="Newtonsoft.Json" version="4.0.3" />
+			<dependency id="Common.Logging" version="2.0.0" />
+			<dependency id="HttpClient" version="0.5.0" />
+			<dependency id="JsonValue" version="0.5.0" />
+			<dependency id="Newtonsoft.Json" version="4.0.3" />
     </dependencies>
   </metadata>
 </package>

@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldCorrectlyGenerateKeyRangeUri()
 		{
 			Assert.Equal(
-				"_design/dd/_view/pointOfView?startkey=%5b%22first+key%22%2c0%5d&endkey=%5b%22second+key%22%2c9%5d",
+				"_design/dd/_view/pointOfView?startkey=%5B%22first%20key%22,0%5D&endkey=%5B%22second%20key%22,9%5D",
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
@@ -50,7 +50,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldCorrectlyGenerateKeyRangeUriIfRangeKeysAreJsonFragments()
 		{
 			Assert.Equal(
-				"_design/dd/_view/pointOfView?startkey=%5b%22first+key%22%2c0%5d&endkey=%5b%22second+key%22%2c9%5d",
+				"_design/dd/_view/pointOfView?startkey=%5B%22first%20key%22,0%5D&endkey=%5B%22second%20key%22,9%5D",
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
@@ -64,7 +64,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldCorrectlyGenerateKeySingleKeyUriIfKeyIsJsonFragment()
 		{
 			Assert.Equal(
-				"_design/dd/_view/pointOfView?key=%5b%22key%22%2c0%5d",
+				"_design/dd/_view/pointOfView?key=%5B%22key%22,0%5D",
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
@@ -77,7 +77,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldCorrectlyGenerateKeySingleKeyUri()
 		{
 			Assert.Equal(
-				"_design/dd/_view/pointOfView?key=%5b%22key%22%2c0%5d",
+				"_design/dd/_view/pointOfView?key=%5B%22key%22,0%5D",
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",

@@ -53,7 +53,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldEncodeQuery()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=%e8%96%84%e8%8d%b7%e5%86%b0%e6%bc%a0%e6%b7%8b",
+				"_fti/_design/dd/someIndex?q=%E8%96%84%E8%8D%B7%E5%86%B0%E6%BC%A0%E6%B7%8B",
 				ConvertToString(new LuceneQuery{ Query = "薄荷冰漠淋" })
 				);
 		}
@@ -86,7 +86,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldUseFieldsParameter()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&include_fields=field1%2cfield2%2cfield3", 
+				"_fti/_design/dd/someIndex?q=42&include_fields=field1,field2,field3", 
 				ConvertToString(new LuceneQuery { Query = "42", Fields = new[] { "field1", "field2", "field3" } }));
 		}
 
@@ -118,7 +118,7 @@ namespace CouchDude.Tests.Unit.Core.Impl
 		public void ShouldGenerateSortParameter()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&sort=field1%2c%5cfield2%2cfield3%3cdouble%3e%2c%5cfield4%3clong%3e",
+				"_fti/_design/dd/someIndex?q=42&sort=field1,%5Cfield2,field3%3Cdouble%3E,%5Cfield4%3Clong%3E",
 				ConvertToString(
 					new LuceneQuery {
 						Query = "42",

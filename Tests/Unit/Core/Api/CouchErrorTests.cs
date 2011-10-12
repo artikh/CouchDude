@@ -43,12 +43,6 @@ namespace CouchDude.Tests.Unit.Core.Api
 		}
 
 		[Fact]
-		public void ShouldReturnOnlyErrorIfNoReason()
-		{
-			Assert.Equal("some error name: Internal server error [500]", ProccessResponse(@"{ ""error"": ""some error name"" }"));
-		}
-
-		[Fact]
 		public void ShouldReturnOnlyReasonIfNoError()
 		{
 			Assert.Equal("InternalServerError: some reason message [500]", ProccessResponse(@"{ ""reason"": ""some reason message"" }"));
