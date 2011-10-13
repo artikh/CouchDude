@@ -12,7 +12,7 @@ properties {
     $srcDir = "$rootDir\Src"; 
 }
 
-task default -depends build, test, package
+task default -depends test, package
 
 task clean {
     if(test-path $buildDir) {
@@ -30,12 +30,23 @@ task setVersion {
   $assembyInfo.Trim() > $assemblyInfoFileName
 }
 
-task build -depends clean, setVersion {
-    exec { msbuild $rootDir\CouchDude.sln /nologo /p:Config=$config /p:Platform="Mixed Platforms" /maxcpucount /verbosity:minimal }
+task buildCore -depends clean, setVersion {
+    exec { msbuild $rootDir\Src\Core\CouchDude.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
 
-task test -depends build {
-    exec { ..\Tools\xunit\xunit.console.clr4.x86.exe "$rootDir\Tests\bin\$config\CouchDude.Tests.dll" /silent /-trait "level=integration" /html $buildDir\testResult.html }
+task buildSchemeManager
+
+task buildBootstrapper -depends clean, setVersion {
+    exec { msbuild $rootDir\Src\Bootstrapper\Bootstrapper.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
+}
+
+task testCore -depends buildCore {
+    exec { ..\Tools\xunit\xunit.console.clr4.x86.exe "$rootDir\Src\Core\Tests\bin\$config\CouchDude.Tests.dll" /silent /-trait "level=integration" /html $buildDir\CouchDude.Tests.html }
+}
+
+task test -depends testCore {
+    #if test was succesfull deleting protocol
+    rm $buildDir\CouchDude.Tests.html
 }
 
 function replaceToken([string]$fileName, [string]$tokenName, [string]$tokenValue) {
@@ -43,13 +54,15 @@ function replaceToken([string]$fileName, [string]$tokenName, [string]$tokenValue
     $content | % { $_.Replace($tokenName, $tokenValue) } > $fileName
 }
 
+$nuSpecNamespace = 'http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd'
+
 function prepareNuspec([string]$templateFileName, [string]$targetFileName, [array]$fileTemplates) {
     $specXml = [xml](get-content $templateFileName)
     
-    $filesNode = $specXml.CreateElement('files');
+    $filesNode = $specXml.CreateElement('files', $nuSpecNamespace);
     foreach($fileTemplate in $fileTemplates) {
         foreach($fileName in (resolve-path $fileTemplate | %{ $_.Path } )) {
-            $fileNode = $specXml.CreateElement('file');
+            $fileNode = $specXml.CreateElement('file', $nuSpecNamespace);
             $fileNode.SetAttribute('src', $fileName);
             $fileNode.SetAttribute('target', 'lib\net40');
             $filesNode.AppendChild($fileNode);
@@ -72,13 +85,11 @@ function packNuGet([string]$nuspecFile) {
     exec { ..\tools\nuget\NuGet.exe pack $nuspecFile -OutputDirectory $buildDir }    
 }
 
-function prepareAndPackage([string]$templateNuSpec, [array]$filesToPack) {
+function prepareAndPackage([string]$templateNuSpec, [array]$fileTemplates) {
     $nuspecName = [System.IO.Path]::GetFileNameWithoutExtension($templateNuSpec)
     $nuspecFile = "$buildDir\$nuspecName.nuspec"
 
-    prepareNuspec -template "$templateNuspec" `
-                  -target $nuspecFile `
-                  -files $filesToPack
+    prepareNuspec -template "$templateNuspec" -target $nuspecFile -fileTemplates $fileTemplates
     replaceToken -file $nuspecFile -tokenName '$version$' -tokenValue $version
 
     packNuGet $nuspecFile
@@ -86,21 +97,21 @@ function prepareAndPackage([string]$templateNuSpec, [array]$filesToPack) {
     del $nuspecFile
 }
 
-task packageCore   {
-    prepareAndPackage -templateNuSpec "$srcDir\Core\CouchDude.nuspec" -files ("$srcDir\Core\bin\$config\CouchDude.*")
+task packageCore -depends buildCore {
+    prepareAndPackage -templateNuSpec "$srcDir\Core\Core\CouchDude.nuspec" -fileTemplates ("$srcDir\Core\Core\bin\$config\CouchDude.*")
 }
 
-task packageSchemeManager -depends build {
-    prepareAndPackage -templateNuSpec "$srcDir\SchemeManager\CouchDude.SchemeManager.nuspec" -files ("$srcDir\SchemeManager\bin\$config\CouchDude.SchemeManager.*")
+task packageSchemeManager -depends buildSchemeManager {
+    prepareAndPackage -templateNuSpec "$srcDir\SchemeManager\CouchDude.SchemeManager.nuspec" -fileTemplates ("$srcDir\SchemeManager\bin\$config\CouchDude.SchemeManager.*")
 }
 
-task packageBootstrapper -depends build {
-    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper\CouchDude.Bootstrapper.nuspec" -files ("$srcDir\Bootstrapper\bin\$config\CouchDude.Bootstrapper.*")
+task packageBootstrapper -depends buildBootstrapper {
+    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper\Core\CouchDude.Bootstrapper.nuspec" -fileTemplates ("$srcDir\Bootstrapper\Core\bin\$config\CouchDude.Bootstrapper.*")
 }
 
-task packageAzureBootstrapper -depends build {
-    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper.Azure\CouchDude.Bootstrapper.Azure.nuspec" `
-                      -files ("$srcDir\Bootstrapper.Azure\bin\$config\CouchDude.Azure.Bootstrapper.*")
+task packageAzureBootstrapper {
+    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper\Azure\CouchDude.Bootstrapper.Azure.nuspec" `
+                      -fileTemplates ("$srcDir\Bootstrapper\Azure\bin\$config\CouchDude.Bootstrapper.Azure.*")
 }
 
-task package -depends packageCore, packageSchemeManager, packageBootstrapper, packageAzureBootstrapper
+task package -depends packageCore, packageBootstrapper, packageAzureBootstrapper #, packageSchemeManager
