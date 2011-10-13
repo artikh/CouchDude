@@ -34,12 +34,24 @@ task buildCore -depends clean, setVersion {
     exec { msbuild $rootDir\Src\Core\CouchDude.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
 
-task buildSchemeManager -depends clean, setVersion {
+task buildSchemeManager -depends clean, setVersion, updateSchemeManager {
     exec { msbuild $rootDir\Src\SchemeManager\SchemeManager.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
 
-task buildBootstrapper -depends clean, setVersion {
+task buildBootstrapper -depends clean, setVersion, updateBootstrapperPackages {
     exec { msbuild $rootDir\Src\Bootstrapper\Bootstrapper.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
+}
+
+function updatePackages([string]$solutionFile) {
+    exec { ..\tools\nuget\NuGet.exe update $solutionFile -Source "https://go.microsoft.com/fwlink/?LinkID=206669";"$buildDir"  }
+}
+
+task updateBootstrapperPackages -depends buildCore {
+    updatePackages $rootDir\Src\Bootstrapper\Bootstrapper.sln
+}
+
+task updateSchemeManager -depends buildCore {
+    updatePackages $rootDir\Src\SchemeManager\SchemeManager.sln
 }
 
 function runXunitTests ([string]$dllName) {
