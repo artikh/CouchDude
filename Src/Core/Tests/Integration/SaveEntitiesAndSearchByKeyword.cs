@@ -30,20 +30,21 @@ namespace CouchDude.Tests.Integration
 		{
 			var databaseApi = Factory.CreateCouchApi(new Uri("http://127.0.0.1:5984")).Db("testdb");
 
-			var luceneDoc = new
-			{
+			var luceneDoc = new {
 				_id = "_design/lucene",
-				fulltext = new
-				{
-					index = @"
-						function (doc) {
-							if (doc.type == 'user') {
-								var ret = new Document();
-								ret.add(doc.username);
-								return ret;
-							}
-						return null;
-					}"
+				language = "javascript",
+				fulltext = new {
+					test = new {
+						index = @"
+							function (doc) {
+								if (doc.age == 424242) {
+									var ret = new Document();
+									// indexing fields
+									ret.add(doc.name, {""field"": ""default""});
+								}
+							return null;
+						}"
+					}
 				}
 			}.ToDocument();
 
@@ -59,7 +60,7 @@ namespace CouchDude.Tests.Integration
 			}
 		}
 
-		[Fact(Skip = "No lucine")]
+		[Fact(Skip = "Do not work for some reason :)")]
 		public void ShouldSaveTwoEntitiesAndFindTheyByKeyword()
 		{
 			var sessionFactory = Default.Settings.CreateSessionFactory();
@@ -67,14 +68,14 @@ namespace CouchDude.Tests.Integration
 			var entityA = new Entity
 			{
 				Name = "John Smith stas",
-				Age = 42,
+				Age = 424242,
 				Date = DateTime.Now
 			};
 
 			var entityB = new Entity
 			{
 				Name = "Stas Girkin stas",
-				Age = 24,
+				Age = 424242,
 				Date = DateTime.Now
 			};
 
@@ -88,7 +89,7 @@ namespace CouchDude.Tests.Integration
 			using (var session = sessionFactory.CreateSession())
 			{
 				var result = session.Synchronously.QueryLucene<Entity>(
-					new LuceneQuery { DesignDocumentName = "lucene", IndexName = "all", Query = "stas", IncludeDocs = true });
+					new LuceneQuery { DesignDocumentName = "lucene", IndexName = "test", Query = "stas", IncludeDocs = true });
 				Assert.True(result.Count >= 2);
 
 				var loadedEntityA = result.First(e => e.Id == entityA.Id);

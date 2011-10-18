@@ -34,6 +34,11 @@ namespace CouchDude
 		/// <summary>Index view name.</summary>
 		public string IndexName { get; set; }
 
+		private string sectionName = "local";
+
+		/// <summary>Name of lucene back-referencing section defined in couchdb-lucene.ini. "local" by default.</summary>
+		public string SectionName { get { return sectionName; } set { sectionName = value; } }
+
 		/// <summary>Search query (see http://lucene.apache.org/java/2_4_0/queryparsersyntax.html) </summary>
 		public string Query { get; set; }
 

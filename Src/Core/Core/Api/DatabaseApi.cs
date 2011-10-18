@@ -327,7 +327,7 @@ namespace CouchDude.Api
 			if (query == null) throw new ArgumentNullException("query");
 			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 
-			return StartQuery(query).ContinueWith(
+			return StartQuery(uriConstructor.GetQueryUri(query)).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					if(!response.IsSuccessStatusCode)
@@ -344,8 +344,8 @@ namespace CouchDude.Api
 		public Task<ILuceneQueryResult> QueryLucene(LuceneQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
-			
-			return StartQuery(query).ContinueWith(
+
+			return StartQuery(uriConstructor.GetQueryUri(query)).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
@@ -361,10 +361,9 @@ namespace CouchDude.Api
 
 		public ISynchronousDatabaseApi Synchronously { get; private set; }
 
-		private Task<HttpResponseMessage> StartQuery(IQuery query)
+		private Task<HttpResponseMessage> StartQuery(Uri queryUri)
 		{
-			var viewUri = uriConstructor.GetQueryUri(query);
-			var request = new HttpRequestMessage(HttpMethod.Get, viewUri);
+			var request = new HttpRequestMessage(HttpMethod.Get, queryUri);
 			return CouchApi.StartRequest(request, httpClient);
 		}
 

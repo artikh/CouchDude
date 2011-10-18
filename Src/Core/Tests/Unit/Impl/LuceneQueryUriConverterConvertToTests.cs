@@ -53,7 +53,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldEncodeQuery()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=%E8%96%84%E8%8D%B7%E5%86%B0%E6%BC%A0%E6%B7%8B",
+				"_design/dd/someIndex?q=%E8%96%84%E8%8D%B7%E5%86%B0%E6%BC%A0%E6%B7%8B",
 				ConvertToString(new LuceneQuery{ Query = "薄荷冰漠淋" })
 				);
 		}
@@ -61,32 +61,32 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldAddSkipParameter()
 		{
-			Assert.Equal("_fti/_design/dd/someIndex?q=42&skip=42", ConvertToString(new LuceneQuery{ Query = "42", Skip = 42}));
+			Assert.Equal("_design/dd/someIndex?q=42&skip=42", ConvertToString(new LuceneQuery { Query = "42", Skip = 42 }));
 		}
 
 		[Fact]
 		public void ShouldAddLimitParameter()
 		{
-			Assert.Equal("_fti/_design/dd/someIndex?q=42&limit=42", ConvertToString(new LuceneQuery{ Query = "42", Limit = 42}));
+			Assert.Equal("_design/dd/someIndex?q=42&limit=42", ConvertToString(new LuceneQuery { Query = "42", Limit = 42 }));
 		}
 
 		[Fact]
 		public void ShouldUseDoNotBlockIfStaleParameterIfTrue()
 		{
-			Assert.Equal("_fti/_design/dd/someIndex?q=42&stale=ok", ConvertToString(new LuceneQuery{ Query = "42", DoNotBlockIfStale = true}));
+			Assert.Equal("_design/dd/someIndex?q=42&stale=ok", ConvertToString(new LuceneQuery { Query = "42", DoNotBlockIfStale = true }));
 		}
 
 		[Fact]
 		public void ShouldNotUseDoNotBlockIfStaleParameterIfFalse()
 		{
-			Assert.Equal("_fti/_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery{ Query = "42", DoNotBlockIfStale = false}));
+			Assert.Equal("_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery { Query = "42", DoNotBlockIfStale = false }));
 		}
 
 		[Fact]
 		public void ShouldUseFieldsParameter()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&include_fields=field1,field2,field3", 
+				"_design/dd/someIndex?q=42&include_fields=field1,field2,field3", 
 				ConvertToString(new LuceneQuery { Query = "42", Fields = new[] { "field1", "field2", "field3" } }));
 		}
 
@@ -94,7 +94,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldUseSingleItemFieldsParameter()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&include_fields=field", 
+				"_design/dd/someIndex?q=42&include_fields=field", 
 				ConvertToString(new LuceneQuery { Query = "42", Fields = new[] { "field" } }));
 		}
 
@@ -102,7 +102,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldAddIncludeDocsIfTrue()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&include_docs=true", 
+				"_design/dd/someIndex?q=42&include_docs=true", 
 				ConvertToString(new LuceneQuery { Query = "42", IncludeDocs = true }));
 		}
 
@@ -110,7 +110,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldNotAddIncludeDocsIfFalse()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42", 
+				"_design/dd/someIndex?q=42", 
 				ConvertToString(new LuceneQuery { Query = "42", IncludeDocs = false }));
 		}
 
@@ -118,7 +118,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldGenerateSortParameter()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&sort=field1,%5Cfield2,field3%3Cdouble%3E,%5Cfield4%3Clong%3E",
+				"_design/dd/someIndex?q=42&sort=field1,%5Cfield2,field3%3Cdouble%3E,%5Cfield4%3Clong%3E",
 				ConvertToString(
 					new LuceneQuery {
 						Query = "42",
@@ -135,7 +135,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldUseDebugModeIfSuppressCaching()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&debug=true",
+				"_design/dd/someIndex?q=42&debug=true",
 				ConvertToString(new LuceneQuery { Query = "42", SuppressCaching = true}));
 		}
 		
@@ -143,7 +143,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldNotUseDebugModeIfSuppressCachingFalse()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42",
+				"_design/dd/someIndex?q=42",
 				ConvertToString(new LuceneQuery { Query = "42", SuppressCaching = false}));
 		}
 
@@ -151,7 +151,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldSetDefaultOperatorToAndIfUseConjunctionSematicsIsTrue()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42&default_operator=AND",
+				"_design/dd/someIndex?q=42&default_operator=AND",
 				ConvertToString(new LuceneQuery { Query = "42", UseConjunctionSematics = true}));
 		}
 
@@ -159,7 +159,7 @@ namespace CouchDude.Tests.Unit.Impl
 		public void ShouldNotSetDefaultOperatorToAndIfUseConjunctionSematicsIsFalse()
 		{
 			Assert.Equal(
-				"_fti/_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery { Query = "42", UseConjunctionSematics = false}));
+				"_design/dd/someIndex?q=42", ConvertToString(new LuceneQuery { Query = "42", UseConjunctionSematics = false }));
 		}
 	}
 }

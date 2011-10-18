@@ -145,7 +145,7 @@ namespace CouchDude.Impl
 			}
 
 			var match = Regex.Match(
-				uri.ToString(), "^_fti/_design/(?<designDocName>.*?)/(?<indexName>.*?)(?:\\?(?<queryString>.*))?$");
+				uri.ToString(), "^_design/(?<designDocName>.*?)/(?<indexName>.*?)(?:\\?(?<queryString>.*))?$");
 			if (match.Success)
 			{
 				viewQuery = new LuceneQuery {
@@ -176,7 +176,10 @@ namespace CouchDude.Impl
 				return null;
 
 			var uri = new StringBuilder();
-			uri.Append("_fti/_design/").Append(viewQuery.DesignDocumentName).Append("/").Append(viewQuery.IndexName);
+			uri.Append("_design/")
+				 .Append(viewQuery.DesignDocumentName)
+				 .Append("/")
+				 .Append(viewQuery.IndexName);
 
 			var queryString = Serializer.ToQueryString(viewQuery);
 			if (queryString.Length > 0)

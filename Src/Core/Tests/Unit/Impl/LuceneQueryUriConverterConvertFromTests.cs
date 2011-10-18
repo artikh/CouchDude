@@ -36,28 +36,28 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldParseDesignDocumentName()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42");
 			Assert.Equal("dd", viewQuery.DesignDocumentName);
 		}
 
 		[Fact]
 		public void ShouldParseIndexName()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42");
 			Assert.Equal("someIndex", viewQuery.IndexName);
 		}
 
 		[Fact]
 		public void ShouldParseQuery()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=%e8%96%84%e8%8d%b7%e5%86%b0%e6%bc%a0%e6%b7%8b");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=%e8%96%84%e8%8d%b7%e5%86%b0%e6%bc%a0%e6%b7%8b");
 			Assert.Equal("薄荷冰漠淋", viewQuery.Query);
 		}
 		
 		[Fact]
 		public void ShouldParseSort()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&sort=%2ffield1%2c%5cfield2%2cfield3%3cdouble%3e%2c%5cfield4%3clong%3e");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&sort=%2ffield1%2c%5cfield2%2cfield3%3cdouble%3e%2c%5cfield4%3clong%3e");
 			Assert.Equal(4, viewQuery.Sort.Count);
 			Assert.Equal("field1", viewQuery.Sort[0].FieldName);
 			Assert.Equal("field2", viewQuery.Sort[1].FieldName);
@@ -76,56 +76,56 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldParseIncludeDocsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?key=%22key%22&include_docs=true");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?key=%22key%22&include_docs=true");
 			Assert.True(viewQuery.IncludeDocs);
 		}
 
 		[Fact]
 		public void ShouldParseNegativeIncludeDocsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&include_docs=false");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&include_docs=false");
 			Assert.False(viewQuery.IncludeDocs);
 		}
 
 		[Fact]
 		public void ShouldParseAbsentIncludeDocsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42");
 			Assert.False(viewQuery.IncludeDocs);
 		}
 
 		[Fact]
 		public void ShouldParseSkipOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&skip=42");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&skip=42");
 			Assert.Equal(42, viewQuery.Skip);
 		}
 
 		[Fact]
 		public void ShouldParseLimitOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&limit=42");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&limit=42");
 			Assert.Equal(42, viewQuery.Limit);
 		}
 
 		[Fact]
 		public void ShouldParseDefaultOperatorOR()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&default_operator=OR");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&default_operator=OR");
 			Assert.False(viewQuery.UseConjunctionSematics);
 		}
 
 		[Fact]
 		public void ShouldParseDefaultOperatorAND()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&default_operator=AND");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&default_operator=AND");
 			Assert.True(viewQuery.UseConjunctionSematics);
 		}
 
 		[Fact]
 		public void ShouldParseIncludeFieldsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&include_fields=field1%2cfield2%2cfield3");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&include_fields=field1%2cfield2%2cfield3");
 			Assert.Equal("field1", viewQuery.Fields.First());
 			Assert.Equal("field2", viewQuery.Fields.Skip(1).First());
 			Assert.Equal("field3", viewQuery.Fields.Skip(2).First());
@@ -134,56 +134,56 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldParseSingleIncludeFieldsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&include_fields=field");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&include_fields=field");
 			Assert.Equal("field", viewQuery.Fields.First());
 		}
 
 		[Fact]
 		public void ShouldParseEmptyIncludeFieldsOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&include_fields=");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&include_fields=");
 			Assert.Null(viewQuery.Fields);
 		}
 
 		[Fact]
 		public void ShouldParseStaleOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&stale=ok");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&stale=ok");
 			Assert.True(viewQuery.DoNotBlockIfStale);
 		}
 		
 		[Fact]
 		public void ShouldParseAnalyserOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&analyzer=snowball%3aEnglish");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&analyzer=snowball%3aEnglish");
 			Assert.Equal("snowball:English", viewQuery.Analyzer);
 		}
 
 		[Fact]
 		public void ShouldParsePositiveDebugOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&debug=true");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&debug=true");
 			Assert.True(viewQuery.SuppressCaching);
 		}
 
 		[Fact]
 		public void ShouldParseNegativeDebugOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&debug=false");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&debug=false");
 			Assert.False(viewQuery.SuppressCaching);
 		}
 
 		[Fact]
 		public void ShouldParseEmptyDebugOption()
 		{
-			var viewQuery = ConvertFromString("_fti/_design/dd/someIndex?q=42&debug=");
+			var viewQuery = ConvertFromString("_design/dd/someIndex?q=42&debug=");
 			Assert.False(viewQuery.SuppressCaching);
 		}
 		
 		[Theory]
 		[InlineData("http://examlpe.com")]
 		[InlineData("17dd470d57d04e62bc416d1aa5e2f7ba")]
-		[InlineData("_fti/_design/someView?kui=42")]
+		[InlineData("_design/someView?kui=42")]
 		public void ShouldNotThrowAtAnyInput(string input)
 		{
 			LuceneQuery viewQuery = null;

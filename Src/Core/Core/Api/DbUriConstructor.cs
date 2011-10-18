@@ -18,6 +18,7 @@
 
 using System;
 using System.Text;
+using CouchDude.Impl;
 using CouchDude.Utils;
 using JetBrains.Annotations;
 
@@ -27,13 +28,17 @@ namespace CouchDude.Api
 	{
 		public readonly string DatabaseName;
 		public readonly Uri DatabaseUri;
+		private readonly string databaseNameWithSlash;
 		private readonly Uri databaseUriWithSlash;
+		private readonly Uri databaseFtiEndpoint;
 		private Uri bulkUpdateUri;
 
 		public DbUriConstructor(UriConstructor parent, string databaseName): this()
 		{
 			DatabaseName = databaseName;
+			databaseFtiEndpoint = new Uri(new Uri(parent.ServerUri, "_fti/"), databaseName);
 			DatabaseUri = new Uri(parent.ServerUri, databaseName);
+			databaseNameWithSlash = databaseName + "/";
 			databaseUriWithSlash = new Uri(DatabaseUri + "/");
 		}
 
@@ -99,9 +104,17 @@ namespace CouchDude.Api
 		}
 
 		[Pure]
-		public Uri GetQueryUri(IQuery query)
+		public Uri GetQueryUri(ViewQuery query)
 		{
 			return new Uri(databaseUriWithSlash, query.ToUri());
+		}
+
+		[Pure]
+		public Uri GetQueryUri(LuceneQuery query)
+		{
+			var sectionFtiBaseUri = new Uri(databaseFtiEndpoint, query.SectionName + "/");
+			var databaseFtiBaseUri = new Uri(sectionFtiBaseUri, databaseNameWithSlash);
+			return new Uri(databaseFtiBaseUri, query.ToUri());
 		}
 	}
 }
