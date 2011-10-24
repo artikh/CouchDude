@@ -26,7 +26,7 @@ using CouchDude.Http;
 
 namespace CouchDude.Api
 {
-	internal class DatabaseApi : IDatabaseApi
+	internal partial class DatabaseApi : IDatabaseApi
 	{
 		private readonly IHttpClient httpClient;
 		private readonly DbUriConstructor uriConstructor;
@@ -43,7 +43,8 @@ namespace CouchDude.Api
 
 		public Task Create()
 		{
-			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri), httpClient)
+			return CouchApi.StartRequest(
+				new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri), httpClient)
 				.ContinueWith(
 					t => {
 						var response = t.Result;
@@ -54,10 +55,10 @@ namespace CouchDude.Api
 
 		public Task Delete()
 		{
-			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri), httpClient)
+			return CouchApi.StartRequest(
+				new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri), httpClient)
 				.ContinueWith(
-					t =>
-					{
+					t => {
 						var response = t.Result;
 						if (!response.IsSuccessStatusCode)
 						{
@@ -68,12 +69,14 @@ namespace CouchDude.Api
 					});
 		}
 
-		public Task<IDocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null)
+		public Task<IDocumentAttachment> RequestAttachment(
+			string attachmentId, string documentId, string documentRevision = null)
 		{
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
 
-			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachmentId, documentId, documentRevision);
+			var attachmentUri = uriConstructor.GetFullAttachmentUri(
+				attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Get, attachmentUri);
 			return CouchApi.StartRequest(requestMessage, httpClient)
 				.ContinueWith<IDocumentAttachment>(
@@ -92,12 +95,14 @@ namespace CouchDude.Api
 					});
 		}
 
-		public Task<DocumentInfo> SaveAttachment(IDocumentAttachment attachment, string documentId, string documentRevision = null)
+		public Task<DocumentInfo> SaveAttachment(
+			IDocumentAttachment attachment, string documentId, string documentRevision = null)
 		{
 			if (attachment == null) throw new ArgumentNullException("attachment");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
 
-			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachment.Id, documentId, documentRevision);
+			var attachmentUri = uriConstructor.GetFullAttachmentUri(
+				attachment.Id, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Put, attachmentUri);
 			return attachment
 				.OpenRead()
@@ -108,8 +113,7 @@ namespace CouchDude.Api
 					})
 				.Unwrap()
 				.ContinueWith(
-					rt =>
-					{
+					rt => {
 						var response = rt.Result;
 						if (!response.IsSuccessStatusCode)
 						{
@@ -121,17 +125,18 @@ namespace CouchDude.Api
 					});
 		}
 
-		public Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision = null)
+		public Task<DocumentInfo> DeleteAttachment(
+			string attachmentId, string documentId, string documentRevision = null)
 		{
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
 
-			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachmentId, documentId, documentRevision);
+			var attachmentUri = uriConstructor.GetFullAttachmentUri(
+				attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Delete, attachmentUri);
 			return CouchApi.StartRequest(requestMessage, httpClient)
 				.ContinueWith(
-					rt =>
-					{
+					rt => {
 						var response = rt.Result;
 						if (!response.IsSuccessStatusCode)
 						{
@@ -143,12 +148,13 @@ namespace CouchDude.Api
 						}
 						return ReadDocumentInfo(response);
 					});
-			
+
 		}
 
 		public Task<DatabaseInfo> RequestInfo()
 		{
-			return CouchApi.StartRequest(new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri), httpClient)
+			return CouchApi.StartRequest(
+				new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri), httpClient)
 				.ContinueWith(
 					t => {
 						var response = t.Result;
@@ -175,7 +181,7 @@ namespace CouchDude.Api
 		public Task<IDocument> RequestDocument(string documentId, string revision)
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
-			
+
 
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
@@ -198,7 +204,7 @@ namespace CouchDude.Api
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
 			if (string.IsNullOrEmpty(revision)) throw new ArgumentNullException("revision");
-			
+
 
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
@@ -216,50 +222,38 @@ namespace CouchDude.Api
 				});
 		}
 
-		public Task<DocumentInfo> SaveDocument(IDocument document)
+		public Task<DocumentInfo> SaveDocument(IDocument document) { return SaveDocument(document, overwriteConcurrentUpdates: false); }
+
+		public Task<DocumentInfo> SaveDocument(IDocument document, bool overwriteConcurrentUpdates)
 		{
 			if (document == null) throw new ArgumentNullException("document");
-			if (document.Id.HasNoValue()) 
+			if (document.Id.HasNoValue())
 				throw new ArgumentException("Document ID should not be empty or noll.", "document");
-			
 
-			var documentUri = uriConstructor.GetFullDocumentUri(document.Id);
-			var request = new HttpRequestMessage(HttpMethod.Put, documentUri) { Content = new JsonContent(document) };
-			return CouchApi.StartRequest(request, httpClient).ContinueWith(
-				rt => {
-					var response = rt.Result;
-					var documentId = document.Id;
-					if(!response.IsSuccessStatusCode)
-					{
-						var error = new CouchError(response);
-						error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-						error.ThrowStaleStateExceptionIfNedded("update", documentId);
-						error.ThrowInvalidDocumentExceptionIfNedded(documentId);
-						error.ThrowCouchCommunicationException();
-					}
-					return ReadDocumentInfo(response);
-				});
+			return DocumentSaver.StartSaving(this, document, overwriteConcurrentUpdates);
 		}
 
+
 		public Task<DocumentInfo> CopyDocument(
-			string originalDocumentId, 
-			string targetDocumentId, 
-			string originalDocumentRevision = null, 
+			string originalDocumentId,
+			string targetDocumentId,
+			string originalDocumentRevision = null,
 			string targetDocumentRevision = null)
 		{
-			if (string.IsNullOrEmpty(originalDocumentId)) 
+			if (string.IsNullOrEmpty(originalDocumentId))
 				throw new ArgumentNullException("originalDocumentId");
 			if (string.IsNullOrEmpty(targetDocumentId))
 				throw new ArgumentNullException("targetDocumentId");
 
-			var fullOriginalDocumentUri = uriConstructor.GetFullDocumentUri(originalDocumentId, originalDocumentRevision);
+			var fullOriginalDocumentUri = uriConstructor.GetFullDocumentUri(
+				originalDocumentId, originalDocumentRevision);
 			var request = new HttpRequestMessage(CopyHttpMethod, fullOriginalDocumentUri);
-			var targetDocumentUriString = uriConstructor.GetDocumentUriString(targetDocumentId, targetDocumentRevision);
+			var targetDocumentUriString = uriConstructor.GetDocumentUriString(
+				targetDocumentId, targetDocumentRevision);
 			request.Headers.AddWithoutValidation("Destination", targetDocumentUriString);
 
 			return CouchApi.StartRequest(request, httpClient).ContinueWith(
-				rt =>
-				{
+				rt => {
 					var response = rt.Result;
 
 					if (!response.IsSuccessStatusCode)
@@ -268,42 +262,45 @@ namespace CouchDude.Api
 						couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 						if (couchApiError.StatusCode == HttpStatusCode.Conflict)
 							throw new StaleObjectStateException(
-								"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected", 
-								originalDocumentId, 
-								originalDocumentRevision, 
-								targetDocumentId, 
+								"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected",
+								originalDocumentId,
+								originalDocumentRevision,
+								targetDocumentId,
 								targetDocumentRevision
-							);
+								);
 						couchApiError.ThrowCouchCommunicationException();
 					}
 					return ReadDocumentInfo(response);
 				});
 		}
 
-		private static readonly IDictionary<string, DocumentInfo> EmptyDictionary = new Dictionary<string, DocumentInfo>(0);
+		private static readonly IDictionary<string, DocumentInfo> EmptyDictionary =
+			new Dictionary<string, DocumentInfo>(0);
+
 		private static readonly HttpMethod CopyHttpMethod = new HttpMethod("COPY");
 
-		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
+		public Task<IDictionary<string, DocumentInfo>> BulkUpdate(
+			Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
 			if (updateCommandBuilder == null) throw new ArgumentNullException("updateCommandBuilder");
-			
+
 			var unitOfWork = new BulkUpdateBatch(uriConstructor);
 			updateCommandBuilder(unitOfWork);
-			return unitOfWork.IsEmpty 
-				? Task.Factory.StartNew(() => EmptyDictionary) 
+			return unitOfWork.IsEmpty
+				? Task.Factory.StartNew(() => EmptyDictionary)
 				: unitOfWork.Execute(httpClient, request => CouchApi.StartRequest(request, httpClient));
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string documentId)
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
-			
+
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
 			return CouchApi.StartRequest(request, httpClient).ContinueWith(
 				rt => {
 					var response = rt.Result;
-					
+
 					if (!response.IsSuccessStatusCode)
 					{
 						var couchApiError = new CouchError(response);
@@ -311,7 +308,7 @@ namespace CouchDude.Api
 						couchApiError.ThrowStaleStateExceptionIfNedded("update", documentId);
 						couchApiError.ThrowInvalidDocumentExceptionIfNedded(documentId);
 						if (response.StatusCode == HttpStatusCode.NotFound)
-							return (string)null;
+							return (string) null;
 						couchApiError.ThrowCouchCommunicationException();
 					}
 
@@ -325,12 +322,13 @@ namespace CouchDude.Api
 		public Task<IViewQueryResult> Query(ViewQuery query)
 		{
 			if (query == null) throw new ArgumentNullException("query");
-			if (query.Skip >= 10) throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
+			if (query.Skip >= 10)
+				throw new ArgumentException("Query skip should be less then 10. http://bit.ly/d9iUeF", "query");
 
 			return StartQuery(uriConstructor.GetQueryUri(query)).ContinueWith(
 				rt => {
 					var response = rt.Result;
-					if(!response.IsSuccessStatusCode)
+					if (!response.IsSuccessStatusCode)
 					{
 						var error = new CouchError(response);
 						error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
@@ -370,8 +368,8 @@ namespace CouchDude.Api
 		private static DocumentInfo ReadDocumentInfo(HttpResponseMessage response)
 		{
 			dynamic couchResponse = new JsonFragment(response.GetContentTextReader());
-			var id = (string)couchResponse.id;
-			var revision = (string)couchResponse.rev;
+			var id = (string) couchResponse.id;
+			var revision = (string) couchResponse.rev;
 
 			return new DocumentInfo(id, revision);
 		}

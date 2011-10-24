@@ -32,6 +32,10 @@ namespace CouchDude
 		/// <summary>Saves new document to CouchDB.</summary>
 		Task<DocumentInfo> SaveDocument(IDocument document);
 
+		/// <summary>Saves new document to CouchDB detecting conflicts and resolving them by discarding 
+		/// remote version of document in favour of local one.</summary>
+		Task<DocumentInfo> SaveDocument(IDocument document, bool overwriteConcurrentUpdates);
+
 		/// <summary>Creates new document by copying another document's content.</summary>
 		Task<DocumentInfo> CopyDocument(
 			string originalDocumentId,

@@ -59,7 +59,7 @@ namespace CouchDude.Api
 		}
 
 		[Pure]
-		public string GetDocumentUriString(string docId, string revision)
+		public string GetDocumentUriString(string docId, string revision = null)
 		{
 			var uriStringBuilder = new StringBuilder();
 			AppendDocId(uriStringBuilder, docId);

@@ -154,6 +154,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="Exceptions\LuceneIndexNotFoundException.cs" />
+    <Compile Include="Exceptions\RaceConditionDetectedException.cs" />
     <Compile Include="Exceptions\ViewNotFoundException.cs" />
     <Compile Include="Factory.cs" />
     <Compile Include="IDocumentAttachmentBag.cs" />
@@ -265,6 +266,7 @@
     <None Include="..\..\CouchDude.licenseheader">
       <Link>CouchDude.licenseheader</Link>
     </None>
+    <Compile Include="Api\DatabaseApi.DocumentSaver.cs" />
     <None Include="CouchDude.nuspec">
       <SubType>Designer</SubType>
     </None>

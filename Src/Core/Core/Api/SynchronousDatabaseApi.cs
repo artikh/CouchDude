@@ -47,6 +47,11 @@ namespace CouchDude.Api
 			return databaseApi.SaveDocument(document).WaitForResult();
 		}
 
+		public DocumentInfo SaveDocument(IDocument document, bool overwriteConcurrentUpdates) 
+		{
+			return databaseApi.SaveDocument(document, overwriteConcurrentUpdates).WaitForResult();
+		}
+
 		public DocumentInfo CopyDocument(
 			string originalDocumentId, 
 			string targetDocumentId, 

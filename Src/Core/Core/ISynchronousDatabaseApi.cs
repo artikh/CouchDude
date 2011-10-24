@@ -30,6 +30,10 @@ namespace CouchDude
 
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
 		DocumentInfo SaveDocument(IDocument document);
+
+		/// <summary>Saves new document to CouchDB detecting conflicts and resolving them by discarding 
+		/// remote version of document in favour of local one. Client code waits on result.</summary>
+		DocumentInfo SaveDocument(IDocument document, bool overwriteConcurrentUpdates);
 		
 		/// <summary>Creates new document by copying another document's content.</summary>
 		DocumentInfo CopyDocument(

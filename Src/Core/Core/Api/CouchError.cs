@@ -118,11 +118,13 @@ namespace CouchDude.Api
 
 		public void ThrowStaleStateExceptionIfNedded(string operation, string docId, string revision = null) 
 		{
-			if (StatusCode == HttpStatusCode.Conflict)
+			if (IsConflict)
 				throw CreateStaleStateException(operation, docId, revision);
 		}
 
-		public Exception CreateStaleStateException(string operation, string docId, string revision)
+		public bool IsConflict { get { return StatusCode == HttpStatusCode.Conflict; } }
+
+		public Exception CreateStaleStateException(string operation, string docId, string revision = null)
 		{
 			if (revision.HasValue())
 				return new StaleObjectStateException(
@@ -179,7 +181,7 @@ namespace CouchDude.Api
 
 		public bool IsAttachmentMissingFromDocument { get { return StatusCode == HttpStatusCode.NotFound && Reason == AttachmentMissing; } }
 
-		public bool IsDatabaseMissing { get { return StatusCode == HttpStatusCode.NotFound && Reason == NoDbFile; } }
+		public bool IsDatabaseMissing { get { return Error == NotFound && Reason == NoDbFile; } }
 
 		public override string ToString() 
 		{
