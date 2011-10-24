@@ -1,8 +1,4 @@
 properties {
-    if ($version -eq $null) {
-        throw "Version should be declared explictly"
-    }    
-
     $config = 'Debug'
     $isDebug = $conifg -eq 'Debug'
     
@@ -10,9 +6,17 @@ properties {
     $rootDir = (resolve-path ..).Path;
     $buildDir = "$rootDir\Build";   
     $srcDir = "$rootDir\Src";
+
+
+    if ($version -eq $null) {
+        $globalAssemblyInfo = (cat "$srcDir\GlobalAssemblyInfo.cs")
+
+        $match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
+        $version = $match.Groups[1].Value
+    }
 }
 
-task default -depends test, package
+task default -depends setVersion, test, package
 
 task clean {
     if(test-path $buildDir) {
@@ -22,25 +26,26 @@ task clean {
 }
 
 task setVersion {
-  $assemblyInfoFileName = "$srcDir\GlobalAssemblyInfo.cs"
+    $assemblyInfoFileName = "$srcDir\GlobalAssemblyInfo.cs"
   
-  $assembyInfo = [System.IO.File]::ReadAllText($assemblyInfoFileName)
-  $assembyInfo = $assembyInfo -replace "Version\((.*)\)]", "Version(`"$version`")]"
-  
-  $assembyInfo.Trim() > $assemblyInfoFileName
+    $assembyInfo = [System.IO.File]::ReadAllText($assemblyInfoFileName)
+    $assembyInfo = $assembyInfo -replace "Version\((.*)\)]", "Version(`"$version`")]"
+    $assembyInfo.Trim() > $assemblyInfoFileName
 }
 
-task buildCore -depends clean, setVersion {
+task buildCore -depends clean {
     exec { msbuild $rootDir\Src\Core\CouchDude.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
 
-task buildSchemeManager -depends clean, setVersion, updateSchemeManager {
+task buildSchemeManager -depends clean, updateSchemeManager {
     exec { msbuild $rootDir\Src\SchemeManager\SchemeManager.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
 
-task buildBootstrapper -depends clean, setVersion, updateBootstrapperPackages {
+task buildBootstrapper -depends clean, updateBootstrapperPackages {
     exec { msbuild $rootDir\Src\Bootstrapper\Bootstrapper.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
 }
+
+task build -depends buildCore, buildSchemeManager, buildBootstrapper
 
 function updatePackages([string]$solutionFile) {
     exec { ..\tools\nuget\NuGet.exe update $solutionFile -Source "https://go.microsoft.com/fwlink/?LinkID=206669";"$buildDir"  }

@@ -31,7 +31,7 @@ namespace CouchDude.Api
 					jObject.Properties().Select(p => p.Name).Where(pn => pn.StartsWith("_replication_")).ToArray())
 				jObject.Remove(propertyToRemove);
 
-			return replicatorDbApi.SaveDocument(document).ContinueWith(
+			return replicatorDbApi.SaveDocument(document, overwriteConcurrentUpdates: true).ContinueWith(
 				saveTask => {
 					replicationTask.Revision = saveTask.Result.Revision;
 					return saveTask.Result;

@@ -32,25 +32,45 @@ $versionSegments[$lastVersionSegmentIndex] = $lastVersion.ToString()
 $suggestedNewVersion = [string]::Join('.', $versionSegments)
 
 try {
-    $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]:")
+    $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]")
 } catch { }
-if($newVersion.Length -lt 5) {
-    Write-Host "Using suggested version"
-    $newVersion = $suggestedNewVersion
+
+if ($newVersion.StartsWith('c')) {
+    Write-Host "Using current version"
+    $newVersion = $currentVersion
+} else {
+    Write-Host "Using version $newVersion"
 }
 
-Write-Host "New version is: $newVersion"
+try {
+    $taskList = (Read-Host -Prompt "Enter task list [default]")
+} catch { }
+
+if($taskList -eq $null -or $taskList -eq '') {
+    $taskList = ('default')
+}
+
+try {
+    $commit = (Read-Host -Prompt "Commit and create tag? [False]")
+} catch { }
+
+if($commit -ne $null -and $commit.StartsWith('t')) {
+    $commit = $true
+} else {
+    $commit = $false
+}
+
 Write-Host "Building..."
 
 $currentDir = (pwd)
 try {
     cd .\Scripts; 
-    Invoke-Psake .\build.ps1 -framework 4.0x64 -parameters @{ version=$newVersion; config='Release' }; 
+    Invoke-Psake .\build.ps1 -framework 4.0x64 -parameters @{ version=$newVersion; config='Release' } -taskList $taskList; 
 } finally {
     cd $currentDir
 }
 
-if ($psake.build_success) {
+if ($psake.build_success -and $commit) {
     Write-Host "Committing changes"
     exec { git add -u }
     exec { git commit -m "v$newVersion" }

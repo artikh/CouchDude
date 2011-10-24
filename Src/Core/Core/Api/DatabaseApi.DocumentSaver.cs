@@ -42,7 +42,7 @@ namespace CouchDude.Api
 					// ReSharper restore PossibleNullReferenceException
 				else if (attemptTask.IsCanceled)
 					completionSource.TrySetCanceled();
-				else if (attemptTask.Result.Equals(default(DocumentInfo))) // i.e. no conflict detected 
+				else if (!attemptTask.Result.Equals(default(DocumentInfo))) // i.e. no conflict detected 
 					completionSource.TrySetResult(attemptTask.Result);
 				else if (--overwriteAttemptsLeft <= 0)
 					completionSource.TrySetException(
