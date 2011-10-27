@@ -35,7 +35,7 @@ try {
     $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]")
 } catch { }
 
-if ($newVersion.StartsWith('c')) {
+if ($newVersion.ToLower().StartsWith('c')) {
     Write-Host "Using current version"
     $newVersion = $currentVersion
 } else {
@@ -54,7 +54,7 @@ try {
     $commit = (Read-Host -Prompt "Commit and create tag? [False]")
 } catch { }
 
-if($commit -ne $null -and $commit.StartsWith('t')) {
+if($commit -ne $null -and ($commit.ToLower().StartsWith('t') -or $commit.ToLower().StartsWith('y'))) {
     $commit = $true
 } else {
     $commit = $false

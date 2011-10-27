@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using CouchDude.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -63,17 +64,16 @@ namespace CouchDude.Api
 
 			if (reader.TokenType == JsonToken.String)
 			{
-				var stringValue = reader.Value.ToString();
-				if (string.IsNullOrEmpty(stringValue) && isNullable)
-					return null;
+				var dateTimeOffset = FlexibleIso8601DateTimeParser.TryParse(reader.Value.ToString());
 
-				var dateTimeOffset = DateTimeOffset.Parse(stringValue, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind);
+				if (dateTimeOffset == null)
+					return isNullable? Activator.CreateInstance(actualType): null;
 
 				if (actualType == typeof (DateTimeOffset))
-					return dateTimeOffset;
+					return dateTimeOffset.Value;
 
 				if (actualType == typeof(DateTime))
-					return dateTimeOffset.UtcDateTime;
+					return dateTimeOffset.Value.UtcDateTime;
 
 				throw new ParseException("Unexpected target type {0}.", actualType);
 			}

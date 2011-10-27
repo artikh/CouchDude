@@ -30,7 +30,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var sessionFactory = Default.Settings.CreateSessionFactory();
 
-			const string randomDbName = "a3438f034223481d8a7673f578b63098";
+			const string randomDbName = "a3438f0342234";
 			
 			using (var session = sessionFactory.CreateSession(databaseName: randomDbName))
 				Assert.Throws<DatabaseMissingException>(() => session.Synchronously.Load<Entity>("doc1"));
