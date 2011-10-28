@@ -31,16 +31,29 @@ $lastVersion++
 $versionSegments[$lastVersionSegmentIndex] = $lastVersion.ToString()
 $suggestedNewVersion = [string]::Join('.', $versionSegments)
 
-try {
-    $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]")
-} catch { }
+while($true) {
+    try {
+        $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]")
+    } catch { }
 
-if ($newVersion.ToLower().StartsWith('c')) {
-    Write-Host "Using current version"
-    $newVersion = $currentVersion
-} else {
-    Write-Host "Using version $newVersion"
+    if ($newVersion.ToLower().StartsWith('c')) {
+        Write-Host "Using current version"
+        $newVersion = $currentVersion
+    } else {
+        if ($newVersion.Length -eq 0) {
+            $newVersion = $suggestedNewVersion;
+        }
+        Write-Host "Using version $newVersion"
+    }
+
+    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
+        Write-Host "Version is malformed please try again"
+    }
+    else {
+        break
+    }
 }
+
 
 try {
     $taskList = (Read-Host -Prompt "Enter task list [default]")
