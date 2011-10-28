@@ -86,7 +86,7 @@ try {
 if ($psake.build_success -and $commit) {
     Write-Host "Committing changes"
     exec { git add -u }
-    exec { git commit -m "v$newVersion" }
+    exec { git commit }
 
     Write-Host "Creating tag"
     exec { git tag -f "v$newVersion" }
