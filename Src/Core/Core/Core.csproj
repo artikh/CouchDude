@@ -83,6 +83,9 @@
     <Reference Include="Common.Logging">
       <HintPath>..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
     </Reference>
+    <Reference Include="JetBrains.Annotations">
+      <HintPath>..\packages\JetBrains.Annotations.6.1\lib\JetBrains.Annotations.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Json">
       <HintPath>..\packages\JsonValue.0.5.0\lib\40\Microsoft.Json.dll</HintPath>
     </Reference>
@@ -248,7 +251,6 @@
     <Compile Include="Configuration\Builders\ScanDescriptor.cs" />
     <Compile Include="Configuration\Builders\SettingsBuilderDetour.cs" />
     <Compile Include="Configuration\Builders\SingleEntityConfigBuilder.cs" />
-    <Compile Include="Utils\JetBrainsAnnotations.cs" />
     <Compile Include="Utils\StringUtils.cs" />
     <Compile Include="Utils\UriUtils.cs" />
     <Compile Include="ConfigureCouchDude.cs" />
