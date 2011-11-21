@@ -6,7 +6,14 @@ properties {
     $rootDir = (resolve-path ..).Path;
     $buildDir = "$rootDir\Build";   
     $srcDir = "$rootDir\Src";
-
+    
+    if ($packageDir -eq $null) {
+        if (test-path "C:\Dev\Packages") {
+            $packageDir = "C:\Dev\Packages"
+        } else {
+            $packageDir = $buildDir
+        }
+    }
 
     if ($version -eq $null) {
         $globalAssemblyInfo = (cat "$srcDir\GlobalAssemblyInfo.cs")
@@ -48,7 +55,7 @@ task buildBootstrapper -depends clean, updateBootstrapperPackages {
 task build -depends buildCore, buildSchemeManager, buildBootstrapper
 
 function updatePackages([string]$solutionFile) {
-    exec { ..\tools\nuget\NuGet.exe update $solutionFile -Source "https://go.microsoft.com/fwlink/?LinkID=206669";"$buildDir"  }
+    exec { ..\tools\nuget\NuGet.exe update $solutionFile -Source "https://go.microsoft.com/fwlink/?LinkID=206669";"$packageDir"  }
 }
 
 task updateBootstrapperPackages -depends buildCore {
@@ -111,7 +118,7 @@ function createOrClear($dirName) {
 }
 
 function packNuGet([string]$nuspecFile) {
-    exec { ..\tools\nuget\NuGet.exe pack $nuspecFile -OutputDirectory $buildDir }    
+    exec { ..\tools\nuget\NuGet.exe pack $nuspecFile -OutputDirectory $packageDir }    
 }
 
 function prepareAndPackage([string]$templateNuSpec, [array]$fileTemplates) {

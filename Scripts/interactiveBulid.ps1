@@ -12,7 +12,7 @@ function exec
 }
 
 if ( (get-command invoke-psake -ErrorAction SilentlyContinue) -eq $null ) {    
-    Import-Module .\psake.psm1
+    Import-Module .\Scripts\psake.psm1
 }
 
 $globalAssemblyInfo = (cat .\Src\GlobalAssemblyInfo.cs)
@@ -91,6 +91,7 @@ if ($psake.build_success -and $commit) {
     Write-Host "Creating tag"
     exec { git tag -f "v$newVersion" }
 }
+
 
 Write-Host "Press any key to continue ..."
 $x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
