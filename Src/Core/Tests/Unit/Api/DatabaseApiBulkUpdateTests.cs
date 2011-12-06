@@ -98,20 +98,24 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldCreateUpdateCreateAndDeleteRecordsInBulkUpdateRequest()
 		{
-			var handler = new MockMessageHandler(new[] {
-				new {id = "doc1", rev = "2-1a517022a0c2d4814d51abfedf9bfee7"},
-				new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
-				new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
-				new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
-			}.ToJsonString());
-
+			var handler = new MockMessageHandler(
+				new[] {
+					new {id = "doc1", rev = "2-1a517022a0c2d4814d51abfedf9bfee7"},
+					new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
+					new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
+					new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
+				}.ToJsonString());
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var result = databaseApi.Synchronously.BulkUpdate(
 				x => {
-					x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument());
-					x.Update(new { _id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42 }.ToDocument());
-					x.Delete(new { _id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", name = "John", age = 42 }.ToDocument());
+					x.Create(new {_id = "doc1", name = "John", age = 42}.ToDocument());
+					x.Update(
+						new {_id = "doc2", _rev = "1-1a517022a0c2d4814d51abfedf9bfee8", name = "John", age = 42}.
+							ToDocument());
+					x.Delete(
+						new {_id = "doc3", _rev = "1-1a517022a0c2d4814d51abfedf9bfee9", name = "John", age = 42}.
+							ToDocument());
 					x.Delete("doc4", "1-1a517022a0c2d4814d51abfedf9bfee0");
 				});
 
@@ -126,7 +130,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			var sendDescriptor = handler.RequestBody;
 			Assert.Equal(expectedDescriptor, sendDescriptor);
-			
+
 			Assert.Equal("2-1a517022a0c2d4814d51abfedf9bfee7", result["doc1"].Revision);
 			Assert.Equal("2-1a517022a0c2d4814d51abfedf9bfee8", result["doc2"].Revision);
 			Assert.Equal("1-1a517022a0c2d4814d51abfedf9bfee9", result["doc3"].Revision);

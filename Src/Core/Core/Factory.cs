@@ -32,7 +32,7 @@ namespace CouchDude
 			if(settings == null) throw new ArgumentNullException("settings");
 			if(settings.Incomplete) throw new ArgumentException("Settings object initalization have not finished yet.", "settings");
 
-			return new CouchSessionFactory(settings, CreateCouchApi(settings.ServerUri));
+			return new CouchSessionFactory(settings, s => CreateCouchApi(s.ServerUri));
 		}
 		
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>

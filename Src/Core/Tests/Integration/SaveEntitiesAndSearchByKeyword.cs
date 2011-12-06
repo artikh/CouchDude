@@ -60,7 +60,7 @@ namespace CouchDude.Tests.Integration
 			}
 		}
 
-		[Fact(Skip = "Do not work for some reason :)")]
+		[Fact/*(Skip = "Do not work for some reason :)")*/]
 		public void ShouldSaveTwoEntitiesAndFindTheyByKeyword()
 		{
 			var sessionFactory = Default.Settings.CreateSessionFactory();

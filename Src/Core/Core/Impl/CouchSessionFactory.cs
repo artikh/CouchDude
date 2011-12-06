@@ -29,29 +29,29 @@ namespace CouchDude.Impl
 	/// <summary>Session factory implementation.</summary>
 	public class CouchSessionFactory: ISessionFactory
 	{
-		private readonly ICouchApi couchApi;
 		private readonly Settings settings;
+		private readonly Func<Settings, ICouchApi> couchApiFactory;
 
 		/// <constructor />
-		internal CouchSessionFactory(Settings settings, ICouchApi couchApi)
+		internal CouchSessionFactory(Settings settings, Func<Settings, ICouchApi> couchApiFactory)
 		{
 			if (settings == null) throw new ArgumentNullException("settings");
-			if (couchApi == null) throw new ArgumentNullException("couchApi");
+			if (couchApiFactory == null) throw new ArgumentNullException("couchApiFactory");
 
 			this.settings = settings;
-			this.couchApi = couchApi;
+			this.couchApiFactory = couchApiFactory;
 		}
 
 		/// <inheritdoc/>
 		public ISession CreateSession()
 		{
-			return new CouchSession(settings, couchApi);
+			return new CouchSession(settings, couchApiFactory(settings));
 		}
 
 		/// <inheritdoc/>
 		public ISession CreateSession(string databaseName)
 		{
-			return new CouchSession(databaseName, settings, couchApi);
+			return new CouchSession(databaseName, settings, couchApiFactory(settings));
 		}
 	}
 }

@@ -28,13 +28,7 @@ namespace CouchDude.Tests
 		private readonly Exception exception;
 		private readonly HttpResponseMessage response;
 		public HttpRequestMessage Request { get; private set; }
-		public string RequestBody
-		{
-			get
-			{
-				return Request.Content.ReadAsStringAsync().Result;
-			}
-		}
+		public string RequestBody { get; private set; }
 
 		public MockMessageHandler(string responseText) : this(HttpStatusCode.OK, responseText) { }
 
@@ -58,6 +52,7 @@ namespace CouchDude.Tests
 			HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
 		{
 			Request = request;
+			RequestBody = Request.Content != null? Request.Content.ReadAsStringAsync().Result: null;
 			return Task.Factory.StartNew(() => SendInternal());
 		}
 

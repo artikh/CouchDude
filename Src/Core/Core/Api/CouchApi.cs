@@ -78,29 +78,29 @@ namespace CouchDude.Api
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal async Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
+		internal Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
 		{
-			try
-			{
-				return await SendAsync(request);
-			}
-			catch(AggregateException aggregateException)
-			{
-				// ReSharper disable PossibleNullReferenceException
-				var innerExceptions = aggregateException.InnerExceptions;
-				// ReSharper restore PossibleNullReferenceException
+			return SendAsync(request).ContinueWith(
+				st => {
+					if(!st.IsFaulted)
+						return st.Result;
+					var aggregateException = st.Exception;
+					
+					// ReSharper disable PossibleNullReferenceException
+					var innerExceptions = aggregateException.InnerExceptions;
+					// ReSharper restore PossibleNullReferenceException
 
-				var newInnerExceptions = new Exception[innerExceptions.Count];
-				for (var i = 0; i < innerExceptions.Count; i++)
-				{
-					var e = innerExceptions[i];
-					newInnerExceptions[i] =
-						e is WebException || e is SocketException || e is HttpRequestException
-							? new CouchCommunicationException(e)
-							: e;
-				}
-				throw new AggregateException(aggregateException.Message, newInnerExceptions);
-			}
+					var newInnerExceptions = new Exception[innerExceptions.Count];
+					for (var i = 0; i < innerExceptions.Count; i++)
+					{
+						var e = innerExceptions[i];
+						newInnerExceptions[i] =
+							e is WebException || e is SocketException || e is HttpRequestException
+								? new CouchCommunicationException(e)
+								: e;
+					}
+					throw new AggregateException(aggregateException.Message, newInnerExceptions);
+			});
 		}
 	}
 }
