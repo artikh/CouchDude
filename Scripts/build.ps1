@@ -40,16 +40,20 @@ task setVersion {
     $assembyInfo.Trim() > $assemblyInfoFileName
 }
 
+function build($msbuildFile) {
+    exec { msbuild $msbuildFile /nologo /p:Config=$config /p:Platform='Any Cpu' /maxcpucount /verbosity:minimal }    
+}
+
 task buildCore -depends clean {
-    exec { msbuild $rootDir\Src\Core\CouchDude.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
+    build "$rootDir\Src\Core\CouchDude.sln"
 }
 
 task buildSchemeManager -depends clean, updateSchemeManager {
-    exec { msbuild $rootDir\Src\SchemeManager\SchemeManager.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
+    build "$rootDir\Src\SchemeManager\SchemeManager.sln"
 }
 
 task buildBootstrapper -depends clean, updateBootstrapperPackages {
-    exec { msbuild $rootDir\Src\Bootstrapper\Bootstrapper.sln /nologo /p:Config=$config /maxcpucount /verbosity:minimal }
+    build "$rootDir\Src\Bootstrapper\Bootstrapper.sln"
 }
 
 task build -depends buildCore, buildSchemeManager, buildBootstrapper
