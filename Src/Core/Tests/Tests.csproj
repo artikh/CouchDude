@@ -90,7 +90,7 @@
     <Compile Include="Integration\SaveEntitiesAndSearchByKeyword.cs" />
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
-    <Compile Include="HttpClientMock.cs" />
+    <Compile Include="MockMessageHandler.cs" />
     <Compile Include="SampleData\Default.cs" />
     <Compile Include="SampleData\IEntity.cs" />
     <Compile Include="SampleData\SimpleDerivedEntity.cs" />

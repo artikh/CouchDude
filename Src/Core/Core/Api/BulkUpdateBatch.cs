@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using CouchDude.Http;
 using CouchDude.Utils;
 
 namespace CouchDude.Api
@@ -112,8 +111,7 @@ namespace CouchDude.Api
 
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
-		public Task<IDictionary<string, DocumentInfo>> Execute(
-			IHttpClient httpClient, Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
+		public Task<IDictionary<string, DocumentInfo>> Execute(Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
 			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
 			var request =

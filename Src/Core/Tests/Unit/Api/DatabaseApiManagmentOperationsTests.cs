@@ -19,7 +19,6 @@
 using System;
 using System.Net;
 using System.Net.Http;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -37,13 +36,13 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSendDeleteRequestToDatabase()
 		{
-			HttpClientMock httpClientMock;
-			var databaseApi = GetDbApi(HttpStatusCode.OK, "{\"ok\":true}", out httpClientMock);
+			MockMessageHandler handler;
+			var databaseApi = GetDbApi(HttpStatusCode.OK, "{\"ok\":true}", out handler);
 
 			databaseApi.Synchronously.Delete();
 
-			Assert.Equal(HttpMethod.Delete, httpClientMock.Request.Method);
-			Assert.Null(httpClientMock.Request.Content);
+			Assert.Equal(HttpMethod.Delete, handler.Request.Method);
+			Assert.Null(handler.Request.Content);
 		}
 
 		[Fact]
@@ -58,13 +57,13 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldPutRequestToDatabase()
 		{
-			HttpClientMock httpClientMock;
-			var databaseApi = GetDbApi(HttpStatusCode.OK, "{\"ok\":true}", out httpClientMock);
+			MockMessageHandler mockMessageHandler;
+			var databaseApi = GetDbApi(HttpStatusCode.OK, "{\"ok\":true}", out mockMessageHandler);
 
 			databaseApi.Synchronously.Create();
 
-			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
-			Assert.Null(httpClientMock.Request.Content);
+			Assert.Equal(HttpMethod.Put, mockMessageHandler.Request.Method);
+			Assert.Null(mockMessageHandler.Request.Content);
 		}
 
 		[Fact]
@@ -103,13 +102,13 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSendGetRequestForInfo()
 		{
-			HttpClientMock httpClientMock;
-			var databaseApi = GetDbApi(HttpStatusCode.OK, SampleDbInfoString, out httpClientMock);
+			MockMessageHandler mockMessageHandler;
+			var databaseApi = GetDbApi(HttpStatusCode.OK, SampleDbInfoString, out mockMessageHandler);
 
 			databaseApi.Synchronously.RequestInfo();
 
-			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
-			Assert.Null(httpClientMock.Request.Content);
+			Assert.Equal(HttpMethod.Get, mockMessageHandler.Request.Method);
+			Assert.Null(mockMessageHandler.Request.Content);
 		}
 
 		[Fact]
@@ -143,57 +142,57 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldRetriveDatabaseListUsingGetRequest() 
 		{
-			HttpClientMock httpClientMock;
-			var databaseApi = GetCouchApi(HttpStatusCode.OK, "[\"_replicator\",\"_users\",\"testdb\"]", out httpClientMock);
+			MockMessageHandler mockMessageHandler;
+			var databaseApi = GetCouchApi(HttpStatusCode.OK, "[\"_replicator\",\"_users\",\"testdb\"]", out mockMessageHandler);
 			databaseApi.Synchronously.RequestAllDbNames();
 
-			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
-			Assert.Equal("http://example.com:5984/_all_dbs", httpClientMock.Request.RequestUri.ToString());
-			Assert.Null(httpClientMock.Request.Content);
+			Assert.Equal(HttpMethod.Get, mockMessageHandler.Request.Method);
+			Assert.Equal("http://example.com:5984/_all_dbs", mockMessageHandler.Request.RequestUri.ToString());
+			Assert.Null(mockMessageHandler.Request.Content);
 		}
 
 		[Fact]
 		public void ShouldRetriveDatabaseList() 
 		{
-			HttpClientMock httpClientMock;
-			var databaseApi = GetCouchApi(HttpStatusCode.OK, "[\"_replicator\",\"_users\",\"testdb\"]", out httpClientMock);
+			MockMessageHandler mockMessageHandler;
+			var databaseApi = GetCouchApi(HttpStatusCode.OK, "[\"_replicator\",\"_users\",\"testdb\"]", out mockMessageHandler);
 			databaseApi.Synchronously.RequestAllDbNames();
 
-			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
-			Assert.Equal("http://example.com:5984/_all_dbs", httpClientMock.Request.RequestUri.ToString());
-			Assert.Null(httpClientMock.Request.Content);
+			Assert.Equal(HttpMethod.Get, mockMessageHandler.Request.Method);
+			Assert.Equal("http://example.com:5984/_all_dbs", mockMessageHandler.Request.RequestUri.ToString());
+			Assert.Null(mockMessageHandler.Request.Content);
 		}
 
 		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString)
 		{
-			HttpClientMock httpClientMock;
-			return GetDbApi(statusCode, responseString, out httpClientMock);
+			MockMessageHandler mockMessageHandler;
+			return GetDbApi(statusCode, responseString, out mockMessageHandler);
 		}
 
-		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString, out HttpClientMock httpClientMock)
+		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString, out MockMessageHandler handler)
 		{
-			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode) {
+			handler = new MockMessageHandler(new HttpResponseMessage(statusCode) {
 				Content = new StringContent(responseString)
 			});
-			return GetDbApi(httpClientMock);
+			return GetDbApi(handler);
 		}
 
-		private static IDatabaseApi GetDbApi(IHttpClient httpClient)
+		private static IDatabaseApi GetDbApi(MockMessageHandler handler)
 		{
-			return GetCouchApi(httpClient).Db("testdb");
+			return GetCouchApi(handler).Db("testdb");
 		}
 
-		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseString, out HttpClientMock httpClientMock)
+		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseString, out MockMessageHandler handler)
 		{
-			httpClientMock = new HttpClientMock(new HttpResponseMessage(statusCode) {
+			handler = new MockMessageHandler(new HttpResponseMessage(statusCode){
 				Content = new StringContent(responseString)
 			});
-			return GetCouchApi(httpClientMock);
+			return GetCouchApi(handler);
 		}
 
-		private static ICouchApi GetCouchApi(IHttpClient httpClient)
+		private static ICouchApi GetCouchApi(MockMessageHandler handler)
 		{
-			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpClient);
+			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler);
 		}
 	}
 }

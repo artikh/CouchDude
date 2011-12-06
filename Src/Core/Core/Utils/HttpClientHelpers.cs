@@ -17,12 +17,11 @@
 #endregion
 
 using System;
-
 using System.IO;
 using System.Net.Http;
 using System.Text;
 
-namespace CouchDude.Http
+namespace CouchDude.Utils
 {
 	/// <summary>Extension methods for <see cref="System.Net.Http"/> API.</summary>
 	internal static class HttpClientHelpers

@@ -22,7 +22,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -32,7 +31,8 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldMapTipicalResponseToGetAllQuery()
 		{
-			var httpClientMock = new HttpClientMock(new {
+			var handler = new MockMessageHandler(new
+			{
 				total_rows = 2,
 				offset = 1,
 				rows = new [] {
@@ -45,7 +45,7 @@ namespace CouchDude.Tests.Unit.Api
 				}
 			}.ToJsonString());
 
-			var couchApi = GetDatabaseApi(httpClientMock);
+			var couchApi = GetDatabaseApi(handler);
 			var result = couchApi.Synchronously.Query(
 				new ViewQuery {
 					ViewName = "_all_docs",
@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound) {
+			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 
@@ -82,7 +82,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSendGetRequestForGetAllQuery()
 		{
-			var httpClientMock = new HttpClientMock(new {
+			var httpClientMock = new MockMessageHandler(new {
 				total_rows = 2,
 				offset = 1,
 				rows = new object [0]	
@@ -123,7 +123,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
 			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest)
+				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
@@ -143,9 +143,9 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static IDatabaseApi GetDatabaseApi(IHttpClient httpClientMock = null)
+		private static IDatabaseApi GetDatabaseApi(MockMessageHandler handler = null)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock ?? new HttpClientMock()).Db("testdb");
+			return Factory.CreateCouchApi("http://example.com:5984/", handler ?? new MockMessageHandler()).Db("testdb");
 		}
 	}
 }

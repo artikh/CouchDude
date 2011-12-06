@@ -226,7 +226,10 @@ namespace CouchDude.Impl
 		private void Dispose(bool disposing)
 		{
 			if (disposing)
+			{
+				couchApi.Dispose();
 				unitOfWork.Clear();
+			}
 		}
 	}
 }

@@ -20,7 +20,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using CouchDude.Http;
 using CouchDude.Utils;
 using JetBrains.Annotations;
 
@@ -60,7 +59,9 @@ namespace CouchDude.Api
 			StatusCode = response.StatusCode;
 
 			// last resort values
+			// ReSharper disable SpecifyACultureInStringConversionExplicitly
 			Error = response.StatusCode.ToString();
+			// ReSharper restore SpecifyACultureInStringConversionExplicitly
 			Reason = response.ReasonPhrase;
 
 			if (response.Content == null) return;

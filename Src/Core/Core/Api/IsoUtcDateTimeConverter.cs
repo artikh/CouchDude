@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using CouchDude.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;

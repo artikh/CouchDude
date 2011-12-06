@@ -17,59 +17,56 @@
 #endregion
 
 using System;
-using System.Net; 
-using CouchDude.Http;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace CouchDude.Tests
 {
-	internal class HttpClientMock: IHttpClient
+	internal class MockMessageHandler : HttpMessageHandler
 	{
 		private readonly Exception exception;
 		private readonly HttpResponseMessage response;
+		public HttpRequestMessage Request { get; private set; }
 
-		public HttpClientMock(string responseText): this(HttpStatusCode.OK, responseText) { }
+		public MockMessageHandler(string responseText) : this(HttpStatusCode.OK, responseText) { }
 
-		public HttpClientMock(HttpStatusCode code, string responseText)
+		public MockMessageHandler(HttpStatusCode code, string responseText)
+			: this(new HttpResponseMessage {StatusCode = code, Content = new StringContent(responseText)}) { }
+
+		public MockMessageHandler(HttpResponseMessage response = null)
 		{
-			response =
+			this.response = response
+				??
 				new HttpResponseMessage
-					{
-						StatusCode = code,
-						Content = new StringContent(responseText)
-					};
+				{StatusCode = HttpStatusCode.OK, Content = new StringContent("\"ok\":true")};
 		}
 
-		public HttpClientMock(HttpResponseMessage response = null)
-		{
-			this.response = response ?? new HttpResponseMessage {StatusCode = HttpStatusCode.OK, Content = new StringContent("\"ok\":true")};
-		}
-
-		public HttpClientMock(Exception exception)
+		public MockMessageHandler(Exception exception)
 		{
 			this.exception = exception;
 		}
-
-		public HttpRequestMessage Request { get; private set; }
-
-		public Task<HttpResponseMessage> StartRequest(HttpRequestMessage requestMessage)
+		
+		protected override HttpResponseMessage Send(
+			HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
 		{
-			Request = requestMessage;
-			return Task.Factory.StartNew(
-				() => {
-					if (exception != null)
-						throw exception;
-					return response;
-				});
+			Request = request;
+			return SendInternal();
 		}
 
-		public HttpResponseMessage MakeRequest(HttpRequestMessage requestMessage)
+		protected override Task<HttpResponseMessage> SendAsync(
+			HttpRequestMessage request, System.Threading.CancellationToken cancellationToken)
+		{
+			Request = request;
+			return Task.Factory.StartNew(() => SendInternal());
+		}
+
+		private HttpResponseMessage SendInternal()
 		{
 			if (exception != null)
 				throw exception;
-			Request = requestMessage;
 			return response;
 		}
 	}
 }
+

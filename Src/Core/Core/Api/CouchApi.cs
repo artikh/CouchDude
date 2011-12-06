@@ -22,23 +22,22 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading.Tasks;
-using System.Web;
-using CouchDude.Http;
 using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
-	internal class CouchApi: ICouchApi
+	internal class CouchApi: HttpClient, ICouchApi
 	{
 		private readonly ISynchronousCouchApi synchronousCouchApi;
-		private readonly IHttpClient httpClient;
 		private readonly UriConstructor uriConstructor;
 		private readonly IReplicatorApi replicatorApi;
 
 		/// <constructor />
-		public CouchApi(IHttpClient httpClient, Uri serverUri)
+		public CouchApi(Uri serverUri): this(serverUri, null) { }
+
+		/// <constructor />
+		public CouchApi(Uri serverUri, HttpMessageHandler handler): base(handler)
 		{
-			this.httpClient = httpClient;
 			uriConstructor = new UriConstructor(serverUri);
 			synchronousCouchApi = new SynchronousCouchApi(this);
 			replicatorApi = new ReplicatorApi(this);
@@ -51,13 +50,13 @@ namespace CouchDude.Api
 			if(String.IsNullOrWhiteSpace(databaseName)) throw new ArgumentNullException("databaseName");
 			CheckIf.DatabaseNameIsOk(databaseName, "databaseName");
 
-			return new DatabaseApi(httpClient, uriConstructor.Db(databaseName));
+			return new DatabaseApi(this, uriConstructor.Db(databaseName));
 		}
 
 		public Task<ICollection<string>> RequestAllDbNames()
 		{
 			var request = new HttpRequestMessage(HttpMethod.Get, uriConstructor.AllDbUri);
-			return StartRequest(request, httpClient).ContinueWith(
+			return Request(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 
@@ -78,16 +77,18 @@ namespace CouchDude.Api
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal static Task<HttpResponseMessage> StartRequest(HttpRequestMessage request, IHttpClient httpClient)
+		internal Task<HttpResponseMessage> Request(HttpRequestMessage request)
 		{
-			return httpClient
-				.StartRequest(request)
+			return SendAsync(request)
 				.ContinueWith(
 					t => {
 						if (!t.IsFaulted)
 							return t.Result;
 
+						// ReSharper disable PossibleNullReferenceException
 						var innerExceptions = t.Exception.InnerExceptions;
+						// ReSharper restore PossibleNullReferenceException
+
 						var newInnerExceptions = new Exception[innerExceptions.Count];
 						for (var i = 0; i < innerExceptions.Count; i++)
 						{
@@ -100,6 +101,12 @@ namespace CouchDude.Api
 						throw new AggregateException(t.Exception.Message, newInnerExceptions);
 					}
 				);
+		}
+
+		/// <inheritdoc />
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
 		}
 	}
 }

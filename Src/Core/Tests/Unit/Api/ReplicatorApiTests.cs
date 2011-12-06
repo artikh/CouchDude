@@ -2,25 +2,25 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using CouchDude.Http;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
 {
 	public class ReplicatorApiTests
 	{
-		static ICouchApi GetCouchApi(string returnString) { return GetCouchApi(new HttpClientMock(returnString)); }
+		static ICouchApi GetCouchApi(string returnString) { return GetCouchApi(new MockMessageHandler(returnString)); }
 
-		static ICouchApi GetCouchApi(IHttpClient httpClient = null)
+		static ICouchApi GetCouchApi(MockMessageHandler messageHandler = null)
 		{
-			var couchApi = Factory.CreateCouchApi("http://example.com", httpClient ?? new HttpClientMock());
-			return couchApi;
+			return Factory.CreateCouchApi("http://example.com", messageHandler ?? new MockMessageHandler());
 		}
 
 		[Fact]
 		public void ShouldSaveNewReplicationDescriptor() 
 		{
-			var httpClientMock = new HttpClientMock(new { id = "sourcedb_to_testdb", rev = "6-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
+			var httpClientMock = new MockMessageHandler(
+				new { id = "sourcedb_to_testdb", rev = "6-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
 			GetCouchApi(httpClientMock).Replicator.Synchronously.SaveDescriptor(
 				new ReplicationTaskDescriptor {
 					Id = "sourcedb_to_testdb",
@@ -47,30 +47,35 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldUpdateReplicationDescriptor() 
 		{
-			var httpClientMock = new HttpClientMock(new { id = "sourcedb_to_testdb", rev = "7-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
-			GetCouchApi(httpClientMock).Replicator.Synchronously.SaveDescriptor(
-				new ReplicationTaskDescriptor {
-					Id = "sourcedb_to_testdb",
-					Revision = "6-011f9010bf4edcb7312131b1d70fb060",
-					Target = new Uri("testdb", UriKind.Relative),
-					Source = new Uri("http://example2.com/sourcedb"),
-					Continuous = true,
-					CreateTarget = true
-				});
+			var httpClientMock = new MockMessageHandler(new { id = "sourcedb_to_testdb", rev = "7-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
+			using (var couchApi = GetCouchApi(httpClientMock))
+			{
+				couchApi.Replicator.Synchronously.SaveDescriptor(
+					new ReplicationTaskDescriptor {
+						Id = "sourcedb_to_testdb",
+						Revision = "6-011f9010bf4edcb7312131b1d70fb060",
+						Target = new Uri("testdb", UriKind.Relative),
+						Source = new Uri("http://example2.com/sourcedb"),
+						Continuous = true,
+						CreateTarget = true
+					});
 
-			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
-			Assert.Equal("http://example.com/_replicator/sourcedb_to_testdb", httpClientMock.Request.RequestUri.ToString());
-			Assert.Equal(
-				new {
-					_id = "sourcedb_to_testdb",
-					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
-					target = "testdb", 
-					source = "http://example2.com/sourcedb", 
-					continuous = true,
-					create_target = true
-				}.ToJsonString(), 
-				httpClientMock.Request.Content.GetTextReader().ReadToEnd()
-			);
+				Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
+				Assert.Equal(
+					"http://example.com/_replicator/sourcedb_to_testdb",
+					httpClientMock.Request.RequestUri.ToString());
+				Assert.Equal(
+					new {
+						_id = "sourcedb_to_testdb",
+						_rev = "6-011f9010bf4edcb7312131b1d70fb060",
+						target = "testdb",
+						source = "http://example2.com/sourcedb",
+						continuous = true,
+						create_target = true
+					}.ToJsonString(),
+					httpClientMock.Request.Content.GetTextReader().ReadToEnd()
+					);
+			}
 		}
 
 		[Fact]
@@ -85,7 +90,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldReturnNullIfNoDescriptorFoundLoadingById()
 		{
-			var httpClientMock = new HttpClientMock(
+			var httpClientMock = new MockMessageHandler(
 				HttpStatusCode.NotFound, new {error = "not_found", reason = "missing"}.ToJsonString());
 			var descriptor = GetCouchApi(httpClientMock).Replicator.Synchronously.RequestDescriptorById("sourcedb_to_testdb");
 			Assert.Null(descriptor);
@@ -94,7 +99,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldParseDescriptorGettingItById()
 		{
-			var httpClientMock = new HttpClientMock(
+			var httpClientMock = new MockMessageHandler(
 				new {
 					_id = "sourcedb_to_testdb",
 					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
@@ -123,7 +128,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldRetriveReplicationDescriptorByIdViaGetRequest()
 		{
-			var httpClientMock = new HttpClientMock(
+			var httpClientMock = new MockMessageHandler(
 				new {
 					_id = "sourcedb_to_testdb",
 					_rev = "6-011f9010bf4edcb7312131b1d70fb060",
@@ -175,7 +180,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldSendGetRequestToAllDocsSpecialViewInOrderToRetriveReplicationDescriptorList()
 		{
 			var httpClientMock =
-				new HttpClientMock(@"{""total_rows"":0,""offset"":0,""rows"":[]}");
+				new MockMessageHandler(@"{""total_rows"":0,""offset"":0,""rows"":[]}");
 
 			GetCouchApi(httpClientMock).Replicator.Synchronously.GetAllDescriptorNames();
 
@@ -186,7 +191,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldDeleteReplicationDescriptorSendingDeleteRequest()
 		{
-			var httpClientMock = new HttpClientMock(new { id = "sourcedb_to_testdb", rev = "7-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
+			var httpClientMock = new MockMessageHandler(new { id = "sourcedb_to_testdb", rev = "7-011f9010bf4edcb7312131b1d70fb060" }.ToJsonString());
 
 			GetCouchApi(httpClientMock).Replicator.Synchronously.Delete(new ReplicationTaskDescriptor {
 				Id = "sourcedb_to_testdb",

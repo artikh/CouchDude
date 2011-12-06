@@ -18,7 +18,6 @@
 
 using System;
 using System.Text;
-using CouchDude.Impl;
 using CouchDude.Utils;
 using JetBrains.Annotations;
 

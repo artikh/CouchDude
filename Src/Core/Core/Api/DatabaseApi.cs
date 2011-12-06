@@ -22,29 +22,28 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using CouchDude.Utils;
-using CouchDude.Http;
 
 namespace CouchDude.Api
 {
 	internal partial class DatabaseApi : IDatabaseApi
 	{
-		private readonly IHttpClient httpClient;
+		private readonly CouchApi parent;
 		private readonly DbUriConstructor uriConstructor;
 
 		/// <constructor />
-		public DatabaseApi(IHttpClient httpClient, DbUriConstructor uriConstructor)
+		public DatabaseApi(CouchApi parent, DbUriConstructor uriConstructor)
 		{
-			if (httpClient == null) throw new ArgumentNullException("httpClient");
+			if (parent == null) throw new ArgumentNullException("parent");
 
-			this.httpClient = httpClient;
+			this.parent = parent;
 			this.uriConstructor = uriConstructor;
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
 
 		public Task Create()
 		{
-			return CouchApi.StartRequest(
-				new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri), httpClient)
+			return parent.Request(
+				new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri))
 				.ContinueWith(
 					t => {
 						var response = t.Result;
@@ -55,8 +54,8 @@ namespace CouchDude.Api
 
 		public Task Delete()
 		{
-			return CouchApi.StartRequest(
-				new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri), httpClient)
+			return parent.Request(
+				new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri))
 				.ContinueWith(
 					t => {
 						var response = t.Result;
@@ -78,7 +77,7 @@ namespace CouchDude.Api
 			var attachmentUri = uriConstructor.GetFullAttachmentUri(
 				attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Get, attachmentUri);
-			return CouchApi.StartRequest(requestMessage, httpClient)
+			return parent.Request(requestMessage)
 				.ContinueWith<IDocumentAttachment>(
 					rt => {
 						var response = rt.Result;
@@ -109,7 +108,7 @@ namespace CouchDude.Api
 				.ContinueWith(
 					ort => {
 						requestMessage.Content = new StreamContent(ort.Result, attachment.Length);
-						return CouchApi.StartRequest(requestMessage, httpClient);
+						return parent.Request(requestMessage);
 					})
 				.Unwrap()
 				.ContinueWith(
@@ -134,7 +133,7 @@ namespace CouchDude.Api
 			var attachmentUri = uriConstructor.GetFullAttachmentUri(
 				attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Delete, attachmentUri);
-			return CouchApi.StartRequest(requestMessage, httpClient)
+			return parent.Request(requestMessage)
 				.ContinueWith(
 					rt => {
 						var response = rt.Result;
@@ -148,13 +147,12 @@ namespace CouchDude.Api
 						}
 						return ReadDocumentInfo(response);
 					});
-
 		}
 
 		public Task<DatabaseInfo> RequestInfo()
 		{
-			return CouchApi.StartRequest(
-				new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri), httpClient)
+			return parent.Request(
+				new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri))
 				.ContinueWith(
 					t => {
 						var response = t.Result;
@@ -185,7 +183,7 @@ namespace CouchDude.Api
 
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
-			return CouchApi.StartRequest(request, httpClient).ContinueWith<IDocument>(
+			return parent.Request(request).ContinueWith<IDocument>(
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
@@ -208,7 +206,7 @@ namespace CouchDude.Api
 
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision);
 			var request = new HttpRequestMessage(HttpMethod.Delete, documentUri);
-			return CouchApi.StartRequest(request, httpClient).ContinueWith(
+			return parent.Request(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 					if (!response.IsSuccessStatusCode)
@@ -252,7 +250,7 @@ namespace CouchDude.Api
 				targetDocumentId, targetDocumentRevision);
 			request.Headers.AddWithoutValidation("Destination", targetDocumentUriString);
 
-			return CouchApi.StartRequest(request, httpClient).ContinueWith(
+			return parent.Request(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 
@@ -288,7 +286,7 @@ namespace CouchDude.Api
 			updateCommandBuilder(unitOfWork);
 			return unitOfWork.IsEmpty
 				? Task.Factory.StartNew(() => EmptyDictionary)
-				: unitOfWork.Execute(httpClient, request => CouchApi.StartRequest(request, httpClient));
+				: unitOfWork.Execute(request => parent.Request(request));
 		}
 
 		public Task<string> RequestLastestDocumentRevision(string documentId)
@@ -297,7 +295,7 @@ namespace CouchDude.Api
 
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId);
 			var request = new HttpRequestMessage(HttpMethod.Head, documentUri);
-			return CouchApi.StartRequest(request, httpClient).ContinueWith(
+			return parent.Request(request).ContinueWith(
 				rt => {
 					var response = rt.Result;
 
@@ -362,7 +360,7 @@ namespace CouchDude.Api
 		private Task<HttpResponseMessage> StartQuery(Uri queryUri)
 		{
 			var request = new HttpRequestMessage(HttpMethod.Get, queryUri);
-			return CouchApi.StartRequest(request, httpClient);
+			return parent.Request(request);
 		}
 
 		private static DocumentInfo ReadDocumentInfo(HttpResponseMessage response)
