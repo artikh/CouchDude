@@ -66,10 +66,7 @@ namespace CouchDude.Api
 
 			if (response.Content == null) return;
 
-			string responseText;
-			using (var reader = response.Content.GetTextReader())
-				responseText = reader.ReadToEnd();
-			
+			var responseText = response.Content.ReadAsStringAsync().Result;
 			UpdateUsingErrorDescriptor(responseText, ref Error, ref Reason);
 		}
 

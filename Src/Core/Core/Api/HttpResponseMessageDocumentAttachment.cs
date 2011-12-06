@@ -53,10 +53,7 @@ namespace CouchDude.Api
 
 		public bool Inline { get { return false; } }
 
-		public Task<Stream> OpenRead()
-		{
-			return responseMessage.Content.LoadIntoBufferAsync().ContinueWith(lt => responseMessage.Content.ContentReadStream);
-		}
+		public Task<Stream> OpenRead() { return responseMessage.Content.ReadAsStreamAsync(); }
 
 		public void SetData(Stream dataStream) { ThrowNotImplemented(); }
 

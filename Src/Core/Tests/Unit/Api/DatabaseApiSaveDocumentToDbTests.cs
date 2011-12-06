@@ -22,7 +22,6 @@ using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
 using CouchDude.Tests.SampleData;
-using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -45,9 +44,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", mockMessageHandler.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Put, mockMessageHandler.Request.Method);
-			var requestBodyReader = mockMessageHandler.Request.Content.GetTextReader();
-			Assert.NotNull(requestBodyReader);
-			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), requestBodyReader.ReadToEnd());
+			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), mockMessageHandler.RequestBody);
 			Assert.Equal(new DocumentInfo("doc1", "1-1a517022a0c2d4814d51abfedf9bfee7"), result);
 		}
 

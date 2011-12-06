@@ -111,46 +111,43 @@ namespace CouchDude.Api
 
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
-		public Task<IDictionary<string, DocumentInfo>> Execute(Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
+		public async Task<IDictionary<string, DocumentInfo>> Execute(Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
 			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
 			var request =
 				new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
-			return startRequest(request).ContinueWith(
-				rt =>
+
+			var response = await startRequest(request);
+			if (!response.IsSuccessStatusCode)
+			{
+				var error = new CouchError(response);
+				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
+				error.ThrowCouchCommunicationException();
+			}
+
+			dynamic responseDescriptors = new JsonFragment(await response.Content.ReadAsStringAsync());
+			foreach (var responseDescriptor in responseDescriptors)
+			{
+				string errorName = responseDescriptor.error;
+				string documentId = responseDescriptor.id;
+				if(errorName != null) 
+					CollectError(documentId, responseDescriptor.ToString());
+				else
 				{
-					var response = rt.Result;
-					if (!response.IsSuccessStatusCode)
-					{
-						var error = new CouchError(response);
-						error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-						error.ThrowCouchCommunicationException();
-					}
+					var documentInfo = new DocumentInfo(documentId, (string)responseDescriptor.rev);
+					result[documentInfo.Id] = documentInfo;
+				}
+			}
 
-					dynamic responseDescriptors = new JsonFragment(response.GetContentTextReader());
-					foreach (var responseDescriptor in responseDescriptors)
-					{
-						string errorName = responseDescriptor.error;
-						string documentId = responseDescriptor.id;
-						if(errorName != null) 
-							CollectError(documentId, responseDescriptor.ToString());
-						else
-						{
-							var documentInfo = new DocumentInfo(documentId, (string)responseDescriptor.rev);
-							result[documentInfo.Id] = documentInfo;
-						}
-					}
-
-					switch(exceptions.Count)
-					{
-						case 0:
-							return result;
-						case 1:
-							throw exceptions[0];
-						default:
-							throw new AggregateException("Error executing CouchDB bulk update", exceptions);
-					}
-				});
+			switch(exceptions.Count)
+			{
+				case 0:
+					return result;
+				case 1:
+					throw exceptions[0];
+				default:
+					throw new AggregateException("Error executing CouchDB bulk update", exceptions);
+			}
 		}
 
 		private void CollectError(string documentId, string errorString)

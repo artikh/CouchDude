@@ -68,7 +68,7 @@ namespace CouchDude.Api
 				return completionSource.Task;
 			}
 
-			private Task<DocumentInfo> Save()
+			private async Task<DocumentInfo> Save()
 			{
 				var request = new HttpRequestMessage(
 					HttpMethod.Put, 
@@ -77,22 +77,18 @@ namespace CouchDude.Api
 					Content = new JsonContent(document)
 				};
 
-				return parent.parent.Request(request).ContinueWith(
-					rt =>
-					{
-						var response = rt.Result;
-						var documentId = document.Id;
-						if (!response.IsSuccessStatusCode)
-						{
-							var error = new CouchError(response);
-							error.ThrowDatabaseMissingExceptionIfNedded(parent.uriConstructor);
-							if (error.IsConflict)
-								return conflictAction(error);
-							error.ThrowInvalidDocumentExceptionIfNedded(documentId);
-							error.ThrowCouchCommunicationException();
-						}
-						return ReadDocumentInfo(response);
-					});
+				var response = await parent.parent.RequestCouchDb(request);
+				var documentId = document.Id;
+				if (!response.IsSuccessStatusCode)
+				{
+					var error = new CouchError(response);
+					error.ThrowDatabaseMissingExceptionIfNedded(parent.uriConstructor);
+					if (error.IsConflict)
+						return conflictAction(error);
+					error.ThrowInvalidDocumentExceptionIfNedded(documentId);
+					error.ThrowCouchCommunicationException();
+				}
+				return await ReadDocumentInfo(response);
 			}
 		}
 	}

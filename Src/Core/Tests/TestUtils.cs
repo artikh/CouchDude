@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -95,6 +96,11 @@ namespace CouchDude.Tests
 		public static TextReader ToTextReader(this string text)
 		{
 			return new StringReader(text);
+		}
+
+		public static string GetBodyString(this HttpResponseMessage response)
+		{
+			return response.Content.ReadAsStringAsync().Result;
 		}
 
 		public static void AssertSameJson(object jsonObject, string jsonString)

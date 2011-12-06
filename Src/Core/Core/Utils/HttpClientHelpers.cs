@@ -20,6 +20,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace CouchDude.Utils
 {
@@ -28,32 +29,14 @@ namespace CouchDude.Utils
 	{
 		private readonly static Encoding DefaultHttpEncoding = Encoding.GetEncoding(0x6faf);
 
-		/// <summary>Constructs text reader over message content using response's encoding info.</summary>
-		public static TextReader GetContentTextReader(this HttpResponseMessage self)
-		{
-			if (self == null) throw new ArgumentNullException("self");
-			
-
-			return self.Content.GetTextReader();
-		}
-		
-		/// <summary>Populates request message with text data form provided string.</summary>
-		public static void SetStringContent(this HttpRequestMessage self, string contentTextString)
-		{
-			if (self == null) throw new ArgumentNullException("self");
-			
-
-			self.Content = new StringContent(contentTextString, Encoding.UTF8);
-		}
-		
 		/// <summary>Constructs text reader over HTTP content using response's encoding info.</summary>
-		public static TextReader GetTextReader(this HttpContent self)
+		public static async Task<TextReader> ReadAsTextReaderAsync(this HttpContent self)
 		{
 			if (self == null)
 				return null;
 
 			var encoding = GetContentEncoding(self);
-			return new StreamReader(self.ContentReadStream, encoding);
+			return new StreamReader(await self.ReadAsStreamAsync(), encoding);
 		}
 
 		private static Encoding GetContentEncoding(HttpContent httpContent)

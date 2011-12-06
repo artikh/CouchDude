@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -53,60 +54,53 @@ namespace CouchDude.Api
 			return new DatabaseApi(this, uriConstructor.Db(databaseName));
 		}
 
-		public Task<ICollection<string>> RequestAllDbNames()
+		public async Task<ICollection<string>> RequestAllDbNames()
 		{
 			var request = new HttpRequestMessage(HttpMethod.Get, uriConstructor.AllDbUri);
-			return Request(request).ContinueWith(
-				rt => {
-					var response = rt.Result;
 
-					if (!response.IsSuccessStatusCode)
-						new CouchError(response).ThrowCouchCommunicationException();
-					using (var responseReader = response.Content.GetTextReader())
-					{
-						var responseJson = new JsonFragment(responseReader);
-						var dbs = responseJson.TryDeserialize(typeof(string[])) as ICollection<string>;
-						if(dbs == null)
-							throw new CouchCommunicationException("Unknown data recived from CouchDB: {0}", responseJson);
-						return dbs;
-					}
-				});
+			var response = await RequestCouchDb(request);
+
+			if (!response.IsSuccessStatusCode)
+				new CouchError(response).ThrowCouchCommunicationException();
+
+			using (var responseStream = await response.Content.ReadAsStreamAsync())
+			using (var responseReader = new StreamReader(responseStream))
+			{
+				var responseJson = new JsonFragment(responseReader);
+				var dbs = responseJson.TryDeserialize(typeof(string[])) as ICollection<string>;
+				if(dbs == null)
+					throw new CouchCommunicationException("Unknown data recived from CouchDB: {0}", responseJson);
+				return dbs;
+			}
 		}
 
 		public ISynchronousCouchApi Synchronously { get { return synchronousCouchApi; } }
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal Task<HttpResponseMessage> Request(HttpRequestMessage request)
+		internal async Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
 		{
-			return SendAsync(request)
-				.ContinueWith(
-					t => {
-						if (!t.IsFaulted)
-							return t.Result;
+			try
+			{
+				return await SendAsync(request);
+			}
+			catch(AggregateException aggregateException)
+			{
+				// ReSharper disable PossibleNullReferenceException
+				var innerExceptions = aggregateException.InnerExceptions;
+				// ReSharper restore PossibleNullReferenceException
 
-						// ReSharper disable PossibleNullReferenceException
-						var innerExceptions = t.Exception.InnerExceptions;
-						// ReSharper restore PossibleNullReferenceException
-
-						var newInnerExceptions = new Exception[innerExceptions.Count];
-						for (var i = 0; i < innerExceptions.Count; i++)
-						{
-							var e = innerExceptions[i];
-							newInnerExceptions[i] =
-								e is WebException || e is SocketException || e is HttpRequestException
-									? new CouchCommunicationException(e)
-									: e;
-						}
-						throw new AggregateException(t.Exception.Message, newInnerExceptions);
-					}
-				);
-		}
-
-		/// <inheritdoc />
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
+				var newInnerExceptions = new Exception[innerExceptions.Count];
+				for (var i = 0; i < innerExceptions.Count; i++)
+				{
+					var e = innerExceptions[i];
+					newInnerExceptions[i] =
+						e is WebException || e is SocketException || e is HttpRequestException
+							? new CouchCommunicationException(e)
+							: e;
+				}
+				throw new AggregateException(aggregateException.Message, newInnerExceptions);
+			}
 		}
 	}
 }
