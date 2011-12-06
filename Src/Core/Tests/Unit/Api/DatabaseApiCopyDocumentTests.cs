@@ -21,7 +21,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -67,7 +66,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
+			var httpMock = new MockMessageHandler(new { ok = true }.ToJsonString());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument("doc1", null));
@@ -77,23 +76,23 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound) {
+			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.CopyDocument("doc1", "doc2")
 			);
 		}
-		
-		private static ICouchApi CreateCouchApi(IHttpClient httpClient = null)
+
+		private static ICouchApi CreateCouchApi(MockMessageHandler handler = null)
 		{
-			httpClient = httpClient ?? MockHttpClient();
-			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpClient);
+			handler = handler ?? MockHttpClient();
+			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler);
 		}
 
-		private static HttpClientMock MockHttpClient()
+		private static MockMessageHandler MockHttpClient()
 		{
-			return new HttpClientMock(
+			return new MockMessageHandler(
 				new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
 		}
 	}

@@ -225,9 +225,7 @@
     <Compile Include="IJsonFragment.cs" />
     <Compile Include="Api\JsonFragment.cs" />
     <Compile Include="LuceneResultRow.cs" />
-    <Compile Include="Http\HttpClientHelpers.cs" />
-    <Compile Include="Http\HttpClientImpl.cs" />
-    <Compile Include="Http\IHttpClient.cs" />
+    <Compile Include="Utils\HttpClientHelpers.cs" />
     <Compile Include="Api\DatabaseApi.cs" />
     <Compile Include="Impl\CouchSessionFactory.cs" />
     <Compile Include="Impl\CouchSession.cs" />

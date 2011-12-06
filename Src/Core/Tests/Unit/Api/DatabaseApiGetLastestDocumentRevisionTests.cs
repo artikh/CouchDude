@@ -22,7 +22,6 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using CouchDude.Api;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -42,20 +41,20 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var response = ConstructOkResponse("1-1a517022a0c2d4814d51abfedf9bfee7");
 
-			var httpMock = new HttpClientMock(response);
-			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
+			var handler = new MockMessageHandler(response);
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 			var revision = databaseApi.Synchronously.RequestLastestDocumentRevision("doc1");
 
-			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
-			Assert.Equal(HttpMethod.Head, httpMock.Request.Method);
-			Assert.Equal(null, httpMock.Request.Content);
+			Assert.Equal("http://example.com:5984/testdb/doc1", handler.Request.RequestUri.ToString());
+			Assert.Equal(HttpMethod.Head, handler.Request.Method);
+			Assert.Equal(null, handler.Request.Content);
 			Assert.Equal("1-1a517022a0c2d4814d51abfedf9bfee7", revision);
 		}
 
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound)
+			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound)
 			{
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
@@ -68,8 +67,8 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnNullParametersGettingLastestDocumentRevision()
 		{
 			var response = ConstructOkResponse();
-			var httpMock = new HttpClientMock(response);
-			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
+			var handler = new MockMessageHandler(response);
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 
 			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.RequestLastestDocumentRevision(""));
 			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.RequestLastestDocumentRevision(null));
@@ -79,8 +78,8 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnAbcentEtagGettingLastestDocumentRevision()
 		{
 			var response = ConstructOkResponse();
-			var httpMock = new HttpClientMock(response);
-			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
+			var handler = new MockMessageHandler(response);
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 
 			Assert.Throws<ParseException>(() => databaseApi.Synchronously.RequestLastestDocumentRevision("doc1"));
 		}
@@ -88,8 +87,8 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldReturnNullIfNoDocumentFound()
 		{
-			var httpMock = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound));
-			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound));
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 
 			var version = databaseApi.Synchronously.RequestLastestDocumentRevision("doc1");
 			Assert.Null(version);
@@ -99,9 +98,9 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowCouchCommunicationExceptionOnWebExceptionWhenUpdatingDocumentInDb()
 		{
 			var webExeption = new WebException("Something wrong detected");
-			var httpMock = new HttpClientMock(webExeption);
+			var handler = new MockMessageHandler(webExeption);
 
-			IDatabaseApi databaseApi = GetDatabaseApi(httpMock);
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
@@ -114,13 +113,13 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
-			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest)
+			var handler =
+				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
 
-			IDatabaseApi databaseApi = GetDatabaseApi(httpClientMock);
+			IDatabaseApi databaseApi = GetDatabaseApi(handler);
 
 			var exception = Assert.Throws<CouchCommunicationException>(
 				() => databaseApi.Synchronously.RequestLastestDocumentRevision("doc1")
@@ -129,7 +128,7 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static IDatabaseApi GetDatabaseApi(IHttpClient httpClient)
+		private static IDatabaseApi GetDatabaseApi(MockMessageHandler httpClient)
 		{
 			return Factory.CreateCouchApi("http://example.com:5984/", httpClient).Db("testdb");
 		}

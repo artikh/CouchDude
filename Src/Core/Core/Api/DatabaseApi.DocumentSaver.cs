@@ -71,10 +71,13 @@ namespace CouchDude.Api
 			private Task<DocumentInfo> Save()
 			{
 				var request = new HttpRequestMessage(
-					HttpMethod.Put, parent.uriConstructor.GetFullDocumentUri(document.Id));
-				request.Content = new JsonContent(document);
+					HttpMethod.Put, 
+					parent.uriConstructor.GetFullDocumentUri(document.Id)
+				) {
+					Content = new JsonContent(document)
+				};
 
-				return CouchApi.StartRequest(request, parent.httpClient).ContinueWith(
+				return parent.parent.Request(request).ContinueWith(
 					rt =>
 					{
 						var response = rt.Result;

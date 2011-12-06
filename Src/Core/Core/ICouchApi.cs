@@ -16,13 +16,14 @@
 */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace CouchDude
 {
 	/// <summary>Represents low-level CouchDB API.</summary>
-	public interface ICouchApi
+	public interface ICouchApi: IDisposable
 	{
 		/// <summary>Returns database-specific API object.</summary>
 		IDatabaseApi Db(string databaseName);

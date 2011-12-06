@@ -29,22 +29,22 @@ namespace CouchDude.Tests.Unit.Api
 {
 	public class DatabaseApiBulkUpdateTests
 	{
-		private static ICouchApi CreateCouchApi(HttpClientMock httpClientMock = null)
+		private static ICouchApi CreateCouchApi(MockMessageHandler handler = null)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock);
+			return Factory.CreateCouchApi("http://example.com:5984/", handler);
 		}
 
 		[Fact]
 		public void ShouldThrowOnInvalidArgumentsToUnitOfWork()
 		{
-			var httpClientMock = new HttpClientMock(new[] {
+			var messageHandler = new MockMessageHandler(new[] {
 				new {id = "doc1", rev = "2-1a517022a0c2d4814d51abfedf9bfee7"},
 				new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
 				new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
 				new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(messageHandler).Db("testdb");
 
 			Func<Action<IBulkUpdateBatch>, IDictionary<string, DocumentInfo>> bulkUpdate =
 				action => databaseApi.Synchronously.BulkUpdate(action);
@@ -77,16 +77,16 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldNotDoNetworkingIfNoWorkToDo()
 		{
-			var httpClient = new HttpClientMock();
-			CreateCouchApi(httpClient).Db("testdb").BulkUpdate(x => { });
+			var handler = new MockMessageHandler();
+			CreateCouchApi(handler).Db("testdb").BulkUpdate(x => { });
 
-			Assert.Null(httpClient.Request);
+			Assert.Null(handler.Request);
 		}
 
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound) {
+			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 			Assert.Throws<DatabaseMissingException>(
@@ -98,14 +98,14 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldCreateUpdateCreateAndDeleteRecordsInBulkUpdateRequest()
 		{
-			var httpClientMock = new HttpClientMock(new[] {
+			var handler = new MockMessageHandler(new[] {
 				new {id = "doc1", rev = "2-1a517022a0c2d4814d51abfedf9bfee7"},
 				new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
 				new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
 				new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var result = databaseApi.Synchronously.BulkUpdate(
 				x => {
@@ -124,7 +124,7 @@ namespace CouchDude.Tests.Unit.Api
 				}
 			}.ToJsonString();
 
-			var sendDescriptor = httpClientMock.Request.Content.ReadAsString();
+			var sendDescriptor = handler.Request.Content.ReadAsString();
 			Assert.Equal(expectedDescriptor, sendDescriptor);
 			
 			Assert.Equal("2-1a517022a0c2d4814d51abfedf9bfee7", result["doc1"].Revision);
@@ -136,12 +136,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowInvalidDocumentExceptionOnErrorResponse() 
 		{
-			var httpClientMock = new HttpClientMock(new object[] {
+			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "forbidden", reason = "message" }
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var exception = Assert.Throws<InvalidDocumentException>(() =>
 				databaseApi.Synchronously.BulkUpdate(
@@ -157,12 +157,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowStaleObjectStateExceptionOnErrorResponseWhenUpdating() 
 		{
-			var httpClientMock = new HttpClientMock(new object[] {
+			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
 				databaseApi.Synchronously.BulkUpdate(
@@ -179,12 +179,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowStaleObjectStateExceptionOnErrorResponseWhenDelete() 
 		{
-			var httpClientMock = new HttpClientMock(new object[] {
+			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
 				databaseApi.Synchronously.BulkUpdate(
@@ -201,12 +201,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowStaleObjectStateExceptionOnErrorResponseWhenCreate() 
 		{
-			var httpClientMock = new HttpClientMock(new object[] {
+			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var exception = Assert.Throws<StaleObjectStateException>(() =>
 				databaseApi.Synchronously.BulkUpdate(
@@ -223,12 +223,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowAggregateExceptionOnMultiplyErrorResponse() 
 		{
-			var httpClientMock = new HttpClientMock(new object[] {
+			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", error = "forbidden", reason = "message" },
 				new { id = "doc2", error = "conflict", reason = "message" }
 			}.ToJsonString());
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var exception = Assert.Throws<AggregateException>(() =>
 				databaseApi.Synchronously.BulkUpdate(
@@ -246,12 +246,13 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
-			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest) {
+			var handler =
+				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
+				{
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
 
-			IDatabaseApi databaseApi = CreateCouchApi(httpClientMock).Db("testdb");
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 			
 			var exception = Assert.Throws<CouchCommunicationException>(() =>
 				databaseApi.Synchronously.BulkUpdate(x => x.Create(new { _id = "doc1", name = "John", age = 42 }.ToDocument()))

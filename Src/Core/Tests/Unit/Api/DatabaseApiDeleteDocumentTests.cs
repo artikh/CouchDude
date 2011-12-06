@@ -20,7 +20,6 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using CouchDude.Http;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -30,23 +29,23 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSendDeleteRequestOnDeletion()
 		{
-			var httpMock = new HttpClientMock(new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
-			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMock).Db("testdb");
+			var handler = new MockMessageHandler(new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
+			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler).Db("testdb");
 
 			var resultObject = databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
-				httpMock.Request.RequestUri.ToString());
-			Assert.Equal("DELETE", httpMock.Request.Method.ToString());
+				handler.Request.RequestUri.ToString());
+			Assert.Equal("DELETE", handler.Request.Method.ToString());
 			Assert.Equal(new DocumentInfo(id: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"), resultObject);
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			var httpMock = new HttpClientMock(new { ok = true }.ToJsonString());
-			IDatabaseApi databaseApi = CreateCouchApi(httpMock).Db("testdb");
+			var handler = new MockMessageHandler(new { ok = true }.ToJsonString());
+			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(
 				() => databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: null));
@@ -57,17 +56,18 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound) {
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound)
+			{
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 			Assert.Throws<DatabaseMissingException>(
-				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.DeleteDocument("doc1", "rev-123")
+				() => CreateCouchApi(handler).Db("testdb").Synchronously.DeleteDocument("doc1", "rev-123")
 				);
 		}
 
-		private static ICouchApi CreateCouchApi(IHttpClient httpClient)
+		private static ICouchApi CreateCouchApi(MockMessageHandler handler)
 		{
-			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpClient);
+			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler);
 		}
 	}
 }

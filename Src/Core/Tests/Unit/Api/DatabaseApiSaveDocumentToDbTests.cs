@@ -21,8 +21,8 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
-using CouchDude.Http;
 using CouchDude.Tests.SampleData;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -32,9 +32,9 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSaveToDbCorrectly()
 		{
-			HttpClientMock httpClientMock;
+			MockMessageHandler mockMessageHandler;
 			var databaseApi = GetDatabaseApi(
-				out httpClientMock,
+				out mockMessageHandler,
 				response: new {
 				  ok = true,
 				  id = "doc1",
@@ -43,9 +43,9 @@ namespace CouchDude.Tests.Unit.Api
 
 			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "John Smith" }.ToDocument());
 
-			Assert.Equal("http://example.com:5984/testdb/doc1", httpClientMock.Request.RequestUri.ToString());
-			Assert.Equal(HttpMethod.Put, httpClientMock.Request.Method);
-			var requestBodyReader = httpClientMock.Request.Content.GetTextReader();
+			Assert.Equal("http://example.com:5984/testdb/doc1", mockMessageHandler.Request.RequestUri.ToString());
+			Assert.Equal(HttpMethod.Put, mockMessageHandler.Request.Method);
+			var requestBodyReader = mockMessageHandler.Request.Content.GetTextReader();
 			Assert.NotNull(requestBodyReader);
 			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), requestBodyReader.ReadToEnd());
 			Assert.Equal(new DocumentInfo("doc1", "1-1a517022a0c2d4814d51abfedf9bfee7"), result);
@@ -64,12 +64,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowIfDatabaseMissing()
 		{
-			var httpClient = new HttpClientMock(new HttpResponseMessage(HttpStatusCode.NotFound) {
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 
 			Assert.Throws<DatabaseMissingException>(
-				() => GetDatabaseApi(httpClient).Synchronously.SaveDocument(SimpleEntity.CreateDocument())
+				() => GetDatabaseApi(handler).Synchronously.SaveDocument(SimpleEntity.CreateDocument())
 			);
 		}
 
@@ -91,7 +91,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowCouchCommunicationExceptionOnWebExceptionWhenSavingToDb()
 		{
 			var webExeption = new WebException("Something wrong detected");
-			var httpClientMock = new HttpClientMock(webExeption);
+			var httpClientMock = new MockMessageHandler(webExeption);
 			var couchApi = GetDatabaseApi(httpClientMock);
 
 			var couchCommunicationException =
@@ -105,7 +105,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowStaleObjectStateExceptionOnConflict()
 		{
-			var httpClientMock = new HttpClientMock(
+			var httpClientMock = new MockMessageHandler(
 				new HttpResponseMessage {
 					StatusCode = HttpStatusCode.Conflict
 				});
@@ -118,7 +118,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowInvalidDocumentExceptionOnForbidden()
 		{
-			var httpClientMock = new HttpClientMock(
+			var httpClientMock = new MockMessageHandler(
 				new HttpResponseMessage {
 					StatusCode = HttpStatusCode.Forbidden
 				});
@@ -131,7 +131,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
 			var httpClientMock =
-				new HttpClientMock(new HttpResponseMessage(HttpStatusCode.BadRequest)
+				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
 					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
 				});
@@ -145,21 +145,21 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Contains("bad_request: Mock reason", exception.Message);
 		}
 
-		private static IDatabaseApi GetDatabaseApi(IHttpClient httpClientMock)
+		private static IDatabaseApi GetDatabaseApi(MockMessageHandler handler)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock).Db("tesdb");
+			return Factory.CreateCouchApi("http://example.com:5984/", handler).Db("tesdb");
 		}
 
 		private static IDatabaseApi GetDatabaseApi(string response = "{\"_id\":\"doc1\"}")
 		{
-			HttpClientMock httpClientMock;
-			return GetDatabaseApi(out httpClientMock, response);
+			MockMessageHandler mockMessageHandler;
+			return GetDatabaseApi(out mockMessageHandler, response);
 		}
 
-		private static IDatabaseApi GetDatabaseApi(out HttpClientMock httpClientMock, string response = "")
+		private static IDatabaseApi GetDatabaseApi(out MockMessageHandler mockMessageHandler, string response = "")
 		{
-			httpClientMock = new HttpClientMock(response);
-			return Factory.CreateCouchApi("http://example.com:5984/", httpClientMock).Db("testdb");
+			mockMessageHandler = new MockMessageHandler(response);
+			return Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
 		}
 	}
 }
