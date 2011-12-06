@@ -34,6 +34,7 @@ namespace CouchDude.Api
 		public const string NoDbFile          = "no_db_file";
 		public const string NotFound          = "not_found";
 		public const string Missing           = "missing";
+		public const string MissingNamedView  = "missing_named_view";
 		public const string FileExists        = "file_exists";
 		public const string AttachmentMissing = "Document is missing attachment";
 
@@ -129,8 +130,7 @@ namespace CouchDude.Api
 			if (revision.HasValue())
 				return new StaleObjectStateException(
 					"Document {0}(rev:{1}) {2} conflict detected", docId, revision, operation);
-			else
-				return new StaleObjectStateException("Document {0} {1} conflict detected", docId, operation);
+			return new StaleObjectStateException("Document {0} {1} conflict detected", docId, operation);
 		}
 
 		public void ThrowInvalidDocumentExceptionIfNedded(string docId)
@@ -146,7 +146,7 @@ namespace CouchDude.Api
 
 		public void ThrowViewNotFoundExceptionIfNedded(ViewQuery query)
 		{
-			if (StatusCode == HttpStatusCode.NotFound && Reason == Missing)
+			if (StatusCode == HttpStatusCode.NotFound && Reason == MissingNamedView)
 				throw new ViewNotFoundException(query);
 		}
 
