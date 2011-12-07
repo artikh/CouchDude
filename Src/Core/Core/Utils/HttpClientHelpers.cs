@@ -36,7 +36,7 @@ namespace CouchDude.Utils
 				return null;
 
 			var encoding = GetContentEncoding(self);
-			return new StreamReader(await self.ReadAsStreamAsync(), encoding);
+			return new StreamReader(await self.ReadAsStreamAsync().ConfigureAwait(false), encoding);
 		}
 
 		private static Encoding GetContentEncoding(HttpContent httpContent)

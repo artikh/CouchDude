@@ -58,12 +58,12 @@ namespace CouchDude.Api
 		{
 			var request = new HttpRequestMessage(HttpMethod.Get, uriConstructor.AllDbUri);
 
-			var response = await RequestCouchDb(request);
+			var response = await RequestCouchDb(request).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
 				new CouchError(response).ThrowCouchCommunicationException();
 
-			using (var responseStream = await response.Content.ReadAsStreamAsync())
+			using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 			using (var responseReader = new StreamReader(responseStream))
 			{
 				var responseJson = new JsonFragment(responseReader);
@@ -78,29 +78,33 @@ namespace CouchDude.Api
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
+		internal async Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
 		{
-			return SendAsync(request).ContinueWith(
-				st => {
-					if(!st.IsFaulted)
-						return st.Result;
-					var aggregateException = st.Exception;
-					
-					// ReSharper disable PossibleNullReferenceException
+			try
+			{
+				return await SendAsync(request).ConfigureAwait(false);
+			}
+			catch(Exception e)
+			{
+				var aggregateException = e as AggregateException;
+				if (aggregateException != null)
+				{
 					var innerExceptions = aggregateException.InnerExceptions;
-					// ReSharper restore PossibleNullReferenceException
 
 					var newInnerExceptions = new Exception[innerExceptions.Count];
 					for (var i = 0; i < innerExceptions.Count; i++)
-					{
-						var e = innerExceptions[i];
-						newInnerExceptions[i] =
-							e is WebException || e is SocketException || e is HttpRequestException
-								? new CouchCommunicationException(e)
-								: e;
-					}
+						newInnerExceptions[i] = WrapIfNeeded(innerExceptions[i]);
 					throw new AggregateException(aggregateException.Message, newInnerExceptions);
-			});
+				}
+				
+				throw WrapIfNeeded(e);
+			}
+		}
+
+		private Exception WrapIfNeeded(Exception e)
+		{
+			return e is WebException || e is SocketException || e is HttpRequestException
+				? new CouchCommunicationException(e) : e;
 		}
 	}
 }

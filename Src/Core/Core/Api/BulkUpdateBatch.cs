@@ -117,7 +117,7 @@ namespace CouchDude.Api
 			var request =
 				new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
 
-			var response = await startRequest(request);
+			var response = await startRequest(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
 				var error = new CouchError(response);
@@ -125,7 +125,7 @@ namespace CouchDude.Api
 				error.ThrowCouchCommunicationException();
 			}
 
-			dynamic responseDescriptors = new JsonFragment(await response.Content.ReadAsStringAsync());
+			dynamic responseDescriptors = new JsonFragment(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 			foreach (var responseDescriptor in responseDescriptors)
 			{
 				string errorName = responseDescriptor.error;

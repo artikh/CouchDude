@@ -11,3 +11,4 @@ _ReSharper.*
 *.log
 *.tmp
 *.eprj
+*.user.ps1

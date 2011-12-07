@@ -17,8 +17,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace CouchDude.Utils
@@ -43,6 +41,7 @@ namespace CouchDude.Utils
 		{
 			try
 			{
+				task.Wait();
 				return task.Result;
 			}
 			catch (AggregateException e)

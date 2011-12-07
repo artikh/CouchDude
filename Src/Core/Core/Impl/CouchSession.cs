@@ -120,7 +120,7 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
+		public async Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
 		{
 			if (string.IsNullOrWhiteSpace(entityId))
 				throw new ArgumentNullException("entityId");
@@ -135,7 +135,7 @@ namespace CouchDude.Impl
 				{
 					if (cachedEntity != null && !(cachedEntity is TEntity))
 						throw new EntityTypeMismatchException(cachedEntity.GetType(), typeof(TEntity));
-					return Task.Factory.StartNew(() => (TEntity)cachedEntity);
+					return (TEntity)cachedEntity;
 				}
 			}
 			
@@ -143,22 +143,20 @@ namespace CouchDude.Impl
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			return databaseApi.RequestDocument(docId).ContinueWith(rt => {
-				var document = rt.Result;
-				if (document == null)
-					return default(TEntity);
-				lock (unitOfWork)
-				{
-					unitOfWork.UpdateWithDocument(document);
-					object freshlyUpdatedEntity;
-					unitOfWork.TryGetByEntityIdAndType(entityId, typeof (TEntity), out freshlyUpdatedEntity);
+			var document = await databaseApi.RequestDocument(docId).ConfigureAwait(false);
+			if (document == null)
+				return default(TEntity);
+			lock (unitOfWork)
+			{
+				unitOfWork.UpdateWithDocument(document);
+				object freshlyUpdatedEntity;
+				unitOfWork.TryGetByEntityIdAndType(entityId, typeof (TEntity), out freshlyUpdatedEntity);
 
-					if(freshlyUpdatedEntity != null && !(freshlyUpdatedEntity is TEntity))
-						throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
+				if(freshlyUpdatedEntity != null && !(freshlyUpdatedEntity is TEntity))
+					throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
 
-					return (TEntity)freshlyUpdatedEntity;
-				}
-			});
+				return (TEntity)freshlyUpdatedEntity;
+			}
 		}
 
 		/// <inheritdoc/>

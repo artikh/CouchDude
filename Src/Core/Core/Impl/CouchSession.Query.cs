@@ -28,48 +28,38 @@ namespace CouchDude.Impl
 	public partial class CouchSession
 	{
 		/// <inheritdoc/>
-		public Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query)
+		public async Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 			var isEntityType = CheckIfEntityType<T>(query);
 			WaitForFlushIfInProgress();
 
-			return databaseApi
-				.QueryLucene(query)
-				.ContinueWith(
-					queryTask =>
-					{
-						var rawQueryResult = queryTask.Result;
-						if (!isEntityType)
-							return rawQueryResult.OfType(DeserializeViewData<T, LuceneResultRow>);
+			var rawQueryResult = await databaseApi.QueryLucene(query).ConfigureAwait(false);
+			if (!isEntityType)
+				return rawQueryResult.OfType(DeserializeViewData<T, LuceneResultRow>);
 
-						UpdateUnitOfWork(rawQueryResult.Rows);
-						return rawQueryResult.OfType(GetEntities<T, LuceneResultRow>);
-					});
+			UpdateUnitOfWork(rawQueryResult.Rows);
+			return rawQueryResult.OfType(GetEntities<T, LuceneResultRow>);
 		}
 
 		/// <inheritdoc/>
-		public Task<IViewQueryResult<T>> Query<T>(ViewQuery query)
+		public async Task<IViewQueryResult<T>> Query<T>(ViewQuery query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
 			if (query.Skip >= 10)
-				throw new ArgumentException("View query should not use skip option greater then 9 (see http://tinyurl.com/couch-skip)", "query");
+				throw new ArgumentException(
+					"View query should not use skip option greater then 9 (see http://tinyurl.com/couch-skip)", "query");
 			var isEntityType = CheckIfEntityType<T>(query);
 			WaitForFlushIfInProgress();
 
-			return databaseApi
-				.Query(query)
-				.ContinueWith(
-					queryTask => {
-						var rawQueryResult = queryTask.Result;
-						if (!isEntityType) 
-							return rawQueryResult.OfType(DeserializeViewData<T, ViewResultRow>);
+			var rawQueryResult = await databaseApi.Query(query).ConfigureAwait(false);
+			if (!isEntityType) 
+				return rawQueryResult.OfType(DeserializeViewData<T, ViewResultRow>);
 						
-						UpdateUnitOfWork(rawQueryResult.Rows);
-						return rawQueryResult.OfType(GetEntities<T, ViewResultRow>);
-					});
+			UpdateUnitOfWork(rawQueryResult.Rows);
+			return rawQueryResult.OfType(GetEntities<T, ViewResultRow>);
 		}
 
 		// ReSharper disable UnusedParameter.Local
