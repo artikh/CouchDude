@@ -53,7 +53,7 @@ namespace CouchDude
 		ISynchronousSessionMethods Synchronously { get; }
 
 		/// <summary>Exposes raw CouchDB APIs.</summary>
-		ICouchApi RawApi { get; }
+		IDatabaseApi RawApi { get; }
 
 		/// <summary>Starts "save all changes to CouchDB" process returning immediately.</summary>
 		Task StartSavingChanges();

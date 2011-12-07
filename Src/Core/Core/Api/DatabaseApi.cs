@@ -209,7 +209,7 @@ namespace CouchDude.Api
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
-				throw new ArgumentException("Document ID should not be empty or noll.", "document");
+				throw new ArgumentException("Document ID should not be empty or null.", "document");
 
 			return DocumentSaver.StartSaving(this, document, overwriteConcurrentUpdates);
 		}

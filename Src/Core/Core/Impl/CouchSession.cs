@@ -34,7 +34,7 @@ namespace CouchDude.Impl
 		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 
 		private readonly Settings settings;
-		private readonly ICouchApi couchApi;
+		private ICouchApi couchApi;
 		private readonly IDatabaseApi databaseApi;
 		private readonly SessionUnitOfWork unitOfWork;
 		private readonly ManualResetEventSlim unitOfWorkFlashInProgressEvent = new ManualResetEventSlim(true);
@@ -63,7 +63,7 @@ namespace CouchDude.Impl
 		public ISynchronousSessionMethods Synchronously { get; private set; }
 
 		/// <inheritdoc/>
-		public ICouchApi RawApi { get { return couchApi; } }
+		public IDatabaseApi RawApi { get { return databaseApi; } }
 
 		/// <inheritdoc/>
 		public void Save<TEntity>(params TEntity[] entities) where TEntity : class
@@ -227,8 +227,15 @@ namespace CouchDude.Impl
 		{
 			if (disposing)
 			{
-				couchApi.Dispose();
-				unitOfWork.Clear();
+				if (couchApi != null)
+				{
+					couchApi.Dispose();
+					couchApi = null;
+				}
+				if (unitOfWork != null)
+				{
+					unitOfWork.Clear();
+				}
 			}
 		}
 	}
