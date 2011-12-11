@@ -123,6 +123,7 @@
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
+    <Compile Include="Api\Serialization\ISerializer.cs" />
     <Compile Include="Api\UriConstructor.cs" />
     <Compile Include="Api\WrappingDocumentAttachment.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
@@ -197,6 +198,8 @@
     <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\FlexibleIso8601DateTimeParser.cs" />
     <Compile Include="Utils\HttpClientHelpers.cs" />
+    <Compile Include="Utils\SystemJsonValueReader.cs" />
+    <Compile Include="Utils\SystemJsonValueWriter.cs" />
     <Compile Include="Utils\TaskUtils.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>

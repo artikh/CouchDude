@@ -26,6 +26,8 @@ using CouchDude.Api;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using JsonObject = System.Json.JsonObject;
+using System.Json;
 using Xunit;
 
 namespace CouchDude.Tests
@@ -68,17 +70,22 @@ namespace CouchDude.Tests
 			return JsonConvert.SerializeObject(self, Formatting.None, GetJsonSerializerSettings());
 		}
 
-		public static JToken ToJToken(this object self)
+		public static JsonValue ToJToken(this object self)
 		{
-			return JToken.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
+			System.Json.JsonSaveOptionsHelper
+
+			var jToken = 
+				JToken.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
+			return JsonValue.Parse(jToken.ToString());
 		}
 
-		public static JObject ToJObject(this object self)
+		public static JsonObject ToJObject(this object self)
 		{
-			return JObject.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
+			var jObject = JObject.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
+			return (JsonObject) JsonValue.Parse(jObject.ToString());
 		}
 
-		public static IDocument ToDocument(this object self)
+		public static Document ToDocument(this object self)
 		{
 			return new Document(self.ToJsonString());
 		}
