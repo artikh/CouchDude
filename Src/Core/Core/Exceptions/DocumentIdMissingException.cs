@@ -41,16 +41,16 @@ namespace CouchDude
 			: base(info, context) { }
 
 		/// <constructor />
-		public DocumentIdMissingException(IDocument document) : base(GenerateMessage(document)) { }
+		public DocumentIdMissingException(string documentJsonString) : base(GenerateMessage(documentJsonString)) { }
 
-		private static string GenerateMessage(IDocument document = null)
+		private static string GenerateMessage(string documentJsonString = null)
 		{
 			var message = new StringBuilder("Required field '")
 				.Append(Document.IdPropertyName)
 				.Append("' have not found on document. ")
 				.Append("Documents id is required by CouchDB.");
-			if (document != null)
-				message.AppendLine().Append(document.ToString());
+			if (documentJsonString != null)
+				message.AppendLine().Append(documentJsonString);
 
 			return message.ToString();
 		}

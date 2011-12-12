@@ -123,7 +123,12 @@
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
-    <Compile Include="Api\Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
+    <Compile Include="Serialization\EntityContractResolver.cs" />
+    <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="Serialization\NewtonsoftSerializer.cs" />
+    <Compile Include="Serialization\NewtonsoftSerializerDefautSettings.cs" />
+    <Compile Include="Serialization\SerializerBase.cs" />
     <Compile Include="Api\UriConstructor.cs" />
     <Compile Include="Api\WrappingDocumentAttachment.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
@@ -134,7 +139,7 @@
     <Compile Include="Api\SynchronousDatabaseApi.cs" />
     <Compile Include="Api\LuceneQueryResultParser.cs" />
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
-    <Compile Include="Api\Serialization\UriConverter.cs" />
+    <Compile Include="Serialization\UriConverter.cs" />
     <Compile Include="Api\SyncronousDocumentAttachmentWrapper.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
@@ -198,6 +203,8 @@
     <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\FlexibleIso8601DateTimeParser.cs" />
     <Compile Include="Utils\HttpClientHelpers.cs" />
+    <Compile Include="Utils\JsonValueExtensions.cs" />
+    <Compile Include="Utils\LazyConcurrentDictionary.cs" />
     <Compile Include="Utils\SystemJsonValueReader.cs" />
     <Compile Include="Utils\SystemJsonValueWriter.cs" />
     <Compile Include="Utils\TaskUtils.cs" />

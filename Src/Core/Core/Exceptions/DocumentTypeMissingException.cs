@@ -41,17 +41,15 @@ namespace CouchDude
 			: base(info, context) { }
 
 		/// <constructor />
-		public DocumentTypeMissingException(IDocument document) : base(GenerateMessage(document)) { }
+		public DocumentTypeMissingException(string documentJsonString) : base(GenerateMessage(documentJsonString)) { }
 
-		private static string GenerateMessage(IDocument document = null)
+		private static string GenerateMessage(string documentJsonString = null)
 		{
-			var message = new StringBuilder("Required field '")
-				.Append(Api.Document.TypePropertyName)
-				.Append("' have not found on document. ")
+			var message = new StringBuilder("Required field 'type' have not found on document. ")
 				.Append("Type on documents has nothing to do with CouchDB itself, ")
 				.Append("however it's required by CouchDude so it colud do it magic stuff.");
-			if (document != null)
-				message.AppendLine().Append(document.ToString());
+			if (documentJsonString != null)
+				message.AppendLine().Append(documentJsonString);
 
 			return message.ToString();
 		}
