@@ -20,11 +20,13 @@ using System;
 
 namespace CouchDude.Api
 {
-	internal struct DatabaseApiReference
+	/// <summary>Wraps weak reference to database API.</summary>
+	public struct DatabaseApiReference
 	{
-		public static readonly DatabaseApiReference Empty = new DatabaseApiReference(null);		
+		/// <summary>Default value of the refernce.</summary>
+		public static readonly DatabaseApiReference Empty = default(DatabaseApiReference);
 
-		private readonly WeakReference dbApiWeakReference;
+		readonly WeakReference dbApiWeakReference;
 
 		/// <constructor />
 		public DatabaseApiReference(IDatabaseApi dbApi = null)
@@ -32,6 +34,7 @@ namespace CouchDude.Api
 			dbApiWeakReference = dbApi == null? null: new WeakReference(dbApi, trackResurrection: false);
 		}
 
+		/// <summary>Returns <see cref="IDatabaseApi"/> </summary>
 		public IDatabaseApi GetOrThrowIfUnavaliable(Func<string> operation)
 		{
 			var dbApi = dbApiWeakReference.Target as IDatabaseApi;
