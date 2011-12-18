@@ -51,6 +51,7 @@ namespace CouchDude.Tests.Unit.Serialization
 
 		private IEntityConfig config = MockEntityConfig();
 		private readonly ISerializer serializer = new NewtonsoftSerializer();
+		private static readonly IEntityConfig entityConfig = Default.Settings.GetConfig(typeof(Entity));
 
 		private static IEntityConfig MockEntityConfig(Action<Mock<IEntityConfig>> additionalActions = null)
 		{
@@ -91,7 +92,10 @@ namespace CouchDude.Tests.Unit.Serialization
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			Assert.Throws<ArgumentNullException>(() => serializer.ConvertFromJson<TestEntity>(CreateDoc(), true));
+// ReSharper disable AssignNullToNotNullAttribute
+			Assert.Throws<ArgumentNullException>(() => serializer.ConvertFromJson<TestEntity>(null, true));
+			Assert.Throws<ArgumentNullException>(() => serializer.ConvertFromJson(null, CreateDoc(), true));
+// ReSharper restore AssignNullToNotNullAttribute
 		}
 		
 		[Theory]
@@ -101,9 +105,9 @@ namespace CouchDude.Tests.Unit.Serialization
 		[InlineData("\t")]
 		public void ShouldThrowOnEmptyNullOrWightspaceId(string id)
 		{
-			var doc = JsonValue.Parse(id == null ? new { type = "entity" }.ToJsonString() : new { _id = id, type = "entity" }.ToJsonString());
+			var doc = (id == null? (object)new { type = "entity" }: new { _id = id, type = "entity" }).ToJObject();
 
-			Assert.Throws<DocumentIdMissingException>(() => serializer.ConvertFromJson<TestEntity>(doc, true));
+			Assert.Throws<DocumentIdMissingException>(() => serializer.ConvertFromJson(entityConfig, doc, true));
 		}
 
 		[Theory]
@@ -124,7 +128,7 @@ namespace CouchDude.Tests.Unit.Serialization
 			Assert.Throws<DocumentIdMissingException>(
 				() =>
 					serializer.ConvertFromJson(
-						Default.Settings.GetConfig(typeof (Entity)),
+						entityConfig,
 						new {
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
@@ -141,7 +145,7 @@ namespace CouchDude.Tests.Unit.Serialization
 			Assert.Throws<DocumentRevisionMissingException>(
 				() => 
 					serializer.ConvertFromJson(
-						Default.Settings.GetConfig(typeof (Entity)),
+						entityConfig,
 						new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToJObject(),
 						true)
 			);
@@ -153,7 +157,7 @@ namespace CouchDude.Tests.Unit.Serialization
 			var obj = (JsonObject)JsonValue.Parse(
 				@"{ ""_id"": ""entity.doc1"", ""_rev"": ""123"", ""type"": ""entity"", ""age"": ""not an integer"" }");
 			Assert.Throws<ParseException>(() => 
-				serializer.ConvertFromJson(Default.Settings.GetConfig(typeof (Entity)), obj, true)
+				serializer.ConvertFromJson(entityConfig, obj, true)
 			);
 		}
 		

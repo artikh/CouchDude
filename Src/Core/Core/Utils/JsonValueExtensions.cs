@@ -39,12 +39,16 @@ namespace CouchDude.Utils
 		/// <summary>Returns primitive value of the property or defalut value.</summary>
 		public static T GetPrimitiveProperty<T>(this JsonObject self, string propertyName, T defaultValue = default(T))
 		{
-			var jsonPrimitive = self[propertyName] as JsonPrimitive;
-			if(jsonPrimitive != null)
+			JsonValue propertyValue;
+			if (self.TryGetValue(propertyName, out propertyValue))
 			{
-				var value = jsonPrimitive.Value;
-				if (value is T)
-					return (T) value;
+				var jsonPrimitive = propertyValue as JsonPrimitive;
+				if (jsonPrimitive != null)
+				{
+					var value = jsonPrimitive.Value;
+					if (value is T)
+						return (T) value;
+				}
 			}
 			return defaultValue;
 		}

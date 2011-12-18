@@ -119,11 +119,23 @@ namespace CouchDude.Tests.Unit.Serialization
 		[InlineData("")]
 		[InlineData(" ")]
 		[InlineData("\t")]
-		public void ShouldThrowIfDocumentIdIsNullEmptyOrWhitespace(string invalidEntityId)
+		public void ShouldThrowIfEntityIdIsNullEmptyOrWhitespace(string invalidEntityId)
 		{
 			config = MockEntityConfig(
 				mock => mock.Setup(ec => ec.GetId(entity)).Returns(invalidEntityId));
-			Assert.Throws<ArgumentException>(() => serializer.ConvertToJson(entity, config, true));
+			Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
+		}
+
+		[Theory]
+		[InlineData(null)]
+		[InlineData("")]
+		[InlineData(" ")]
+		[InlineData("\t")]
+		public void ShouldThrowIfDocumentIdIsNullEmptyOrWhitespace(string invalidDocumentId)
+		{
+			config = MockEntityConfig(
+				mock => mock.Setup(ec => ec.ConvertEntityIdToDocumentId(It.IsAny<string>())).Returns(invalidDocumentId));
+			Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
 		}
 		
 		public class EntityA
