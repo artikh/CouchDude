@@ -17,8 +17,8 @@
 #endregion
 
 using System;
-using CouchDude.Api;
 using CouchDude.Configuration;
+using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
@@ -27,9 +27,9 @@ using Xunit.Extensions;
 // ReSharper disable MemberCanBePrivate.Global
 // ReSharper disable UnusedAutoPropertyAccessor.Global	
 // ReSharper disable NotAccessedField.Global
-namespace CouchDude.Tests.Unit.Api
+namespace CouchDude.Tests.Unit.Serialization
 {
-	public class DocumentTestsSerialize
+	public class NewtonsoftSerializerConvertToJsonTests
 	{
 		public enum UserSex
 		{
@@ -47,13 +47,9 @@ namespace CouchDude.Tests.Unit.Api
 
 		object entity = new User();
 
-		private IEntityConfig config;
-
-		public DocumentTestsSerialize()
-		{
-			config = MockEntityConfig();
-		}
-
+		private IEntityConfig config = MockEntityConfig(); 
+		private readonly ISerializer serializer = new NewtonsoftSerializer();
+		
 		private static IEntityConfig MockEntityConfig(
 			Action<Mock<IEntityConfig>> additionalActions = null,
 			string documentType = "sampleEntity",
@@ -74,22 +70,24 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			Assert.Throws<ArgumentNullException>(() => Document.Serialize(entity, null));
-			Assert.Throws<ArgumentNullException>(() => Document.Serialize(null, config)); 
+			// ReSharper disable AssignNullToNotNullAttribute
+			Assert.Throws<ArgumentNullException>(() => serializer.ConvertToJson(entity, null, throwOnError: true));
+			Assert.Throws<ArgumentNullException>(() => serializer.ConvertToJson(null, config, throwOnError: true));
+			// ReSharper restore AssignNullToNotNullAttribute
 		}
 
 		[Fact]
 		public void ShouldSetIdAndTypePropertiesOnJObject()
 		{
-			dynamic document = Document.Serialize(entity, config);
+			dynamic document = serializer.ConvertToJson(entity, config, true);
 			Assert.Equal("sampleEntity.doc1", (string)document._id);
 		}
 
 		[Fact]
 		public void ShouldSerializeSpecialPropertiesFirst()
 		{
-			var document = Document.Serialize(Entity.CreateStandard(), Default.Settings.GetConfig(typeof (Entity)));
-			Assert.Equal(Entity.CreateDocWithRevision(), document);
+			var document = serializer.ConvertToJson(Entity.CreateStandard(), Default.Settings.GetConfig(typeof(Entity)), true);
+			TestUtils.AssertSameJson(Entity.CreateDocWithRevision(), document);
 		}
 		
 		[Fact]
@@ -100,8 +98,8 @@ namespace CouchDude.Tests.Unit.Api
 			    ec => ec.GetRevision(entity)).Returns("rev.1");
 			  mock.Setup(ec => ec.IsRevisionPresent).Returns(true);
 			});
-			var document = Document.Serialize(entity, config);
-			Assert.Equal("rev.1", document.Revision);
+			var document = serializer.ConvertToJson(entity, config, true);
+			Assert.Equal("rev.1", (string)document["_rev"]);
 		}
 
 		[Theory]
@@ -113,7 +111,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			config = MockEntityConfig(
 				mock => mock.Setup(ec => ec.DocumentType).Returns(invalidDocumentType));
-			Assert.Throws<InvalidOperationException>(() => Document.Serialize(entity, config));
+			Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
 		}
 
 		[Theory]
@@ -125,7 +123,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			config = MockEntityConfig(
 				mock => mock.Setup(ec => ec.GetId(entity)).Returns(invalidEntityId));
-			Assert.Throws<ArgumentException>(() => Document.Serialize(entity, config));
+			Assert.Throws<ArgumentException>(() => serializer.ConvertToJson(entity, config, true));
 		}
 		
 		public class EntityA
@@ -145,16 +143,22 @@ namespace CouchDude.Tests.Unit.Api
 			var entityA = new EntityA {One = "one", Two = "two"};
 			var entityB = new EntityB {One = "one", Two = "two"};
 
-			dynamic documentA = Document.Serialize(entityA, MockEntityConfig(
-				mock => mock.Setup(ec => ec.IgnoredMembers).Returns(typeof (EntityA).GetMember("One")),
-				documentType: "entityA",
-				entityType: typeof(EntityA)
-			));
-			dynamic documentB = Document.Serialize(entityB, MockEntityConfig(
-				mock => mock.Setup(ec => ec.IgnoredMembers).Returns(typeof (EntityA).GetMember("Two")),
-				documentType: "entityB",
-				entityType: typeof(EntityB)
-			));
+			dynamic documentA = serializer.ConvertToJson(
+				entityA, 
+				MockEntityConfig(
+					mock => mock.Setup(ec => ec.IgnoredMembers).Returns(typeof (EntityA).GetMember("One")),
+					documentType: "entityA",
+					entityType: typeof(EntityA)
+				),
+				true);
+			dynamic documentB = serializer.ConvertToJson(
+				entityB, 
+				MockEntityConfig(
+					mock => mock.Setup(ec => ec.IgnoredMembers).Returns(typeof (EntityA).GetMember("Two")),
+					documentType: "entityB",
+					entityType: typeof(EntityB)
+				),
+				true);
 
 			Assert.Null(documentA.one);
 			Assert.Equal("two", documentA.two);
@@ -185,8 +189,8 @@ namespace CouchDude.Tests.Unit.Api
 				documentType: "selfReferencingEntity",
 				entityType: typeof(SelfReferencingEntity)
 			);
-			var exception = 
-				Assert.Throws<InvalidOperationException>(() => Document.Serialize(entity, config));
+			var exception =
+				Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
 			Assert.Contains(typeof(SelfReferencingEntity).Name, exception.Message);
 		}
 
@@ -194,11 +198,9 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnUncompatibleEntityAndEntityConfig()
 		{
 			entity = new User();
-			config = MockEntityConfig(
-				documentType: "simpleEntity",
-				entityType: typeof(Entity)
+			config = MockEntityConfig(documentType: "simpleEntity", entityType: typeof(Entity)
 			);
-			Assert.Throws<InvalidOperationException>(() => Document.Serialize(entity, config));
+			Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
 		}
 	}
 }

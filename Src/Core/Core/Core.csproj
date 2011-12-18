@@ -124,10 +124,9 @@
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
-    <Compile Include="Api\NewtonsoftSerializer.cs" />
     <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
     <Compile Include="Serialization\EntityContractResolver.cs" />
-    <Compile Include="Serialization\ISerializer.cs" />
+    <Compile Include="ISerializer.cs" />
     <Compile Include="Serialization\NewtonsoftSerializer.cs" />
     <Compile Include="Serialization\NewtonsoftSerializerDefautSettings.cs" />
     <Compile Include="Serialization\SerializerBase.cs" />
@@ -182,6 +181,7 @@
     <Compile Include="ISyncronousDocumentAttachment.cs" />
     <Compile Include="ReplicationState.cs" />
     <Compile Include="ReplicationTaskDescriptor.cs" />
+    <Compile Include="SerializerExtensions.cs" />
     <Compile Include="Utils\CheckIf.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
@@ -200,6 +200,7 @@
     <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\FlexibleIso8601DateTimeParser.cs" />
     <Compile Include="Utils\HttpClientHelpers.cs" />
+    <Compile Include="Utils\JsonContent.cs" />
     <Compile Include="Utils\JsonValueExtensions.cs" />
     <Compile Include="Utils\LazyConcurrentDictionary.cs" />
     <Compile Include="Utils\SystemJsonValueReader.cs" />

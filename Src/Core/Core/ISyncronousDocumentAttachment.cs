@@ -24,7 +24,7 @@ namespace CouchDude
 	public interface ISyncronousDocumentAttachment
 	{
 		/// <summary>Opens attachment for read and waits for result of the operation.</summary>
-		/// <remarks>This is remote call if <see cref="IDocumentAttachment.Inline"/> is false.</remarks>
+		/// <remarks>This is remote call if <see cref="DocumentAttachment.Inline"/> is false.</remarks>
 		Stream OpenRead();
 	}
 }

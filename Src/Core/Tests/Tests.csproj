@@ -135,8 +135,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Unit\Api\DocumentTests.cs" />
-    <Compile Include="Unit\Api\DocumentTests.Deserialize.cs" />
-    <Compile Include="Unit\Api\DocumentTests.Serialize.cs" />
+    <Compile Include="Unit\Serialization\NewtonsoftSerializer.ConvertFromJsonTests.cs" />
+    <Compile Include="Unit\Serialization\NewtonsoftSerializer.ConvertToJsonTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionConstuctorTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionDeleteTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionQueryTests.cs" />
@@ -149,9 +149,7 @@
     <Compile Include="Unit\Impl\DocumentEntityTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Api\JsonFragmentTests.cs" />
     <Compile Include="Integration\SaveLoadAndDelete.cs" />
-    <Compile Include="JTokenStringCompairer.cs" />
     <Compile Include="ExploratoryTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Unit\Impl\ViewQueryUriConverterConvertToTests.cs" />

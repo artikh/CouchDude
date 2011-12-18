@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Json;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +29,24 @@ namespace CouchDude.Utils
 	internal static class HttpClientHelpers
 	{
 		private readonly static Encoding DefaultHttpEncoding = Encoding.GetEncoding(0x6faf);
+
+		public static async Task<Document> ReadAsDocumentAsync(this HttpContent self)
+		{
+			using (var reader = await self.ReadAsTextReaderAsync().ConfigureAwait(false))
+				return new Document(reader);
+		}
+
+		public static async Task<JsonObject> ReadAsJsonObjectAsync(this HttpContent self)
+		{
+			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);
+			return (JsonObject)jsonValue;
+		}
+
+		public static async Task<JsonValue> ReadAsJsonValueAsync(this HttpContent self)
+		{
+			using (var stream = await self.ReadAsStreamAsync().ConfigureAwait(false))
+				return JsonValue.Load(stream);
+		}
 
 		/// <summary>Constructs text reader over HTTP content using response's encoding info.</summary>
 		public static async Task<TextReader> ReadAsTextReaderAsync(this HttpContent self)

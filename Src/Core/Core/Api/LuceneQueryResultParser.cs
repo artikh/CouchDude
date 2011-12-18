@@ -19,8 +19,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Json;
 using System.Linq;
 using CouchDude.Impl;
+using CouchDude.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -29,7 +31,9 @@ namespace CouchDude.Api
 	/// <summary>Loads couchdb-lucene request result from provided <see cref="TextReader"/>.</summary>
 	public class LuceneQueryResultParser
 	{
-		private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonFragment.CreateSerializerSettings());
+		// HACK: We should use main serializer here.
+		private static readonly JsonSerializer Serializer =
+			JsonSerializer.Create(NewtonsoftSerializerDefautSettings.CreateDefaultSerializerSettingsDefault());
 		
 #pragma warning disable 0649
 		// ReSharper disable UnassignedField.Local
@@ -80,8 +84,8 @@ namespace CouchDude.Api
 
 			var rows = (
 				from rawRow in rawResult.rows ?? new RawViewResultRow[0]
-				let fields = rawRow.fields != null ? new JsonFragment(rawRow.fields) : null
-				let document = rawRow.doc != null ? new Document(rawRow.doc) : null
+				let fields = rawRow.fields != null ? JsonValue.Parse(rawRow.fields.ToString()) : null
+				let document = rawRow.doc != null ? new Document(rawRow.doc.ToString()) : null
 				select new LuceneResultRow(rawRow.id, fields, rawRow.score, rawRow.id, document)
 			).ToList();
 

@@ -18,6 +18,7 @@
 
 using System;
 using CouchDude.Api;
+using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -25,7 +26,7 @@ namespace CouchDude.Tests.Unit.Api
 	public class CouchApiFactoryTests
 	{
 		[Fact]
-		public void ShouldThrowOnNullParameters()
+		public void ShouldThrowOnIncorrectParameters()
 		{
 			Assert.Throws<ArgumentNullException>(() => Factory.CreateCouchApi(""));
 			Assert.Throws<ArgumentNullException>(() => Factory.CreateCouchApi((Uri)null));

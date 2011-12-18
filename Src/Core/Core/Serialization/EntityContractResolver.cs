@@ -19,14 +19,13 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using CouchDude.Api;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace CouchDude.Serialization
 {
 	/// <summary>Detects circural reference detection and ignored member support.</summary>
-	public class EntityContractResolver : JsonFragment.CamelCasePrivateSetterPropertyContractResolver
+	public class EntityContractResolver : CamelCasePrivateSetterPropertyContractResolver
 	{
 		private readonly Type entityType;
 		private readonly ISet<MemberInfo> ignoredMembers;

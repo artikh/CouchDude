@@ -15,6 +15,9 @@
 	limitations under the License.																						
 */
 #endregion
+
+using System.Json;
+
 namespace CouchDude
 {
 	/// <summary>CouchDB query result row.</summary>
@@ -24,7 +27,7 @@ namespace CouchDude
 		public ViewResultRow() { }
 
 		/// <constructor />
-		public ViewResultRow(IJsonFragment key, IJsonFragment value, string documentId, IDocument document)
+		public ViewResultRow(JsonValue key, JsonValue value, string documentId, Document document)
 		{
 			Key = key;
 			Value = value;
@@ -33,15 +36,15 @@ namespace CouchDude
 		}
 
 		/// <summary>View key.</summary>
-		public IJsonFragment Key { get; private set; }
+		public JsonValue Key { get; private set; }
 
 		/// <summary>View value.</summary>
-		public IJsonFragment Value { get; private set; }
+		public JsonValue Value { get; private set; }
 
 		/// <summary>Document ID associated with view row.</summary>
 		public string DocumentId { get; private set; }
 
 		/// <summary>Document associated with the row.</summary>
-		public IDocument Document { get; private set; }
+		public Document Document { get; private set; }
 	}
 }

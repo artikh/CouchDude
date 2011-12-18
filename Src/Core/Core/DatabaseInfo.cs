@@ -1,4 +1,5 @@
 using System;
+using System.Json;
 using CouchDude.Utils;
 
 namespace CouchDude
@@ -31,7 +32,7 @@ namespace CouchDude
 		public readonly int FileFormatVersion;
 
 		/// <summary>Converts database info document into easy to use object.</summary>
-		public DatabaseInfo(bool exists, string name, IJsonFragment dbInfo = null)
+		public DatabaseInfo(bool exists, string name, JsonObject dbInfo = null)
 		{
 			Name = name;
 			Exists = exists;
@@ -48,6 +49,9 @@ namespace CouchDude
 			}
 		}
 
-		private static T ValueOrDefault<T>(T? value) where T: struct { return value ?? default(T); }
+		private static T ValueOrDefault<T>(T? value) where T: struct
+		{
+			return value ?? default(T);
+		}
 	}
 }

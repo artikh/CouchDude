@@ -21,7 +21,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using CouchDude.Api;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

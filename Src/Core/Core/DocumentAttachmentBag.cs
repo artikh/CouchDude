@@ -24,9 +24,7 @@ using System.Json;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using CouchDude.Api;
 using CouchDude.Utils;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude
 {
@@ -36,8 +34,8 @@ namespace CouchDude
 		internal const string AttachmentsPropertyName = "_attachments";
 
 		private readonly Document parentDocument;
-		private readonly ConditionalWeakTable<JsonObject, DocumentAttachment> documentAttachmentInstances =
-			new ConditionalWeakTable<JsonObject, DocumentAttachment>();
+		private readonly ConditionalWeakTable<string, DocumentAttachment> documentAttachmentInstances =
+			new ConditionalWeakTable<string, DocumentAttachment>();
 		
 		/// <constructor />
 		public DocumentAttachmentBag(Document parentDocument) { this.parentDocument = parentDocument; }
@@ -49,7 +47,7 @@ namespace CouchDude
 		{
 			var attachments =
 				from pair in GetDescriptorIdPairs()
-				select GetOrCreateDocumentAttachment(pair.Key, pair.Value);
+				select GetOrCreateDocumentAttachment(pair.Key);
 			return attachments.GetEnumerator();
 		}
 
@@ -69,9 +67,9 @@ namespace CouchDude
 				var attachmentsObject = GetAttachmentsObject();
 				if (attachmentsObject != null)
 				{
-					var attachmentDescriptor = attachmentsObject[attachmentId] as JObject;
+					var attachmentDescriptor = attachmentsObject[attachmentId] as JsonObject;
 					if (attachmentDescriptor != null)
-						return GetOrCreateDocumentAttachment(attachmentId, attachmentDescriptor);
+						return GetOrCreateDocumentAttachment(attachmentId);
 				}
 				return null;
 			}
@@ -82,10 +80,10 @@ namespace CouchDude
 			var attachmentsObject = GetAttachmentsObject();
 			if (attachmentsObject == null)
 				return Enumerable.Empty<KeyValuePair<string, JsonObject>>();
-			return from property in attachmentsObject.Properties()
-						 let descriptor = property.Value as JObject
+			return from property in attachmentsObject
+						 let descriptor = property.Value as JsonObject
 						 where descriptor != null
-						 select new KeyValuePair<string, JObject>(property.Name, descriptor);
+						 select new KeyValuePair<string, JsonObject>(property.Key, descriptor);
 		}
 
 		private DocumentAttachment CreateNewAttachment(string id, string contentType = null)
@@ -96,8 +94,6 @@ namespace CouchDude
 				throw new InvalidOperationException(string.Format("Attachment with ID:{0} already present on document", id));
 
 			var attachmet = new DocumentAttachment(id, parentDocument);
-			documentAttachmentInstances.Add(attachmet.JsonObject, attachmet);
-			attachmensObject[id] = attachmet.JsonObject;	
 			if (contentType.HasValue())
 				attachmet.ContentType = contentType;
 			return attachmet;
@@ -130,9 +126,10 @@ namespace CouchDude
 			return attachment;
 		}
 
-		private DocumentAttachment GetOrCreateDocumentAttachment(string id, JsonObject descriptor)
+		private DocumentAttachment GetOrCreateDocumentAttachment(string attachmentId)
 		{
-			return documentAttachmentInstances.GetValue(descriptor, _ => new DocumentAttachment(id, parentDocument));
+			return documentAttachmentInstances.GetValue(
+				attachmentId, id => new DocumentAttachment(attachmentId, parentDocument));
 		}
 
 		private JsonObject GetAttachmentsObject()

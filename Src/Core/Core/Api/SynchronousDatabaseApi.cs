@@ -32,7 +32,7 @@ namespace CouchDude.Api
 			this.databaseApi = databaseApi;
 		}
 
-		public IDocument RequestDocument(string docId, string revision = null)
+		public Document RequestDocument(string docId, string revision = null)
 		{
 			return databaseApi.RequestDocument(docId, revision).WaitForResult();
 		}
@@ -42,12 +42,12 @@ namespace CouchDude.Api
 			return databaseApi.DeleteDocument(docId, revision).WaitForResult();
 		}
 
-		public DocumentInfo SaveDocument(IDocument document)
+		public DocumentInfo SaveDocument(Document document)
 		{
 			return databaseApi.SaveDocument(document).WaitForResult();
 		}
 
-		public DocumentInfo SaveDocument(IDocument document, bool overwriteConcurrentUpdates) 
+		public DocumentInfo SaveDocument(Document document, bool overwriteConcurrentUpdates) 
 		{
 			return databaseApi.SaveDocument(document, overwriteConcurrentUpdates).WaitForResult();
 		}

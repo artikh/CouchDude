@@ -19,33 +19,32 @@
 using System;
 using System.IO;
 using System.Json;
-using System.Reflection;
 using CouchDude.Configuration;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
+using CouchDude.Serialization;
+using JetBrains.Annotations;
 
-namespace CouchDude.Serialization
+namespace CouchDude
 {
 	/// <summary>CouchDude main serializer interface. 
 	/// Default (and only included) implementation is <see cref="NewtonsoftSerializer"/>.</summary>
 	public interface ISerializer
 	{
 		/// <summary>Serializes provided object of provided type to provided to instance of <see cref="TextWriter"/>.</summary>
-		void Serialize(TextWriter target, object source, bool throwOnError = false);
+		void Serialize([NotNull]TextWriter target, [NotNull]object source, bool throwOnError);
 
 		/// <summary>Deserializes object of provided type from provided instance of <see cref="TextReader"/>.</summary>
-		object Deserialize(Type targetType, TextReader source, bool throwOnError = false);
+		object Deserialize([NotNull]Type targetType, [NotNull]TextReader source, bool throwOnError);
 
 		/// <summary>Converts provided object of provided type to JSON.</summary>
-		JsonValue ConvertToJson(object source, bool throwOnError = false);
+		JsonValue ConvertToJson([NotNull]object source, bool throwOnError = false);
 
 		/// <summary>Converts provided JSON to object of provided type.</summary>
-		object ConvertFromJson(Type targetType, JsonValue source, bool throwOnError = false);
+		object ConvertFromJson([NotNull]Type targetType, [NotNull]JsonValue source, bool throwOnError);
 
 		/// <summary>Converts provided entity using provided <see cref="IEntityConfig"/> to JSON.</summary>
-		JsonObject ConvertToJson(object sourceEntity, IEntityConfig entityConfig, bool throwOnError = false);
+		JsonObject ConvertToJson([NotNull]object sourceEntity, [NotNull]IEntityConfig entityConfig, bool throwOnError);
 
 		/// <summary>Converts provided JSON to entity using provided <see cref="IEntityConfig"/>.</summary>
-		object ConvertFromJson(IEntityConfig entityConfig, JsonObject source, bool throwOnError = false);
+		object ConvertFromJson([NotNull]IEntityConfig entityConfig, [NotNull]JsonObject source, bool throwOnError);
 	}
 }

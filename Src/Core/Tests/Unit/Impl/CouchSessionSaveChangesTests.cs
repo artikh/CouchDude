@@ -188,8 +188,8 @@ namespace CouchDude.Tests.Unit.Impl
 						return SimpleEntity.StandardDocumentInfo.ToTask();
 					});
 			dbApiMock
-				.Setup(api => api.SaveDocument(It.IsAny<IDocument>()))
-				.Returns<IDocument>(
+				.Setup(api => api.SaveDocument(It.IsAny<Document>()))
+				.Returns<Document>(
 					_ => {
 						lock (executedOperations)
 							executedOperations.Add("SaveDocument");

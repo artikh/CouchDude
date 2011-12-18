@@ -20,8 +20,8 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using CouchDude.Api;
 using CouchDude.Tests.SampleData;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

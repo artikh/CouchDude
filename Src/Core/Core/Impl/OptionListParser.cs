@@ -19,29 +19,29 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Json;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
-using System.Web;
-using CouchDude.Api;
+using CouchDude.Utils;
 
-namespace CouchDude.Utils
+namespace CouchDude.Impl
 {
 	interface IOption<in T>
 	{
 		string Name { get; }
 		string DefaultValue { get; }
-		string Get(T sourceObject);
+		string Get(T sourceObject, ISerializer serializer);
 		void Set(T sourceObject, string stringValue);
 	}
 
 	internal abstract class OptionBase<T> : IOption<T>
 	{
-		private string name;
-		private string defaultValue;
+		private readonly string name;
+		private readonly string defaultValue;
 		public string Name { get { return name; } }
 		public string DefaultValue { get { return defaultValue; } }
-		public abstract string Get(T sourceObject);
+		public abstract string Get(T sourceObject, ISerializer serializer);
 		public abstract void Set(T sourceObject, string stringValue);
 
 		protected OptionBase(string name, string defaultValue)
@@ -69,11 +69,11 @@ namespace CouchDude.Utils
 		}
 
 		protected abstract bool TryDeserialize(string stringValue, out TValue value);
-		protected abstract string Serialize(TValue value);
+		protected abstract string Serialize(TValue value, ISerializer serializer);
 
-		public override string Get(T sourceObject)
+		public override string Get(T sourceObject, ISerializer serializer)
 		{
-			var stringValue = Serialize(GetValue(sourceObject));
+			var stringValue = Serialize(GetValue(sourceObject), serializer);
 			return stringValue != DefaultValue ? stringValue : null;
 		}
 
@@ -115,17 +115,17 @@ namespace CouchDude.Utils
 			return false;
 		}
 
-		protected override string Serialize(bool value) { return value ? trueValue : falseValue; }
+		protected override string Serialize(bool value, ISerializer serializer) { return value ? trueValue : falseValue; }
 	}
 
 	class CustomValueOption<T, TValue> : Option<T, TValue>
 	{
 		private readonly Func<string, TValue> deserialize;
-		private readonly Func<TValue, string> serialize;
+		private readonly Func<TValue, ISerializer, string> serialize;
 
 		public CustomValueOption(
 			Expression<Func<T, TValue>> getPropertyExpression, string name, string defaultValue, 
-			Func<string, TValue> deserialize, Func<TValue, string> serialize)
+			Func<string, TValue> deserialize, Func<TValue, ISerializer, string> serialize)
 			: base(getPropertyExpression, name, defaultValue)
 		{
 			this.deserialize = deserialize;
@@ -138,18 +138,18 @@ namespace CouchDude.Utils
 			return !Equals(value, default(TValue));
 		}
 
-		protected override string Serialize(TValue value) { return serialize(value); }
+		protected override string Serialize(TValue value, ISerializer serializer) { return serialize(value, serializer); }
 	}
 
 	class CustomOption<T, TValue>: Option<T, TValue>
 	{
 		private readonly Func<string, bool> isValid;
-		private readonly Func<TValue, string> serialize;
+		private readonly Func<TValue, ISerializer, string> serialize;
 		private readonly Func<string, TValue> deserialize; 
 
 		public CustomOption(
 			Expression<Func<T, TValue>> getPropertyExpression, string name, string defaultValue, 
-			Func<string, bool> isValid, Func<TValue, string> serialize, Func<string, TValue> deserialize)
+			Func<string, bool> isValid, Func<TValue, ISerializer, string> serialize, Func<string, TValue> deserialize)
 			: base(getPropertyExpression, name, defaultValue)
 		{
 			this.isValid = isValid;
@@ -168,7 +168,7 @@ namespace CouchDude.Utils
 			return false;
 		}
 
-		protected override string Serialize(TValue value) { return serialize(value); }
+		protected override string Serialize(TValue value, ISerializer serializer) { return serialize(value, serializer); }
 	}
 	
 	class PositiveIntegerOption<T> : Option<T, int?>
@@ -189,9 +189,10 @@ namespace CouchDude.Utils
 			return false;
 		}
 
-		protected override string Serialize(int? value)
+		protected override string Serialize(int? value, ISerializer serializer)
 		{
-			return value.HasValue && value > 0? value.ToString(): DefaultValue;
+			return value.HasValue && value > 0
+				? value.Value.ToString(CultureInfo.InvariantCulture): DefaultValue;
 		}
 	}
 
@@ -207,7 +208,7 @@ namespace CouchDude.Utils
 			return true;
 		}
 
-		protected override string Serialize(string value) { return value; }
+		protected override string Serialize(string value, ISerializer serializer) { return value; }
 	}
 
 	class JsonOption<T> : Option<T, object>
@@ -220,7 +221,7 @@ namespace CouchDude.Utils
 		{
 			try
 			{
-				value = new JsonFragment(stringValue);
+				value = JsonValue.Parse(stringValue);
 				return true;
 			}
 			catch (Exception)
@@ -230,11 +231,11 @@ namespace CouchDude.Utils
 			}
 		}
 
-		protected override string Serialize(object value)
+		protected override string Serialize(object value, ISerializer serializer)
 		{
 			if (value != null)
 			{
-				var jsonFragment = value as IJsonFragment ?? JsonFragment.Serialize(value);
+				var jsonFragment = value as JsonValue ??  serializer.ConvertToJson(value, throwOnError: false);
 				return jsonFragment.ToString();
 			}
 			return null;
@@ -243,17 +244,17 @@ namespace CouchDude.Utils
 
 	class CustomOption<T> : OptionBase<T>
 	{
-		private readonly Func<T, string> getStringValue; 
+		private readonly Func<T, ISerializer, string> getStringValue; 
 		private readonly Action<T, string> setStringValue;
 
-		public CustomOption(string name, string defaultValue, Func<T, string> getStringValue, Action<T, string> setStringValue) 
+		public CustomOption(string name, string defaultValue, Func<T, ISerializer, string> getStringValue, Action<T, string> setStringValue) 
 			: base(name, defaultValue)
 		{
 			this.getStringValue = getStringValue;
 			this.setStringValue = setStringValue;
 		}
 
-		public override string Get(T sourceObject) { return getStringValue(sourceObject); }
+		public override string Get(T sourceObject, ISerializer serializer) { return getStringValue(sourceObject, serializer); }
 		public override void Set(T sourceObject, string stringValue) { setStringValue(sourceObject, stringValue); }
 	}
 	
@@ -273,12 +274,12 @@ namespace CouchDude.Utils
 				);
 		}
 
-		public string ToQueryString(T optionListObject)
+		public string ToQueryString(T optionListObject, ISerializer serializer)
 		{
 			var result = new StringBuilder();
 			foreach (var option in options)
 			{
-				var stringValue = option.Get(optionListObject);
+				var stringValue = option.Get(optionListObject, serializer);
 				if (stringValue != null)
 				{
 					var encodedValue = Uri.EscapeUriString(stringValue);

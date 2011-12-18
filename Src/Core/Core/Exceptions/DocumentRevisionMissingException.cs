@@ -36,7 +36,7 @@ namespace CouchDude
 		private static string GenerateMessage(string documentJsonString = null)
 		{
 			var message = new StringBuilder("Required field '")
-				.Append(Api.Document.RevisionPropertyName)
+				.Append(Document.RevisionPropertyName)
 				.Append("' have not found on document. ")
 				.Append("Document revision should be supplied by CouchDB.");
 			if (documentJsonString != null)

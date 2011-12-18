@@ -37,6 +37,9 @@ namespace CouchDude
 		/// <summary>Underlying <see cref="JsonObject"/> instance.</summary>
 		public JsonObject RawJsonObject { get; private set; }
 
+		/// <summary>Returs underlying JSON data object as dynamic.</summary>
+		public dynamic AsDynamic() { return RawJsonObject.AsDynamic(); }
+
 		/// <constructor />
 		public Document() { }
 

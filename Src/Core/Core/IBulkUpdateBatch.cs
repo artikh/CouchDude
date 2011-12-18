@@ -22,13 +22,13 @@ namespace CouchDude
 	public interface IBulkUpdateBatch
 	{
 		/// <summary>Requires provided document to be updated.</summary>
-		void Update(IDocument document);
+		void Update(Document document);
 
 		/// <summary>Requires provided document to be created.</summary>
-		void Create(IDocument document);
+		void Create(Document document);
 
 		/// <summary>Requires provided document to be deleted.</summary>
-		void Delete(IDocument document);
+		void Delete(Document document);
 
 		/// <summary>Requires document of provided ID and revision to be deleted.</summary>
 		void Delete(string documentId, string revision);

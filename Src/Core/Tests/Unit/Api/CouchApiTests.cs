@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using CouchDude.Serialization;
 using Xunit;
 using Xunit.Extensions;
 

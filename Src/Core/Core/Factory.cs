@@ -20,6 +20,7 @@ using System;
 using System.Net.Http;
 using CouchDude.Api;
 using CouchDude.Impl;
+using CouchDude.Serialization;
 
 namespace CouchDude
 {
@@ -32,24 +33,30 @@ namespace CouchDude
 			if(settings == null) throw new ArgumentNullException("settings");
 			if(settings.Incomplete) throw new ArgumentException("Settings object initalization have not finished yet.", "settings");
 
-			return new CouchSessionFactory(settings, s => CreateCouchApi(s.ServerUri));
+			return new CouchSessionFactory(settings, s => CreateCouchApi(s.ServerUri, serializer: s.Serializer));
 		}
 		
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
-		public static ICouchApi CreateCouchApi(string serverAddress, HttpMessageHandler handler = null)
+		public static ICouchApi CreateCouchApi(string serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
 		{
 			if(string.IsNullOrWhiteSpace(serverAddress)) throw new ArgumentNullException("serverAddress");
 
-			return CreateCouchApi(new Uri(serverAddress, UriKind.Absolute), handler);
+			return CreateCouchApi(new Uri(serverAddress, UriKind.Absolute), handler, serializer ?? CreateSerializer());
 		}
 
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
-		public static ICouchApi CreateCouchApi(Uri serverAddress, HttpMessageHandler handler = null)
+		public static ICouchApi CreateCouchApi(Uri serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
 		{
 			if (serverAddress == null) throw new ArgumentNullException("serverAddress");
 			if (!serverAddress.IsAbsoluteUri) throw new ArgumentException("Server address should be absolute URI.", "serverAddress");
 
-			return new CouchApi(serverAddress, handler);
+			return new CouchApi(serverAddress, serializer ?? CreateSerializer(), handler);
+		}
+
+		/// <summary>Creates default <see cref="ISerializer"/> implementation.</summary>
+		public static ISerializer CreateSerializer()
+		{
+			return new NewtonsoftSerializer();
 		}
 	}
 }

@@ -58,7 +58,7 @@ namespace CouchDude.Tests.Unit.Impl
 				.Returns(
 					(string id, string revision) => Entity.CreateDocWithRevision().ToTask());
 			dbApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
 				.Returns(Entity.StandardDococumentInfo.ToTask());
 			dbApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousDatabaseApi(dbApiMock.Object));
@@ -128,7 +128,7 @@ namespace CouchDude.Tests.Unit.Impl
 							name = "John Smith"
 						}.ToDocument()));
 			databaseApiMock
-				.Setup(ca => ca.SaveDocument(It.IsAny<IDocument>()))
+				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
 				.Returns(new DocumentInfo(Entity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());
 			databaseApiMock
 				.Setup(ca => ca.Synchronously).Returns(() => new SynchronousDatabaseApi(databaseApiMock.Object));

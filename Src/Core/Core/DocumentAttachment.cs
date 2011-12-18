@@ -22,17 +22,21 @@ using System.Json;
 using System.Threading.Tasks;
 using CouchDude.Api;
 using CouchDude.Utils;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude
 {
 	/// <summary>CouchDB attachment backed by part of document JSON.</summary>
 	public class DocumentAttachment
 	{
+		/// <summary>Inline data property name.</summary>
 		protected const string DataPropertyName = "data";
+		/// <summary>Inline indicator property name.</summary>
 		protected const string StubPropertyName = "stub";
+		/// <summary>Content type property name.</summary>
 		protected const string ContentTypePropertyName = "content_type";
+		/// <summary>Length property name.</summary>
 		protected const string LengthPropertyName = "length";
+		
 		private readonly static byte[] EmptyBuffer = new byte[0];
 		private readonly Document parentDocument;
 
@@ -55,24 +59,25 @@ namespace CouchDude
 			}
 		}
 
-		/// <inheritdoc />
+		/// <summary>Unique (within documnet) identifier of the attachment.</summary>
 		public string Id { get; private set; }
 
-		/// <inheritdoc />
+		/// <summary>Attachment content (MIME) type.</summary>
 		public string ContentType
 		{
 			get { return AttachmentDescriptor.GetPrimitiveProperty<string>(ContentTypePropertyName); }
 			set { AttachmentDescriptor[ContentTypePropertyName] = value; }
 		}
 
-		/// <inheritdoc />
+		/// <summary>Content length.</summary>
 		public virtual int Length
 		{
 			get { return AttachmentDescriptor.GetPrimitiveProperty<int>(LengthPropertyName); }
 			set { AttachmentDescriptor[LengthPropertyName] = value; }
 		}
 
-		/// <inheritdoc />
+		/// <summary>Indicates wether attachment is included as base64 string within document or should 
+		/// be requested separatly.</summary>
 		public bool Inline 
 		{ 
 			get { return AttachmentDescriptor.GetPrimitiveProperty(StubPropertyName, defaultValue: true); } 
@@ -82,7 +87,7 @@ namespace CouchDude
 		/// <summary>Syncrounous wrappers over async </summary>
 		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
 
-		/// <inheritdoc />
+		/// <summary>Open attachment data stream for read.</summary>
 		public virtual Task<Stream> OpenRead()
 		{
 			if (Inline)
@@ -122,7 +127,8 @@ namespace CouchDude
 			}
 		}
 
-		public override void SetData(Stream dataStream)
+		/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		public virtual void SetData(Stream dataStream)
 		{
 			if (dataStream == null) throw new ArgumentNullException("dataStream");
 			if (!dataStream.CanRead)
@@ -136,7 +142,7 @@ namespace CouchDude
 			{
 				dataStream.CopyTo(memoryStream);
 				var base64String = Convert.ToBase64String(memoryStream.GetBuffer(), offset: 0, length: (int)memoryStream.Length);
-				this[DataPropertyName] = JToken.FromObject(base64String);
+				AttachmentDescriptor[DataPropertyName] = base64String;
 			}
 		}
 	}

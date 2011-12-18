@@ -91,25 +91,6 @@ namespace CouchDude.Tests.Unit.Impl
 		}
 
 		[Fact]
-		public void ShouldWriteProperJsonToTextWiter()
-		{
-			var documentEntity = DocumentEntity.FromEntity(entity, Default.Settings);
-
-			string writtenString;
-			using (var writer = new StringWriter())
-			{
-				documentEntity.WriteTo(writer);
-				writer.Flush();
-				writtenString = writer.GetStringBuilder().ToString();
-			}
-
-			Assert.Equal(
-				new { _id = "entity.doc1", type = "entity", name = "John Smith", age = 42, date = "1957-04-10T00:00:00Z" }.ToJsonString(), 
-				writtenString,
-				new JTokenStringCompairer());
-		}
-
-		[Fact]
 		public void ShouldDetectDifferenceIfJsonDocumentIsNull()
 		{
 			var documentEntity = DocumentEntity.FromEntity(entity, Default.Settings);

@@ -70,18 +70,21 @@ namespace CouchDude
 		/// Therefore searches may be faster as Lucene caches important data (especially for sorting). 
 		/// couchdb-lucene will trigger an index update unless one is already running.</summary>
 		public bool DoNotBlockIfStale { get; set; }
+
+		/// <summary>Serializer reference.</summary>
+		internal ISerializer Serializer { get; set; }
 		
 		/// <summary>Expreses query as relative URL.</summary>
 		[Pure]
 		public Uri ToUri()
 		{
-			return LuceneQueryUriConverter.ToUri(this);
+			return LuceneQueryUriConverter.ToUri(this, Serializer);
 		}
 
 		/// <inheritdoc/>
 		public override string ToString()
 		{
-			return LuceneQueryUriConverter.ToUriString(this);
+			return LuceneQueryUriConverter.ToUriString(this, Serializer);
 		}
 		
 		/// <summary>Cretates copy of current clone.</summary>

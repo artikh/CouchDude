@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Json;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -41,16 +42,16 @@ namespace CouchDude.Api
 		public readonly string Reason;
 		public readonly HttpStatusCode? StatusCode;
 
-		public CouchError(string responseString)
+		public CouchError(ISerializer serializer, string responseString)
 		{
 			Error = Reason = String.Empty;
 			StatusCode = null;
 
 			if (responseString.HasValue()) 
-				UpdateUsingErrorDescriptor(responseString, ref Error, ref Reason);
+				UpdateUsingErrorDescriptor(serializer, responseString, ref Error, ref Reason);
 		}
 
-		public CouchError(HttpResponseMessage response)
+		public CouchError(ISerializer serializer, HttpResponseMessage response)
 		{
 			if(response == null) throw new ArgumentNullException("response");
 			if(response.IsSuccessStatusCode)
@@ -67,7 +68,7 @@ namespace CouchDude.Api
 			if (response.Content == null) return;
 
 			var responseText = response.Content.ReadAsStringAsync().Result;
-			UpdateUsingErrorDescriptor(responseText, ref Error, ref Reason);
+			UpdateUsingErrorDescriptor(serializer, responseText, ref Error, ref Reason);
 		}
 
 		internal class CouchErrorDescriptor
@@ -76,13 +77,14 @@ namespace CouchDude.Api
 			public string Reason;
 		}
 
-		private static void UpdateUsingErrorDescriptor(string responseString, ref string error, ref string reason)
+		private static void UpdateUsingErrorDescriptor(
+			ISerializer serializer, string responseString, ref string error, ref string reason)
 		{
 			var couchErrorDescriptorJsonFragment = TryGetResponseObject(responseString);
 			if(couchErrorDescriptorJsonFragment != null)
 			{
-				var couchErrorDescriptor =
-					(CouchErrorDescriptor)couchErrorDescriptorJsonFragment.Deserialize(typeof (CouchErrorDescriptor));
+				var couchErrorDescriptor = 
+					serializer.ConvertFromJson<CouchErrorDescriptor>(couchErrorDescriptorJsonFragment, throwOnError: false);
 				if(couchErrorDescriptor != null)
 				{
 					if (!String.IsNullOrWhiteSpace(couchErrorDescriptor.Error))
@@ -98,11 +100,11 @@ namespace CouchDude.Api
 			reason = responseString;
 		}
 
-		private static IJsonFragment TryGetResponseObject(string responseText)
+		private static JsonValue TryGetResponseObject(string responseText)
 		{
 			try
 			{
-				return new JsonFragment(responseText);
+				return JsonValue.Parse(responseText);
 			}
 			catch (Exception)
 			{

@@ -28,6 +28,7 @@ namespace CouchDude.Api
 	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
 		private readonly DbUriConstructor uriConstructor;
+		private readonly ISerializer serializer;
 
 		private enum OperationType
 		{
@@ -42,8 +43,8 @@ namespace CouchDude.Api
 			public string DocumentId;
 			public string DocumentRevision;
 
-			private IDocument document;
-			public IDocument Document
+			private Document document;
+			public Document Document
 			{
 				get { return document; }  
 				set
@@ -62,7 +63,11 @@ namespace CouchDude.Api
 		readonly IDictionary<string, DocumentInfo> result = new Dictionary<string, DocumentInfo>();
 
 		/// <constructor />
-		public BulkUpdateBatch(DbUriConstructor uriConstructor) { this.uriConstructor = uriConstructor; }
+		public BulkUpdateBatch(DbUriConstructor uriConstructor, ISerializer serializer)
+		{
+			this.uriConstructor = uriConstructor;
+			this.serializer = serializer;
+		}
 
 		private void Add(UpdateDescriptor updateDescriptor)
 		{
@@ -70,7 +75,7 @@ namespace CouchDude.Api
 			docIdToUpdateDescriptorMap.Add(updateDescriptor.DocumentId, updateDescriptor);
 		}
 
-		public void Create(IDocument document)
+		public void Create(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -81,7 +86,7 @@ namespace CouchDude.Api
 			Add(new UpdateDescriptor{ Document = document, Operation = OperationType.Create });
 		}
 
-		public void Update(IDocument document)
+		public void Update(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -92,7 +97,7 @@ namespace CouchDude.Api
 			Add(new UpdateDescriptor { Document = document, Operation = OperationType.Update });
 		}
 
-		public void Delete(IDocument document)
+		public void Delete(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -111,7 +116,8 @@ namespace CouchDude.Api
 
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
-		public async Task<IDictionary<string, DocumentInfo>> Execute(Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
+		public async Task<IDictionary<string, DocumentInfo>> Execute(
+			Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
 			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
 			var request =
@@ -120,12 +126,12 @@ namespace CouchDude.Api
 			var response = await startRequest(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowCouchCommunicationException();
 			}
 
-			dynamic responseDescriptors = new JsonFragment(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+			dynamic responseDescriptors = await response.Content.ReadAsJsonObjectAsync().ConfigureAwait(false);
 			foreach (var responseDescriptor in responseDescriptors)
 			{
 				string errorName = responseDescriptor.error;
@@ -155,7 +161,7 @@ namespace CouchDude.Api
 			var docIdToUpdateDescriptor = docIdToUpdateDescriptorMap[documentId];
 			var operation = docIdToUpdateDescriptor.Operation.ToString().ToLower();
 
-			var error = new CouchError(errorString);
+			var error = new CouchError(serializer, errorString);
 
 			switch (error.Error)
 			{

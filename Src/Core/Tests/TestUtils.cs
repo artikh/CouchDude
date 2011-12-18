@@ -23,10 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using CouchDude.Api;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using JsonObject = System.Json.JsonObject;
+using CouchDude.Serialization;
 using System.Json;
 using Xunit;
 
@@ -36,17 +33,7 @@ namespace CouchDude.Tests
 	{
 		private const int TaskTimeout = 5000;
 
-
-		private static JsonSerializerSettings GetJsonSerializerSettings()
-		{
-			return new JsonSerializerSettings
-			{
-				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-				MissingMemberHandling = MissingMemberHandling.Ignore,
-				NullValueHandling = NullValueHandling.Ignore,
-				ContractResolver = new CamelCasePropertyNamesContractResolver()
-			};
-		}
+		private static readonly NewtonsoftSerializer Serializer = new NewtonsoftSerializer();
 
 		public static Task<T> ToTask<T>(this T dataItemToReturn)
 		{
@@ -67,32 +54,24 @@ namespace CouchDude.Tests
 
 		public static string ToJsonString(this object self)
 		{
-			return JsonConvert.SerializeObject(self, Formatting.None, GetJsonSerializerSettings());
+			return self.ToJToken().ToString(JsonSaveOptions.None);
 		}
 
 		public static JsonValue ToJToken(this object self)
 		{
-			System.Json.JsonSaveOptionsHelper
-
-			var jToken = 
-				JToken.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
-			return JsonValue.Parse(jToken.ToString());
+			return Serializer.ConvertToJson(self, throwOnError: true);
 		}
 
-		public static JsonObject ToJObject(this object self)
-		{
-			var jObject = JObject.FromObject(self, JsonSerializer.Create(GetJsonSerializerSettings()));
-			return (JsonObject) JsonValue.Parse(jObject.ToString());
-		}
+		public static JsonObject ToJObject(this object self) { return (JsonObject) self.ToJToken(); }
 
 		public static Document ToDocument(this object self)
 		{
 			return new Document(self.ToJsonString());
 		}
 
-		public static IJsonFragment ToJsonFragment(this object self)
+		public static JsonValue ToJsonFragment(this object self)
 		{
-			return new JsonFragment(self.ToJsonString());
+			return JsonValue.Parse(self.ToJsonString());
 		}
 
 		public static TextReader ToJsonTextReader(this object self)
@@ -114,16 +93,24 @@ namespace CouchDude.Tests
 		{
 			if (ReferenceEquals(jsonObject, null) && ReferenceEquals(jsonString, null))
 				return;
-			else
-				Assert.False(ReferenceEquals(jsonObject, null) || ReferenceEquals(jsonString, null));
-
-			Assert.Equal(jsonObject.ToJsonString(), jsonString, new JTokenStringCompairer());
+			
+			Assert.False(ReferenceEquals(jsonObject, null) || ReferenceEquals(jsonString, null));
+			Assert.Equal(jsonObject.ToJsonString(), jsonString);
 		}
 
-		public static void AssertSameJson(
-			object jsonObject, JToken jsonToken)
+		public static void AssertSameJson(object jsonObject, JsonValue jsonToken)
 		{
-			Assert.Equal(jsonObject.ToJToken(), jsonToken, new JTokenEqualityComparer());
+			Assert.Equal(jsonObject.ToJsonString(), jsonToken.ToString());
+		}
+
+		public static void AssertSameJson(Document document, JsonValue jsonToken)
+		{
+			Assert.Equal(document.RawJsonObject.ToString(), jsonToken.ToString());
+		}
+
+		public static void AssertSameJson(JsonValue jsonValue, JsonValue jsonToken)
+		{
+			Assert.Equal(jsonValue.ToString(), jsonToken.ToString());
 		}
 	}
 }

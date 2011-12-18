@@ -34,8 +34,8 @@ namespace CouchDude.Serialization
 
 		/// <constructor />
 		public NewtonsoftSerializer(
-			Func<JsonSerializerSettings> createDefaultSerializerSettings,
-			Func<IEntityConfig, JsonSerializerSettings> createEntitySerializerSettings)
+			Func<JsonSerializerSettings> createDefaultSerializerSettings = null,
+			Func<IEntityConfig, JsonSerializerSettings> createEntitySerializerSettings = null)
 		{
 			createDefaultSerializerSettings =
 				createDefaultSerializerSettings ?? NewtonsoftSerializerDefautSettings.CreateDefaultSerializerSettingsDefault;
@@ -47,8 +47,9 @@ namespace CouchDude.Serialization
 			entitySerializers = new LazyConcurrentDictionary<IEntityConfig, JsonSerializer>(
 				entityConfig => JsonSerializer.Create(createEntitySerializerSettings(entityConfig)));
 		}
-		
-		public override void Serialize(TextWriter target, object source, bool throwOnError = false)
+
+		/// <inheritdoc />
+		public override void Serialize(TextWriter target, object source, bool throwOnError)
 		{
 			if (target == null) throw new ArgumentNullException("target");
 			if (source == null) throw new ArgumentNullException("source");
@@ -63,7 +64,8 @@ namespace CouchDude.Serialization
 			}
 		}
 
-		public override object Deserialize(Type targetType, TextReader source, bool throwOnError = false)
+		/// <inheritdoc />
+		public override object Deserialize(Type targetType, TextReader source, bool throwOnError)
 		{
 			if (targetType == null) throw new ArgumentNullException("targetType");
 			if (source == null) throw new ArgumentNullException("source");
@@ -79,20 +81,23 @@ namespace CouchDude.Serialization
 			}
 		}
 
-		public override JsonValue ConvertToJson(object source, bool throwOnError = false)
+		/// <inheritdoc />
+		public override JsonValue ConvertToJson(object source, bool throwOnError)
 		{
 			if (source == null) throw new ArgumentNullException("source");
 			return ConvertToJsonInternal(source, defaultSerializer.Value, throwOnError);
 		}
 
-		public override object ConvertFromJson(Type targetType, JsonValue source, bool throwOnError = false)
+		/// <inheritdoc />
+		public override object ConvertFromJson(Type targetType, JsonValue source, bool throwOnError)
 		{
 			if (targetType == null) throw new ArgumentNullException("targetType");
 			if (source == null) throw new ArgumentNullException("source");
 			return ConvertFromJsonInternal(targetType, source, defaultSerializer.Value, throwOnError);
 		}
 
-		public override JsonObject ConvertToJson(object sourceEntity, IEntityConfig entityConfig, bool throwOnError = false)
+		/// <inheritdoc />
+		public override JsonObject ConvertToJson(object sourceEntity, IEntityConfig entityConfig, bool throwOnError)
 		{
 			if (sourceEntity == null) throw new ArgumentNullException("sourceEntity");
 			if (entityConfig == null) throw new ArgumentNullException("entityConfig");
@@ -105,7 +110,8 @@ namespace CouchDude.Serialization
 			);
 		}
 
-		public override object ConvertFromJson(IEntityConfig entityConfig, JsonObject source, bool throwOnError = false)
+		/// <inheritdoc />
+		public override object ConvertFromJson(IEntityConfig entityConfig, JsonObject source, bool throwOnError)
 		{
 			if (entityConfig == null) throw new ArgumentNullException("entityConfig");
 			if (source == null) throw new ArgumentNullException("source");

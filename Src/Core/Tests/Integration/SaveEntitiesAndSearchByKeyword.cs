@@ -18,6 +18,7 @@
 
 using System;
 using System.Linq;
+using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
 

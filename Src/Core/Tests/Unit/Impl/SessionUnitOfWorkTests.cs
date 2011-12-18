@@ -19,6 +19,7 @@
 using System;
 using CouchDude.Api;
 using CouchDude.Impl;
+using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Moq;
 using Xunit;
@@ -34,10 +35,12 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldIdicateEmptyIfNoWorkDone() 
 		{
-			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
+			var bulkUpdateBatch = CreateBulkUpdateBatch();
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
+
+		private BulkUpdateBatch CreateBulkUpdateBatch() { return new BulkUpdateBatch(dbUriConstructor, new NewtonsoftSerializer()); }
 
 		[Fact]
 		public void ShouldIdicateEmptyEvenIfSeveralEntitiesHaveAttached() 
@@ -45,7 +48,7 @@ namespace CouchDude.Tests.Unit.Impl
 			unitOfWork.Attach(SimpleEntity.CreateStandard(), markAsUnchanged: true);
 			unitOfWork.Attach(Entity.CreateStandard(), markAsUnchanged: true);
 
-			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
+			var bulkUpdateBatch = CreateBulkUpdateBatch();
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
@@ -57,7 +60,7 @@ namespace CouchDude.Tests.Unit.Impl
 			unitOfWork.Attach(entity);
 			unitOfWork.MarkAsRemoved(entity);
 
-			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
+			var bulkUpdateBatch = CreateBulkUpdateBatch();
 			Assert.True(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.False(bulkUpdateBatch.IsEmpty);
 		}
@@ -70,7 +73,8 @@ namespace CouchDude.Tests.Unit.Impl
 			unitOfWork.MarkAsRemoved(entity);
 			unitOfWork.AddNew(EntityWithoutRevision.CreateStandard());
 
-			unitOfWork.ApplyChanges(new BulkUpdateBatch(dbUriConstructor)); // Starting saving changes
+			var bulkUpdateBatchA = CreateBulkUpdateBatch();
+			unitOfWork.ApplyChanges(bulkUpdateBatchA); // Starting saving changes
 			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
 				new [] {
 					new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968"), 
@@ -78,9 +82,9 @@ namespace CouchDude.Tests.Unit.Impl
 				}
 			);
 
-			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
-			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
-			Assert.True(bulkUpdateBatch.IsEmpty);
+			var bulkUpdateBatchB = CreateBulkUpdateBatch();
+			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatchB));
+			Assert.True(bulkUpdateBatchB.IsEmpty);
 		}
 
 		[Fact]
@@ -90,11 +94,11 @@ namespace CouchDude.Tests.Unit.Impl
 			unitOfWork.Attach(entity, markAsUnchanged: true);
 			unitOfWork.MarkAsRemoved(entity);
 
-			unitOfWork.ApplyChanges(new BulkUpdateBatch(dbUriConstructor)); // Starting saving changes
+			unitOfWork.ApplyChanges(CreateBulkUpdateBatch()); // Starting saving changes
 			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
 				new[] { new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968")});
 
-			var bulkUpdateBatch = new BulkUpdateBatch(dbUriConstructor);
+			var bulkUpdateBatch = CreateBulkUpdateBatch();
 			Assert.False(unitOfWork.ApplyChanges(bulkUpdateBatch));
 			Assert.True(bulkUpdateBatch.IsEmpty);
 		}
@@ -104,11 +108,11 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			unitOfWork.AddNew(SimpleEntity.CreateStandardWithoutRevision());
 
-			IDocument savedDoc = null;
+			Document savedDoc = null;
 			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
 			bulkUpdateUnitOfWorkMock
-				.Setup(u => u.Create(It.IsAny<IDocument>()))
-				.Callback<IDocument>(d => { savedDoc = d; });
+				.Setup(u => u.Create(It.IsAny<Document>()))
+				.Callback<Document>(d => { savedDoc = d; });
 				
 			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
 
@@ -123,11 +127,11 @@ namespace CouchDude.Tests.Unit.Impl
 			entity.Age = 24;
 			unitOfWork.Attach(entity);
 
-			IDocument savedDoc = null;
+			Document savedDoc = null;
 			var bulkUpdateUnitOfWorkMock = new Mock<IBulkUpdateBatch>(MockBehavior.Strict);
 			bulkUpdateUnitOfWorkMock
-				.Setup(u => u.Update(It.IsAny<IDocument>()))
-				.Callback<IDocument>(d => { savedDoc = d; });
+				.Setup(u => u.Update(It.IsAny<Document>()))
+				.Callback<Document>(d => { savedDoc = d; });
 			
 			unitOfWork.ApplyChanges(bulkUpdateUnitOfWorkMock.Object);
 
@@ -303,7 +307,7 @@ namespace CouchDude.Tests.Unit.Impl
 		[InlineData(@"{""_rev"": ""1-1a517022a0c2d4814d51abfedf9bfee7"", ""type"": ""entity""}")]
 		public void ShouldNotThrowOnIncorrectDocumentUpdate(string documentString)
 		{
-			IDocument doc = new Document(documentString);
+			var doc = new Document(documentString);
 			Assert.DoesNotThrow(() => unitOfWork.UpdateWithDocument(doc));
 		}
 	}

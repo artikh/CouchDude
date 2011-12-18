@@ -17,7 +17,7 @@
 #endregion
 
 using System.ComponentModel;
-using CouchDude.Api;
+using System.Json;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Impl
@@ -27,9 +27,7 @@ namespace CouchDude.Tests.Unit.Impl
 		private static string ConvertToString(ViewQuery viewQuery)
 		{
 			var converter = TypeDescriptor.GetConverter(typeof (ViewQuery));
-			if (converter != null) 
-				return (string)converter.ConvertTo(viewQuery, typeof (string));
-			return null;
+			return (string)converter.ConvertTo(viewQuery, typeof (string));
 		}
 
 		[Fact]
@@ -54,8 +52,8 @@ namespace CouchDude.Tests.Unit.Impl
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
-					StartKey = new JsonFragment("[\"first key\",0]"),
-					EndKey = new JsonFragment("[\"second key\",9]")
+					StartKey = JsonValue.Parse("[\"first key\",0]"),
+					EndKey = JsonValue.Parse("[\"second key\",9]")
 				})
 			);
 		}
@@ -68,7 +66,7 @@ namespace CouchDude.Tests.Unit.Impl
 				ConvertToString(new ViewQuery {
 					DesignDocumentName = "dd",
 					ViewName = "pointOfView",
-					Key = new JsonFragment("[\"key\",0]")
+					Key = JsonValue.Parse("[\"key\",0]")
 				})
 			);
 		}

@@ -29,19 +29,21 @@ namespace CouchDude.Api
 {
 	internal class CouchApi: HttpClient, ICouchApi
 	{
+		internal readonly ISerializer Serializer;
 		private readonly ISynchronousCouchApi synchronousCouchApi;
 		private readonly UriConstructor uriConstructor;
 		private readonly IReplicatorApi replicatorApi;
 
 		/// <constructor />
-		public CouchApi(Uri serverUri): this(serverUri, null) { }
+		public CouchApi(Uri serverUri, ISerializer serializer): this(serverUri, serializer, null) { }
 
 		/// <constructor />
-		public CouchApi(Uri serverUri, HttpMessageHandler handler): base(handler)
+		public CouchApi(Uri serverUri, ISerializer serializer, HttpMessageHandler handler): base(handler)
 		{
+			Serializer = serializer;
 			uriConstructor = new UriConstructor(serverUri);
 			synchronousCouchApi = new SynchronousCouchApi(this);
-			replicatorApi = new ReplicatorApi(this);
+			replicatorApi = new ReplicatorApi(this, serializer);
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }
@@ -61,15 +63,15 @@ namespace CouchDude.Api
 			var response = await RequestCouchDb(request).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
-				new CouchError(response).ThrowCouchCommunicationException();
+				new CouchError(Serializer, response).ThrowCouchCommunicationException();
 
 			using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 			using (var responseReader = new StreamReader(responseStream))
 			{
-				var responseJson = new JsonFragment(responseReader);
-				var dbs = responseJson.TryDeserialize(typeof(string[])) as ICollection<string>;
+				var dbs = (ICollection<string>) Serializer.Deserialize(typeof(string[]), responseReader, throwOnError: false);
 				if(dbs == null)
-					throw new CouchCommunicationException("Unknown data recived from CouchDB: {0}", responseJson);
+					throw new CouchCommunicationException(
+						"Unexpected data recived from CouchDB: {0}", await response.Content.ReadAsStringAsync());
 				return dbs;
 			}
 		}

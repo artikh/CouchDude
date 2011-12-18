@@ -17,19 +17,18 @@
 #endregion
 
 using System;
-
-using CouchDude.Api;
+using System.Json;
 using CouchDude.Configuration;
+using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using JetBrains.Annotations;
 using Moq;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Api
+namespace CouchDude.Tests.Unit.Serialization
 {
-	public class DocumentTestsDeserialize
+	public class NewtonsoftSerializerConvertFromJsonTests
 	{
 		public class Composite
 		{
@@ -50,23 +49,16 @@ namespace CouchDude.Tests.Unit.Api
 
 		public class ChildTestEntity : TestEntity { }
 
-		private IEntityConfig config;
-
-		public DocumentTestsDeserialize()
-		{
-			config = MockEntityConfig();
-		}
+		private IEntityConfig config = MockEntityConfig();
+		private readonly ISerializer serializer = new NewtonsoftSerializer();
 
 		private static IEntityConfig MockEntityConfig(Action<Mock<IEntityConfig>> additionalActions = null)
 		{
 			var configMock = new Mock<IEntityConfig>();
+			configMock.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()));
+			configMock.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()));
 			configMock
-				.Setup(ec => ec.SetId(It.IsAny<object>(), It.IsAny<string>()));
-			configMock
-				.Setup(ec => ec.SetRevision(It.IsAny<object>(), It.IsAny<string>()));
-			configMock
-				.Setup(ec => ec.ConvertDocumentIdToEntityId(It.IsAny<string>()))
-				.Returns<string>(docId => "E" + docId);
+				.Setup(ec => ec.ConvertDocumentIdToEntityId(It.IsAny<string>())).Returns<string>(docId => "E" + docId);
 			configMock.Setup(ec => ec.EntityType).Returns(typeof (TestEntity));
 			configMock.Setup(ec => ec.DocumentType).Returns("entity");
 			if (additionalActions != null)
@@ -74,28 +66,32 @@ namespace CouchDude.Tests.Unit.Api
 			return configMock.Object;
 		}
 
-		private static Document CreateDoc(object documentObject = null)
+		private static JsonObject CreateDoc(object documentObject = null)
 		{
-			dynamic document = documentObject != null ? documentObject.ToJObject() : new JObject();
-			document._id = "doc1";
-			document._rev = "1-42";
-			document.type = "entity";
-			document.child = new JObject();
-			document.child.type = "childType";
-			return new Document(((JObject)document).ToString());
+			dynamic jsonObject = documentObject != null ? documentObject.ToJObject() : new JsonObject();
+			jsonObject._id = "doc1";
+			jsonObject._rev = "1-42";
+			jsonObject.type = "entity";
+			jsonObject.child = new JsonObject();
+			jsonObject.child.type = "childType";
+			return (JsonObject)jsonObject;
 		}
 
 		[Fact]
 		public void ShouldThrowOnIncompatibleDocumentType()
 		{
 			Assert.Throws<InvalidOperationException>(
-				() => Entity.CreateDocWithRevision().Deserialize(new EntityConfig(typeof (EntityWithoutRevision))));
+				() => serializer.ConvertFromJson(
+					new EntityConfig(typeof (EntityWithoutRevision)),
+					Entity.CreateDocWithRevision().RawJsonObject, 
+					throwOnError: true
+			));
 		}
 
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			Assert.Throws<ArgumentNullException>(() => CreateDoc().Deserialize(null));
+			Assert.Throws<ArgumentNullException>(() => serializer.ConvertFromJson<TestEntity>(CreateDoc(), true));
 		}
 		
 		[Theory]
@@ -105,9 +101,9 @@ namespace CouchDude.Tests.Unit.Api
 		[InlineData("\t")]
 		public void ShouldThrowOnEmptyNullOrWightspaceId(string id)
 		{
-			var doc = new Document(id == null ? new { type = "entity" }.ToJsonString() : new { _id = id, type = "entity" }.ToJsonString());
+			var doc = JsonValue.Parse(id == null ? new { type = "entity" }.ToJsonString() : new { _id = id, type = "entity" }.ToJsonString());
 
-			Assert.Throws<DocumentIdMissingException>(() => doc.Deserialize(config));
+			Assert.Throws<DocumentIdMissingException>(() => serializer.ConvertFromJson<TestEntity>(doc, true));
 		}
 
 		[Theory]
@@ -119,22 +115,23 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			config = MockEntityConfig(
 				mock => mock.Setup(ec => ec.ConvertDocumentIdToEntityId(It.IsAny<string>())).Returns(invalidEntityId));
-			Assert.Throws<InvalidOperationException>(() => CreateDoc().Deserialize(config));
+			Assert.Throws<InvalidOperationException>(() => serializer.ConvertFromJson(config, CreateDoc(), true));
 		}
 
 		[Fact]
 		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutId()
 		{
 			Assert.Throws<DocumentIdMissingException>(
-				() => new {
-						_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						type = "entity",
-						name = "John Smith"
-					}
-					.ToDocument()
-					.Deserialize(Default.Settings.GetConfig(typeof (Entity))
-				)
-			);
+				() =>
+					serializer.ConvertFromJson(
+						Default.Settings.GetConfig(typeof (Entity)),
+						new {
+							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
+							type = "entity",
+							name = "John Smith"
+						}.ToJObject(),
+						true)
+				);
 		}
 
 
@@ -142,24 +139,29 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowDocumentParseExceptionOnDocumentWithoutRevision()
 		{
 			Assert.Throws<DocumentRevisionMissingException>(
-				() => new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToDocument()
-					.Deserialize(Default.Settings.GetConfig(typeof (Entity))
-				)
+				() => 
+					serializer.ConvertFromJson(
+						Default.Settings.GetConfig(typeof (Entity)),
+						new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToJObject(),
+						true)
 			);
 		}
 		
 		[Fact]
 		public void ShouldThrowParseExceptionOnDeserializationError()
 		{
-			var obj = new Document(@"{ ""_id"": ""entity.doc1"", ""_rev"": ""123"", ""type"": ""entity"", ""age"": ""not an integer"" }");
-			Assert.Throws<ParseException>(() => obj.Deserialize(Default.Settings.GetConfig(typeof (Entity))));
+			var obj = (JsonObject)JsonValue.Parse(
+				@"{ ""_id"": ""entity.doc1"", ""_rev"": ""123"", ""type"": ""entity"", ""age"": ""not an integer"" }");
+			Assert.Throws<ParseException>(() => 
+				serializer.ConvertFromJson(Default.Settings.GetConfig(typeof (Entity)), obj, true)
+			);
 		}
 		
 		[Fact]
 		public void ShouldNotSetTypeProperty()
 		{
 			var document = CreateDoc();
-			var entity = (TestEntity) document.Deserialize(config);
+			var entity = (TestEntity) serializer.ConvertFromJson(config, document, true);
 			Assert.Null(entity.Type);
 		}
 
@@ -167,7 +169,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldSetTypePropertyOnSubobjects()
 		{
 			var document = CreateDoc();
-			var entity = (TestEntity) document.Deserialize(config);
+			var entity = (TestEntity)serializer.ConvertFromJson(config, document, true);
 			Assert.NotNull(entity.Child.Type);
 		}
 	}

@@ -39,7 +39,7 @@ namespace CouchDude.Serialization
 				ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
 				MissingMemberHandling = MissingMemberHandling.Ignore,
 				NullValueHandling = NullValueHandling.Ignore,
-				ContractResolver = new JsonFragment.CamelCasePrivateSetterPropertyContractResolver(),
+				ContractResolver = new CamelCasePrivateSetterPropertyContractResolver(),
 				Converters = Converters
 			};
 		}

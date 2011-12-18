@@ -21,7 +21,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Json;
 using Common.Logging;
-using CouchDude.Api;
 using CouchDude.Configuration;
 using CouchDude.Utils;
 using JetBrains.Annotations;
@@ -32,27 +31,28 @@ namespace CouchDude.Serialization
 	public abstract class SerializerBase : ISerializer
 	{
 		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
-
+		
+		/// <inheritdoc />
 		public abstract void Serialize(
-			[NotNull] TextWriter target, [NotNull] object source, bool throwOnError = false);
+			[NotNull] TextWriter target, [NotNull] object source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract object Deserialize([NotNull] Type targetType, [NotNull] TextReader source, bool throwOnError = false);
+		public abstract object Deserialize([NotNull] Type targetType, [NotNull] TextReader source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract JsonValue ConvertToJson([NotNull] object source, bool throwOnError = false);
+		public abstract JsonValue ConvertToJson([NotNull] object source, bool throwOnError);
 
 		/// <inheritdoc />
 		public abstract object ConvertFromJson(
-			[NotNull] Type targetType, [NotNull] JsonValue source, bool throwOnError = false);
+			[NotNull] Type targetType, [NotNull] JsonValue source, bool throwOnError);
 
 		/// <inheritdoc />
 		public abstract JsonObject ConvertToJson(
-			[NotNull] object sourceEntity, [NotNull] IEntityConfig entityConfig, bool throwOnError = false);
+			[NotNull] object sourceEntity, [NotNull] IEntityConfig entityConfig, bool throwOnError);
 
 		/// <inheritdoc />
 		public abstract object ConvertFromJson(
-			[NotNull] IEntityConfig entityConfig, [NotNull] JsonObject source, bool throwOnError = false);
+			[NotNull] IEntityConfig entityConfig, [NotNull] JsonObject source, bool throwOnError);
 
 		/// <summary>Implements basic check and convertion logic for ConvertToJson method.</summary>
 		protected static JsonObject CheckAndConvertToJson(
@@ -143,7 +143,8 @@ namespace CouchDude.Serialization
 			entityConfig.SetRevision(entity, revision);
 			return entity;
 		}
-
+		
+		/// Logs error and throws exception if <paramref name="throwOnError"/> is <c>true</c>
 		protected static T LogAndThrowParseExceptionIfNeeded<T>(
 			bool throwOnError, Exception exception, string messageTemplate, params object[] messageParams)
 		{
