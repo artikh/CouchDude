@@ -121,6 +121,8 @@ namespace CouchDude
 		/// <summary>References (weakly) parent database API instance.</summary>
 		public DatabaseApiReference DatabaseApiReference = DatabaseApiReference.Empty;
 		
+		private static readonly IEqualityComparer<JsonObject> Comparer = new JsonObjectComparier(); 
+
 		/// <inheritdoc />
 		public override bool Equals(object obj)
 		{
@@ -128,15 +130,13 @@ namespace CouchDude
 			if (ReferenceEquals(null, otherDocument)) return false;
 			if (ReferenceEquals(this, otherDocument)) return true;
 
-			//HACK: Implement normal visiter comparition
-			return otherDocument.RawJsonObject.ToString().Equals(RawJsonObject.ToString());
+			return Comparer.Equals(RawJsonObject, otherDocument.RawJsonObject);
 		}
 
 		/// <inheritdoc />
 		public override int GetHashCode()
 		{
-			//HACK: Implement normal visiter 
-			return RawJsonObject.ToString().GetHashCode();
+			return Comparer.GetHashCode(RawJsonObject);
 		}
 
 		/// <inheritdoc />

@@ -52,18 +52,18 @@ namespace CouchDude.Tests.Integration
 
 			var loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
 			Assert.NotNull(loadedDoc1);
-			Assert.Equal("James Scully", (string)loadedDoc1.AsDynamic().name);
+			Assert.Equal("James Scully", (string)loadedDoc1.RawJsonObject["name"]);
 
 			var loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
 			Assert.NotNull(loadedDoc2);
-			Assert.Equal("John Smith", (string)loadedDoc2.AsDynamic().name);
-			Assert.Equal(42, (int)loadedDoc2.AsDynamic().age);
+			Assert.Equal("John Smith", (string)loadedDoc2.RawJsonObject["name"]);
+			Assert.Equal(42, (int)loadedDoc2.RawJsonObject["age"]);
 
 			var loadedDoc3 = dbApi.Synchronously.RequestDocument(doc3Id);
 			Assert.Null(loadedDoc3);
 
-			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1.AsDynamic()._rev);
-			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2.AsDynamic()._rev);
+			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1.RawJsonObject["_rev"]);
+			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2.RawJsonObject["_rev"]);
 		}
 	}
 }

@@ -157,7 +157,9 @@
     <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\FlexibleIso8601DateTimeParser.cs" />
     <Compile Include="Utils\HttpClientHelpers.cs" />
+    <Compile Include="Utils\IJsonVisiter.cs" />
     <Compile Include="Utils\JsonContent.cs" />
+    <Compile Include="Utils\JsonObjectComparier.cs" />
     <Compile Include="Utils\JsonValueExtensions.cs" />
     <Compile Include="Utils\LazyConcurrentDictionary.cs" />
     <Compile Include="Utils\SystemJsonValueReader.cs" />
