@@ -130,7 +130,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpClientMock =
 				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
-					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJObject())
 				});
 
 			var couchApi = GetDatabaseApi(httpClientMock);

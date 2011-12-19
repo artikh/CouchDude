@@ -16,77 +16,36 @@
 */
 #endregion
 
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Json;
 using System.Linq;
 using CouchDude.Impl;
-using CouchDude.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
 	/// <summary>Loads view request result from provided <see cref="TextReader"/>.</summary>
-	public class ViewQueryResultParser
+	internal class ViewQueryResultParser : QueryResultParserBase
 	{
-		// HACK: We should use main serializer here.
-		private static readonly JsonSerializer Serializer = 
-			JsonSerializer.Create(NewtonsoftSerializerDefautSettings.CreateDefaultSerializerSettingsDefault());
-		
-		#pragma warning disable 0649
-		// ReSharper disable UnassignedField.Local
-		// ReSharper disable InconsistentNaming
-		// ReSharper disable ClassNeverInstantiated.Local
-		private class RawViewResultRow
-		{
-			public JObject doc;
-			public string id;
-			public JToken key;
-			public JToken value;
-		}
-
-		private class RawViewResult
-		{
-			public int total_rows;
-			public int offset;
-			public IList<RawViewResultRow> rows;
-		}
-		// ReSharper restore ClassNeverInstantiated.Local
-		// ReSharper restore InconsistentNaming
-		// ReSharper restore UnassignedField.Local
-		#pragma warning restore 0649
-		
 		/// <summary>Loads view request result from provided <see cref="TextReader"/>.</summary>
 		public static IViewQueryResult Parse(TextReader textReader, ViewQuery viewQuery)
 		{
-			RawViewResult rawResult;
-			try
-			{
-				using (var reader = new JsonTextReader(textReader) {CloseInput = false})
-					rawResult = Serializer.Deserialize<RawViewResult>(reader);
-			}
-			catch (Exception e)
-			{
-				if (e is JsonReaderException || e is JsonSerializationException)
-					throw new ParseException(e, e.Message);
-				throw;
-			}
-
-			if (rawResult == null)
-				return ViewQueryResult.Empty;
+			var response = ParseRawResponse(textReader);
+			var totalRows = GetTotalRows(response);
+			var offset = GetOffset(response);
+			var rawRows = GetRawRows(response);
 
 			var rows = (
-				from rawRow in rawResult.rows ?? new RawViewResultRow[0]
-				let viewKey = rawRow.key != null ? JsonValue.Parse(rawRow.key.ToString()) : null
-				let documentId = rawRow.id
-				let value = rawRow.value != null ? JsonValue.Parse(rawRow.value.ToString()) : null
-				let document = rawRow.doc != null ? new Document(rawRow.doc.ToString()) : null
+				from rawRow in rawRows
+				let viewKey = rawRow.TryGetValue("key")
+				let documentId = rawRow.GetPrimitiveProperty<string>("id")
+				let value = rawRow.TryGetValue("value")
+				let documentJsonObject = rawRow.TryGetValue("doc") as JsonObject
+				let document = documentJsonObject == null ? null : new Document(documentJsonObject)
 				select new ViewResultRow(viewKey, value, documentId, document)
-			).ToList();
+			).ToArray();
 
-			return new ViewQueryResult(viewQuery, rows, rawResult.total_rows, rawResult.offset);
+			return new ViewQueryResult(viewQuery, rows, totalRows, offset);
 		}
 	}
 }

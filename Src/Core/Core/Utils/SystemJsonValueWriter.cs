@@ -29,9 +29,29 @@ namespace CouchDude.Utils
 		public JsonValue JsonValue
 		{
 			get 
-			{ 
+			{
 				// HACK: Change this to proper JsonReader implementation
-				return JsonValue.Parse(Token.ToString()); 
+				switch (Token.Type)
+				{
+					case JTokenType.None:
+					case JTokenType.Null:
+					case JTokenType.Undefined:
+						return null;
+					case JTokenType.Integer:
+					case JTokenType.Float:
+					case JTokenType.String:
+					case JTokenType.Boolean:
+					case JTokenType.Date:
+					case JTokenType.Bytes:
+					case JTokenType.Guid:
+					case JTokenType.Uri:
+					case JTokenType.TimeSpan:
+						JsonPrimitive primitive;
+						JsonPrimitive.TryCreate(((JValue) Token).Value, out primitive);
+						return primitive;
+					default:
+						return JsonValue.Parse(Token.ToString());
+				}
 			}
 		}
 	}

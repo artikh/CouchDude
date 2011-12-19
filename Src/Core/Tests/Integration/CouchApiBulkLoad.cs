@@ -50,20 +50,20 @@ namespace CouchDude.Tests.Integration
 			Assert.Equal(doc2Id, result[doc2Id].Id);
 			Assert.Equal(doc3Id, result[doc3Id].Id);
 
-			dynamic loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
+			var loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
 			Assert.NotNull(loadedDoc1);
-			Assert.Equal("James Scully", (string)loadedDoc1.name);
+			Assert.Equal("James Scully", (string)loadedDoc1.AsDynamic().name);
 
-			dynamic loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
+			var loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
 			Assert.NotNull(loadedDoc2);
-			Assert.Equal("John Smith", (string)loadedDoc2.name);
-			Assert.Equal(42, (int)loadedDoc2.age);
+			Assert.Equal("John Smith", (string)loadedDoc2.AsDynamic().name);
+			Assert.Equal(42, (int)loadedDoc2.AsDynamic().age);
 
 			var loadedDoc3 = dbApi.Synchronously.RequestDocument(doc3Id);
 			Assert.Null(loadedDoc3);
 
-			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1._rev);
-			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2._rev);
+			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1.AsDynamic()._rev);
+			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2.AsDynamic()._rev);
 		}
 	}
 }

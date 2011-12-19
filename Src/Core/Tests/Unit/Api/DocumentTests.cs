@@ -81,10 +81,18 @@ namespace CouchDude.Tests.Unit.Api
 		}
 
 		[Theory]
-		[InlineData("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}", "{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
-		[InlineData("{\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}", "{\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
-		[InlineData("{\"_id\":\"8A7FD19B\",\"type\":\"simpleEntity\",\"name\":\"John\"}", "{\"_id\":\"8A7FD19B\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
-		[InlineData("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"name\":\"John\"}", "{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
+		[InlineData(
+			"{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}", 
+			"{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
+		[InlineData(
+			"{\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}", 
+			"{\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
+		[InlineData("" +
+			"{\"_id\":\"8A7FD19B\",\"type\":\"simpleEntity\",\"name\":\"John\"}", 
+			"{\"_id\":\"8A7FD19B\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
+		[InlineData(
+			"{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"name\":\"John\"}", 
+			"{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
 		[InlineData("{\"type\":\"simpleEntity\",\"name\":\"John\"}", "{\"type\":\"complexEntity\",\"name\":\"John\"}")]
 		[InlineData("{\"_id\":\"8A7FD19B\",\"name\":\"John\"}", "{\"_id\":\"8A7FD19B\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
 		[InlineData("{\"_id\":\"8A7FD19B\",\"name\":\"John\"}", "{\"_id\":\"8A7FD19B\",\"type\":\"complexEntity\",\"name\":\"John\"}")]
@@ -107,7 +115,7 @@ namespace CouchDude.Tests.Unit.Api
 				Assert.Equal("8A7FD19B", document.Id);
 				Assert.Equal("1-42", document.Revision);
 				Assert.Equal("simpleEntity", document.Type);
-				Assert.Equal("John", (string)((dynamic)document).name);
+				Assert.Equal("John", (string)document.RawJsonObject["name"]);
 			}
 		}
 
@@ -119,7 +127,7 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Equal("8A7FD19B", document.Id);
 			Assert.Equal("1-42", document.Revision);
 			Assert.Equal("simpleEntity", document.Type);
-			Assert.Equal("John", (string)((dynamic)document).name);
+			Assert.Equal("John", (string)document.RawJsonObject["name"]);
 		}
 	}
 }

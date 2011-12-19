@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Json;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace CouchDude.Api
 {
 	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
+		private const string DeletedFlagPropertyName = "_deleted";
 		private readonly DbUriConstructor uriConstructor;
 		private readonly ISerializer serializer;
 
@@ -131,7 +133,7 @@ namespace CouchDude.Api
 				error.ThrowCouchCommunicationException();
 			}
 
-			dynamic responseDescriptors = await response.Content.ReadAsJsonObjectAsync().ConfigureAwait(false);
+			dynamic responseDescriptors = await response.Content.ReadAsJsonArrayAsync().ConfigureAwait(false);
 			foreach (var responseDescriptor in responseDescriptors)
 			{
 				string errorName = responseDescriptor.error;
@@ -177,30 +179,31 @@ namespace CouchDude.Api
 			}
 		}
 
-		private string FormatDescriptor()
+		private JsonObject FormatDescriptor()
 		{
-			var descriptorString = new StringBuilder("{\"docs\":[");
+			var descriptor = new JsonObject();
+			var array = new JsonArray();
+
 			foreach(var updateDescriptor in updateDescriptors)
 				switch(updateDescriptor.Operation)
 				{
 					case OperationType.Create:
 					case OperationType.Update:
-						descriptorString.Append(updateDescriptor.Document.ToString()).Append(",");
+						array.Add(updateDescriptor.Document.RawJsonObject);
 						break;
 					case OperationType.Delete:
-						descriptorString.AppendFormat(
-							@"{{""_id"":""{0}"",""_rev"":""{1}"",""_deleted"":true}},",
-							updateDescriptor.DocumentId,
-							updateDescriptor.DocumentRevision);
+						array.Add(new JsonObject(
+							new KeyValuePair<string, JsonValue>(Document.IdPropertyName, updateDescriptor.DocumentId),
+							new KeyValuePair<string, JsonValue>(Document.RevisionPropertyName, updateDescriptor.DocumentRevision),
+							new KeyValuePair<string, JsonValue>(DeletedFlagPropertyName, true)
+						));
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
+			descriptor.Add("docs", array);
 
-			if (descriptorString[descriptorString.Length - 1] == ',')
-				descriptorString.Remove(descriptorString.Length - 1, 1);
-			descriptorString.Append("]}");
-			return descriptorString.ToString();
+			return descriptor;
 		}
 	}
 }

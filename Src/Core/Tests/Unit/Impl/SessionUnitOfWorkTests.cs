@@ -75,7 +75,7 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var bulkUpdateBatchA = CreateBulkUpdateBatch();
 			unitOfWork.ApplyChanges(bulkUpdateBatchA); // Starting saving changes
-			unitOfWork.UpdateRevisions(                     // Returned from server after changes have been saved
+			unitOfWork.UpdateRevisions(                // Returned from server after changes have been saved
 				new [] {
 					new DocumentInfo(SimpleEntity.StandardDocId, "2-cc2c5ab22cfa4a0faad27a0cb9ca7968"), 
 					new DocumentInfo(EntityWithoutRevision.StandardDocId, EntityWithoutRevision.StandardRevision)

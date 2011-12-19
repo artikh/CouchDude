@@ -36,16 +36,29 @@ namespace CouchDude.Utils
 				return new Document(reader);
 		}
 
+		public static async Task<JsonArray> ReadAsJsonArrayAsync(this HttpContent self)
+		{
+			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);
+			return jsonValue as JsonArray;
+		}
+
 		public static async Task<JsonObject> ReadAsJsonObjectAsync(this HttpContent self)
 		{
 			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);
-			return (JsonObject)jsonValue;
+			return jsonValue as JsonObject;
 		}
 
 		public static async Task<JsonValue> ReadAsJsonValueAsync(this HttpContent self)
 		{
 			using (var stream = await self.ReadAsStreamAsync().ConfigureAwait(false))
-				return JsonValue.Load(stream);
+				try
+				{
+					return JsonValue.Load(stream);
+				}
+				catch (Exception e)
+				{
+					throw new ParseException(e, "Error parsing JSON");
+				}
 		}
 
 		/// <summary>Constructs text reader over HTTP content using response's encoding info.</summary>

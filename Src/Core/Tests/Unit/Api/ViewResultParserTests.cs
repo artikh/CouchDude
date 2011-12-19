@@ -116,7 +116,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d-42".ToJsonFragment(), secondRow.Key);
-			Assert.Equal(new { rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489" }.ToJsonFragment(), secondRow.Value);
+			TestUtils.AssertSameJson(new { rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489" }, secondRow.Value);
 			Assert.Equal(
 				new {
 					_id = "c615149e5ac83b40b9ad20914d00011d",

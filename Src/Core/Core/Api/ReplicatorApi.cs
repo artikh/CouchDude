@@ -35,6 +35,7 @@ namespace CouchDude.Api
 			));
 
 			var docInfo = await replicatorDbApi.SaveDocument(doc, overwriteConcurrentUpdates: true);
+			replicationTask.Revision = docInfo.Revision;
 			return docInfo;
 		}
 

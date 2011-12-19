@@ -35,7 +35,7 @@ namespace CouchDude.Utils
 		{
 			return (JsonObject) DeepClone((JsonValue) jsonObject);
 		}
-
+		
 		/// <summary>Returns primitive value of the property or defalut value.</summary>
 		public static T GetPrimitiveProperty<T>(this JsonObject self, string propertyName, T defaultValue = default(T))
 		{

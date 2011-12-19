@@ -126,18 +126,18 @@ namespace CouchDude.Tests.Unit.Api
 
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.DocumentId);
 			Assert.Equal(0.1m, secondRow.Score);
-			Assert.Equal(new { three = 3, four = "four" }.ToJsonFragment(), secondRow.Fields);
+			
+			TestUtils.AssertSameJson(new { three = 3, four = "four" }, secondRow.Fields);
 			Assert.Equal("c615149e5ac83b40b9ad20914d00011d", secondRow.Id);
-			Assert.Equal(
-				new
-					{
-						_id = "c615149e5ac83b40b9ad20914d00011d",
-						_rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489",
-						eventType = "ViewerDisconnected",
-						type = "liveVideoEvent",
-						viewersCount = 1
-					}.ToDocument(),
-				secondRow.Document);
+			TestUtils.AssertSameJson(
+				new {
+					_id = "c615149e5ac83b40b9ad20914d00011d",
+					_rev = "1-5af52f56d6ca7a6d600f2d9f4c2c7489",
+					eventType = "ViewerDisconnected",
+					type = "liveVideoEvent",
+					viewersCount = 1
+				},
+				secondRow.Document.RawJsonObject);
 		}
 	}
 }
