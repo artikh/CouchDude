@@ -24,7 +24,7 @@ namespace CouchDude.Utils
 				var currentB = enumeratorB.Current;
 				var currentA = enumeratorA.Current;
 				var equals = currentA.Key == currentB.Key && Equals(currentA.Value, currentB.Value);
-				if (@equals)
+				if (!equals)
 					return false; // returning false on first mismatch
 			}
 			return true;
