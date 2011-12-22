@@ -124,6 +124,7 @@
     <Compile Include="Unit\Utils\ExceptionUtilsTests.cs" />
     <Compile Include="Unit\Utils\FlexibleIso8601DateTimeParserTests.cs" />
     <Compile Include="Unit\Utils\JsonObjectComparierTest.cs" />
+    <Compile Include="Unit\Utils\SystemJsonValueReaderTest.cs" />
     <Compile Include="Unit\Utils\TaskUtilsTasks.cs" />
     <Compile Include="Unit\ViewQueryTests.cs" />
     <Compile Include="Unit\Impl\ViewQueryUriConverterConvertFromTests.cs" />

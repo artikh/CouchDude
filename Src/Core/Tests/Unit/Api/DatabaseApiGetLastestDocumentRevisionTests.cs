@@ -100,7 +100,7 @@ namespace CouchDude.Tests.Unit.Api
 			var webExeption = new WebException("Something wrong detected");
 			var handler = new MockMessageHandler(webExeption);
 
-			IDatabaseApi databaseApi = GetDatabaseApi(handler);
+			var databaseApi = GetDatabaseApi(handler);
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(

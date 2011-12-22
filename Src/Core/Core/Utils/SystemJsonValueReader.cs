@@ -22,19 +22,167 @@ using System.Json;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Utilities;
 
 namespace CouchDude.Utils
 {
 	/// <summary><see cref="JsonReader"/> implementation reading <see cref="JsonValue"/> object.</summary>
-	public class SystemJsonValueReader : JTokenReader 
+	public class SystemJsonValueReader : JsonReader 
 	{
-		/// <constructor />
-		public SystemJsonValueReader(JsonValue jsonValue) : base(ConvertToJToken(jsonValue)) { }
-
-		private static JToken ConvertToJToken(JsonValue jsonValue)
+		class ArrayFrame: Frame
 		{
-			// HACK: Change this to proper JsonReader implementation
-			return JToken.Parse(jsonValue.ToString());
+			enum State
+			{
+				Begin,
+				ReadingProperties,
+				End
+			}
+
+			State state = State.Begin;
+			readonly JsonReader parent;
+			readonly JsonArray jsonValue;
+
+			public ArrayFrame(JsonReader parent, JsonArray jsonValue)
+			{
+				this.parent = parent;
+				this.jsonValue = jsonValue;
+			}
+
+			public override bool Read()
+			{
+				if(state == State.Begin)
+				{
+					
+				}
+			}
 		}
+
+		class PrimitiveFrame: Frame
+		{
+			private readonly SystemJsonValueReader parent;
+			private JsonPrimitive jsonPrimitive;
+			public PrimitiveFrame(SystemJsonValueReader parent, JsonPrimitive jsonPrimitive)
+			{
+				this.parent = parent;
+				this.jsonPrimitive = jsonPrimitive;
+			}
+
+			public override bool Read()
+			{
+				if (jsonPrimitive == null)
+					return false;
+
+				switch (jsonPrimitive.JsonType)
+				{
+					case JsonType.String:
+						parent.SetToken(JsonToken.String, jsonPrimitive.Value);
+						break;
+					case JsonType.Number:
+						parent.SetToken(jsonPrimitive.Value is int? JsonToken.Integer: JsonToken.Float, jsonPrimitive.Value);
+						break;
+					case JsonType.Boolean:
+						parent.SetToken(JsonToken.Boolean, jsonPrimitive.Value);
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+				jsonPrimitive = null;
+			}
+		}
+
+		class ObjectFrame: Frame
+		{
+			enum State
+			{
+				Begin,
+				ReadingProperties,
+				End
+			}
+
+			State state = State.Begin;
+			KeyValuePair<string, JsonValue> currentProperty;
+			readonly SystemJsonValueReader parent;
+			private readonly JsonObject jsonObject;
+
+			public ObjectFrame(SystemJsonValueReader parent, JsonObject jsonObject)
+			{
+				this.parent = parent;
+				this.jsonObject = jsonObject;
+			}
+
+			public override bool Read()
+			{
+				switch (state)
+				{
+					case State.Begin:
+						parent.SetToken(JsonToken.StartObject);
+						state = jsonObject.Count == 0 ? State.End : State.ReadingProperties;
+						currentProperty = jsonObject.FirstOrDefault()
+						return true;
+					case State.ReadingProperties:
+
+						break;
+					case State.End:
+						break;
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+			}
+		}
+
+		abstract class Frame
+		{
+			public abstract bool Read();
+		}
+
+		
+
+		readonly JsonValue rootValue;
+		readonly Stack<Frame> frames = new Stack<Frame>();  
+
+		/// <constructor />
+		public SystemJsonValueReader(JsonValue rootValue)
+		{
+			if(rootValue == null) throw new ArgumentNullException("rootValue");
+			if (rootValue.JsonType == JsonType.Default) throw new ArgumentNullException("'Default' JSON values could not be read.", "rootValue");
+
+			this.rootValue = rootValue;
+		}
+
+		public override bool Read()
+		{
+			if (frames.Count == 0)
+			{
+				switch (rootValue)
+				{
+						
+				}
+				return true;
+			}
+		}
+
+		private void CreateNewFrame(JsonValue jsonValue)
+		{
+			switch (jsonValue.JsonType)
+			{
+				case JsonType.String:
+				case JsonType.Number:
+				case JsonType.Boolean:
+					frames.Push(new PrimitiveFrame(this, (JsonPrimitive)jsonValue));
+					break;
+				case JsonType.Object:
+					frames.Push(new ObjectFrame(this, (JsonObject)jsonValue));
+					break;
+				case JsonType.Array:
+					frames.Push(new ArrayFrame(this, (JsonArray)jsonValue));
+					break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
+
+		public override byte[] ReadAsBytes() { throw new NotImplementedException(); }
+		public override decimal? ReadAsDecimal() { throw new NotImplementedException(); }
+		public override DateTimeOffset? ReadAsDateTimeOffset() { throw new NotImplementedException(); }
 	}
 }
