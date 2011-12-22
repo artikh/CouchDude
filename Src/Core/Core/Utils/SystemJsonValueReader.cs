@@ -19,10 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Json;
-using System.Linq;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Utilities;
 
 namespace CouchDude.Utils
 {
@@ -31,29 +28,34 @@ namespace CouchDude.Utils
 	{
 		class ArrayFrame: Frame
 		{
-			enum State
-			{
-				Begin,
-				ReadingProperties,
-				End
-			}
+			readonly SystemJsonValueReader parent;
+			readonly JsonArray jsonArray;
 
-			State state = State.Begin;
-			readonly JsonReader parent;
-			readonly JsonArray jsonValue;
+			IEnumerator<JsonValue> enumerator;
+			bool haveMovedOk;
 
-			public ArrayFrame(JsonReader parent, JsonArray jsonValue)
+			public ArrayFrame(SystemJsonValueReader parent, JsonArray jsonArray)
 			{
 				this.parent = parent;
-				this.jsonValue = jsonValue;
+				this.jsonArray = jsonArray;
 			}
 
 			public override bool Read()
 			{
-				if(state == State.Begin)
+				if(enumerator == null)
 				{
-					
+					enumerator = jsonArray.GetEnumerator();
+					return (haveMovedOk = enumerator.MoveNext());
 				}
+
+				if (haveMovedOk)
+				{
+					haveMovedOk = enumerator.MoveNext();
+					parent.CreateNewFrame(enumerator.Current);
+					return haveMovedOk;
+				}
+
+				return false;
 			}
 		}
 
@@ -87,22 +89,18 @@ namespace CouchDude.Utils
 						throw new ArgumentOutOfRangeException();
 				}
 				jsonPrimitive = null;
+				return true;
 			}
 		}
 
 		class ObjectFrame: Frame
 		{
-			enum State
-			{
-				Begin,
-				ReadingProperties,
-				End
-			}
-
-			State state = State.Begin;
-			KeyValuePair<string, JsonValue> currentProperty;
 			readonly SystemJsonValueReader parent;
-			private readonly JsonObject jsonObject;
+			readonly JsonObject jsonObject;
+
+			IEnumerator<KeyValuePair<string, JsonValue>> enumerator;
+			bool emittedPropertyName;
+			bool haveMovedOk;
 
 			public ObjectFrame(SystemJsonValueReader parent, JsonObject jsonObject)
 			{
@@ -112,21 +110,34 @@ namespace CouchDude.Utils
 
 			public override bool Read()
 			{
-				switch (state)
+				if (enumerator == null)
 				{
-					case State.Begin:
-						parent.SetToken(JsonToken.StartObject);
-						state = jsonObject.Count == 0 ? State.End : State.ReadingProperties;
-						currentProperty = jsonObject.FirstOrDefault()
-						return true;
-					case State.ReadingProperties:
-
-						break;
-					case State.End:
-						break;
-					default:
-						throw new ArgumentOutOfRangeException();
+					enumerator = jsonObject.GetEnumerator();
+					return (haveMovedOk = enumerator.MoveNext());
 				}
+
+				if (haveMovedOk)
+				{
+					haveMovedOk = enumerator.MoveNext();
+
+					if (haveMovedOk)
+					{
+						if (emittedPropertyName)
+						{
+							parent.CreateNewFrame(enumerator.Current.Value);
+							emittedPropertyName = false;
+						}
+						else
+						{
+							parent.SetToken(JsonToken.PropertyName, enumerator.Current.Key);
+							emittedPropertyName = true;
+							return true;
+						}
+					}
+					return haveMovedOk;
+				}
+
+				return false;
 			}
 		}
 
@@ -134,11 +145,9 @@ namespace CouchDude.Utils
 		{
 			public abstract bool Read();
 		}
-
 		
-
 		readonly JsonValue rootValue;
-		readonly Stack<Frame> frames = new Stack<Frame>();  
+		private Stack<Frame> frames;
 
 		/// <constructor />
 		public SystemJsonValueReader(JsonValue rootValue)
@@ -149,16 +158,25 @@ namespace CouchDude.Utils
 			this.rootValue = rootValue;
 		}
 
+		/// <inheritdoc />
 		public override bool Read()
 		{
-			if (frames.Count == 0)
+			if(frames == null)
 			{
-				switch (rootValue)
-				{
-						
-				}
-				return true;
+				frames = new Stack<Frame>();
+				CreateNewFrame(rootValue);
 			}
+
+			while (frames.Count > 0)
+			{
+				var currentFrame = frames.Peek();
+				var currentFrameHaveMoved = currentFrame.Read();
+				if (currentFrameHaveMoved) 
+					return true;
+				
+				frames.Pop();
+			}
+			return false;
 		}
 
 		private void CreateNewFrame(JsonValue jsonValue)
@@ -181,8 +199,13 @@ namespace CouchDude.Utils
 			}
 		}
 
+		/// <inheritdoc />
 		public override byte[] ReadAsBytes() { throw new NotImplementedException(); }
+
+		/// <inheritdoc />
 		public override decimal? ReadAsDecimal() { throw new NotImplementedException(); }
+
+		/// <inheritdoc />
 		public override DateTimeOffset? ReadAsDateTimeOffset() { throw new NotImplementedException(); }
 	}
 }

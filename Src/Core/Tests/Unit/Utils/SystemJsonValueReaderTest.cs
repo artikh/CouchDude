@@ -15,6 +15,7 @@ namespace CouchDude.Tests.Unit.Utils
 		[InlineData(@"{""key A"":""value A""}")]
 		[InlineData(@"[1,true,""42""]")]
 		[InlineData(@"{""key A"":""value A"",""key B"":[1,true,""42""]}")]
+		[InlineData(@"[""value A"",[1,true,""42""]]")]
 		[InlineData(@"42")]
 		[InlineData(@"""42""")]
 		[InlineData(@"true")]
