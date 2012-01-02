@@ -104,7 +104,8 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpClientMock = new MockMessageHandler(
 				new HttpResponseMessage {
-					StatusCode = HttpStatusCode.Conflict
+					StatusCode = HttpStatusCode.Conflict,
+					Content = new JsonContent(new { error = "conflict", reason = "" }.ToJsonObject())
 				});
 			var couchApi = GetDatabaseApi(httpClientMock);
 
@@ -117,7 +118,8 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpClientMock = new MockMessageHandler(
 				new HttpResponseMessage {
-					StatusCode = HttpStatusCode.Forbidden
+					StatusCode = HttpStatusCode.Forbidden,
+					Content = new JsonContent(new { error = "forbidden", reason = "" }.ToJsonObject())
 				});
 			var couchApi = GetDatabaseApi(httpClientMock);
 			Assert.Throws<InvalidDocumentException>(
@@ -128,9 +130,8 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowCouchCommunicationExceptionOn400StatusCode()
 		{
 			var httpClientMock =
-				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
-				{
-					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJObject())
+				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest) {
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonObject())
 				});
 
 			var couchApi = GetDatabaseApi(httpClientMock);

@@ -37,7 +37,8 @@ namespace CouchDude
 		}
 		
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
-		public static ICouchApi CreateCouchApi(string serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
+		public static ICouchApi CreateCouchApi(
+			string serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
 		{
 			if(string.IsNullOrWhiteSpace(serverAddress)) throw new ArgumentNullException("serverAddress");
 
@@ -45,7 +46,8 @@ namespace CouchDude
 		}
 
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
-		public static ICouchApi CreateCouchApi(Uri serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
+		public static ICouchApi CreateCouchApi(
+			Uri serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
 		{
 			if (serverAddress == null) throw new ArgumentNullException("serverAddress");
 			if (!serverAddress.IsAbsoluteUri) throw new ArgumentException("Server address should be absolute URI.", "serverAddress");

@@ -20,6 +20,8 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
+
 				var queryTask = session.Query<Entity>(
 					new ViewQuery { ViewName = "_all_docs", Key = id, IncludeDocs = true });
 				
@@ -37,6 +39,8 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
+
 				var queryTask = session.Query<ViewData>(
 					new ViewQuery { ViewName = "_all_docs", Key = id, IncludeDocs = true });
 				

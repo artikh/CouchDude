@@ -41,6 +41,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
 				session.Save(savedEntity);
 				session.SaveChanges();
 			}
@@ -63,7 +64,6 @@ namespace CouchDude.Tests.Integration
 				session.Delete(loadedEntity);
 				session.SaveChanges();
 			}
-
 		}
 	}
 }

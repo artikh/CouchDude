@@ -41,12 +41,21 @@ namespace CouchDude.Api
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
 
-		public async Task Create()
+		public async Task Create(bool throwIfExists = true)
 		{
 			var response = await parent
 				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
-				new CouchError(parent.Serializer, response).ThrowCouchCommunicationException();
+			{
+				var couchError = new CouchError(parent.Serializer, response);
+				if (couchError.IsAlreadyDatabaseExists)
+					if (throwIfExists)
+						throw new CouchCommunicationException(
+							"Database {0} already exists", uriConstructor.DatabaseName);
+					else
+						return;
+				couchError.ThrowCouchCommunicationException();
+			}
 		}
 
 		public async Task Delete()
@@ -225,7 +234,7 @@ namespace CouchDude.Api
 			{
 				var couchApiError = new CouchError(parent.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-				if (couchApiError.StatusCode == HttpStatusCode.Conflict)
+				if (couchApiError.IsConflict)
 					throw new StaleObjectStateException(
 						"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected",
 						originalDocumentId,

@@ -71,7 +71,7 @@ namespace CouchDude
 		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Demands database to be created.</summary>
-		Task Create();
+		Task Create(bool throwIfExists = true);
 
 		/// <summary>Demands database to be deleted.</summary>
 		Task Delete();

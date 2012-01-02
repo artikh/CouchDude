@@ -36,6 +36,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
 				for (var i = 1; i <= 30; i++)
 				{
 					var id = string.Format("{0}_{1:00}", prefix, i);

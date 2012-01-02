@@ -30,6 +30,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
 			var dbApi = couchApi.Db("testdb");
+			dbApi.Synchronously.Create(throwIfExists: false);
 
 			var doc1Id = Guid.NewGuid() + ".doc1";
 			var doc2Id = Guid.NewGuid() + ".doc2";

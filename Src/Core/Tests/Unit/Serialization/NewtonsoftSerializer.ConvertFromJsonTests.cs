@@ -69,7 +69,7 @@ namespace CouchDude.Tests.Unit.Serialization
 
 		private static JsonObject CreateDoc(object documentObject = null)
 		{
-			dynamic jsonObject = documentObject != null ? documentObject.ToJObject() : new JsonObject();
+			dynamic jsonObject = documentObject != null ? documentObject.ToJsonObject() : new JsonObject();
 			jsonObject._id = "doc1";
 			jsonObject._rev = "1-42";
 			jsonObject.type = "entity";
@@ -105,7 +105,7 @@ namespace CouchDude.Tests.Unit.Serialization
 		[InlineData("\t")]
 		public void ShouldThrowOnEmptyNullOrWightspaceId(string id)
 		{
-			var doc = (id == null? (object)new { type = "entity" }: new { _id = id, type = "entity" }).ToJObject();
+			var doc = (id == null? (object)new { type = "entity" }: new { _id = id, type = "entity" }).ToJsonObject();
 
 			Assert.Throws<DocumentIdMissingException>(() => serializer.ConvertFromJson(entityConfig, doc, true));
 		}
@@ -133,7 +133,7 @@ namespace CouchDude.Tests.Unit.Serialization
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
 							name = "John Smith"
-						}.ToJObject(),
+						}.ToJsonObject(),
 						true)
 				);
 		}
@@ -146,7 +146,7 @@ namespace CouchDude.Tests.Unit.Serialization
 				() => 
 					serializer.ConvertFromJson(
 						entityConfig,
-						new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToJObject(),
+						new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToJsonObject(),
 						true)
 			);
 		}

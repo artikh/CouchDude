@@ -52,37 +52,19 @@ namespace CouchDude.Tests
 				throw new TimeoutException("Wait handle wait timeout expired");
 		}
 
-		public static string ToJsonString(this object self)
-		{
-			return self.ToJToken().ToString(JsonSaveOptions.None);
-		}
+		public static string ToJsonString(this object self) { return self.ToJsonValue().ToString(JsonSaveOptions.None); }
 
-		public static JsonValue ToJToken(this object self)
-		{
-			return Serializer.ConvertToJson(self, throwOnError: true);
-		}
+		public static JsonValue ToJsonValue(this object self) { return Serializer.ConvertToJson(self, throwOnError: true); }
 
-		public static JsonObject ToJObject(this object self) { return (JsonObject) self.ToJToken(); }
+		public static JsonObject ToJsonObject(this object self) { return (JsonObject) self.ToJsonValue(); }
 
-		public static Document ToDocument(this object self)
-		{
-			return new Document(self.ToJsonString());
-		}
+		public static Document ToDocument(this object self) { return new Document(self.ToJsonString()); }
 
-		public static JsonValue ToJsonFragment(this object self)
-		{
-			return JsonValue.Parse(self.ToJsonString());
-		}
+		public static JsonValue ToJsonFragment(this object self) { return JsonValue.Parse(self.ToJsonString()); }
 
-		public static TextReader ToJsonTextReader(this object self)
-		{
-			return self.ToJsonString().ToTextReader();
-		}
+		public static TextReader ToJsonTextReader(this object self) { return self.ToJsonString().ToTextReader(); }
 
-		public static TextReader ToTextReader(this string text)
-		{
-			return new StringReader(text);
-		}
+		public static TextReader ToTextReader(this string text) { return new StringReader(text); }
 
 		public static string GetBodyString(this HttpResponseMessage response)
 		{

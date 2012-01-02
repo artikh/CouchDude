@@ -19,141 +19,37 @@
 using System;
 using System.Collections.Generic;
 using System.Json;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace CouchDude.Utils
 {
 	/// <summary><see cref="JsonReader"/> implementation reading <see cref="JsonValue"/> object.</summary>
-	public class SystemJsonValueReader : JsonReader 
+	public class SystemJsonValueReader : JsonReader
 	{
-		class ArrayFrame: Frame
+		struct EmitValue
 		{
-			readonly SystemJsonValueReader parent;
-			readonly JsonArray jsonArray;
+			public readonly JsonToken TokenType;
+			public readonly object Value;
 
-			IEnumerator<JsonValue> enumerator;
-			bool haveMovedOk;
+			public EmitValue(JsonToken tokenType) : this(tokenType, null) {}
 
-			public ArrayFrame(SystemJsonValueReader parent, JsonArray jsonArray)
+			public EmitValue(JsonToken tokenType, object value)
 			{
-				this.parent = parent;
-				this.jsonArray = jsonArray;
-			}
-
-			public override bool Read()
-			{
-				if(enumerator == null)
-				{
-					enumerator = jsonArray.GetEnumerator();
-					return (haveMovedOk = enumerator.MoveNext());
-				}
-
-				if (haveMovedOk)
-				{
-					haveMovedOk = enumerator.MoveNext();
-					parent.CreateNewFrame(enumerator.Current);
-					return haveMovedOk;
-				}
-
-				return false;
+				TokenType = tokenType;
+				Value = value;
 			}
 		}
 
-		class PrimitiveFrame: Frame
-		{
-			private readonly SystemJsonValueReader parent;
-			private JsonPrimitive jsonPrimitive;
-			public PrimitiveFrame(SystemJsonValueReader parent, JsonPrimitive jsonPrimitive)
-			{
-				this.parent = parent;
-				this.jsonPrimitive = jsonPrimitive;
-			}
-
-			public override bool Read()
-			{
-				if (jsonPrimitive == null)
-					return false;
-
-				switch (jsonPrimitive.JsonType)
-				{
-					case JsonType.String:
-						parent.SetToken(JsonToken.String, jsonPrimitive.Value);
-						break;
-					case JsonType.Number:
-						parent.SetToken(jsonPrimitive.Value is int? JsonToken.Integer: JsonToken.Float, jsonPrimitive.Value);
-						break;
-					case JsonType.Boolean:
-						parent.SetToken(JsonToken.Boolean, jsonPrimitive.Value);
-						break;
-					default:
-						throw new ArgumentOutOfRangeException();
-				}
-				jsonPrimitive = null;
-				return true;
-			}
-		}
-
-		class ObjectFrame: Frame
-		{
-			readonly SystemJsonValueReader parent;
-			readonly JsonObject jsonObject;
-
-			IEnumerator<KeyValuePair<string, JsonValue>> enumerator;
-			bool emittedPropertyName;
-			bool haveMovedOk;
-
-			public ObjectFrame(SystemJsonValueReader parent, JsonObject jsonObject)
-			{
-				this.parent = parent;
-				this.jsonObject = jsonObject;
-			}
-
-			public override bool Read()
-			{
-				if (enumerator == null)
-				{
-					enumerator = jsonObject.GetEnumerator();
-					return (haveMovedOk = enumerator.MoveNext());
-				}
-
-				if (haveMovedOk)
-				{
-					haveMovedOk = enumerator.MoveNext();
-
-					if (haveMovedOk)
-					{
-						if (emittedPropertyName)
-						{
-							parent.CreateNewFrame(enumerator.Current.Value);
-							emittedPropertyName = false;
-						}
-						else
-						{
-							parent.SetToken(JsonToken.PropertyName, enumerator.Current.Key);
-							emittedPropertyName = true;
-							return true;
-						}
-					}
-					return haveMovedOk;
-				}
-
-				return false;
-			}
-		}
-
-		abstract class Frame
-		{
-			public abstract bool Read();
-		}
-		
+		IEnumerator<EmitValue> jsonValueEnumerator;
 		readonly JsonValue rootValue;
-		private Stack<Frame> frames;
-
+		
 		/// <constructor />
 		public SystemJsonValueReader(JsonValue rootValue)
 		{
 			if(rootValue == null) throw new ArgumentNullException("rootValue");
-			if (rootValue.JsonType == JsonType.Default) throw new ArgumentNullException("'Default' JSON values could not be read.", "rootValue");
+			if (rootValue.JsonType == JsonType.Default)
+				throw new ArgumentException("'Default' JSON values could not be read.", "rootValue");
 
 			this.rootValue = rootValue;
 		}
@@ -161,42 +57,15 @@ namespace CouchDude.Utils
 		/// <inheritdoc />
 		public override bool Read()
 		{
-			if(frames == null)
-			{
-				frames = new Stack<Frame>();
-				CreateNewFrame(rootValue);
-			}
+			if (jsonValueEnumerator == null)
+				jsonValueEnumerator = EnumerateJson(rootValue).GetEnumerator();
 
-			while (frames.Count > 0)
+			if (jsonValueEnumerator.MoveNext())
 			{
-				var currentFrame = frames.Peek();
-				var currentFrameHaveMoved = currentFrame.Read();
-				if (currentFrameHaveMoved) 
-					return true;
-				
-				frames.Pop();
+				base.SetToken(jsonValueEnumerator.Current.TokenType, jsonValueEnumerator.Current.Value);
+				return true;
 			}
 			return false;
-		}
-
-		private void CreateNewFrame(JsonValue jsonValue)
-		{
-			switch (jsonValue.JsonType)
-			{
-				case JsonType.String:
-				case JsonType.Number:
-				case JsonType.Boolean:
-					frames.Push(new PrimitiveFrame(this, (JsonPrimitive)jsonValue));
-					break;
-				case JsonType.Object:
-					frames.Push(new ObjectFrame(this, (JsonObject)jsonValue));
-					break;
-				case JsonType.Array:
-					frames.Push(new ArrayFrame(this, (JsonArray)jsonValue));
-					break;
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
 		}
 
 		/// <inheritdoc />
@@ -207,5 +76,69 @@ namespace CouchDude.Utils
 
 		/// <inheritdoc />
 		public override DateTimeOffset? ReadAsDateTimeOffset() { throw new NotImplementedException(); }
+
+		static IEnumerable<EmitValue> EnumerateJson(JsonValue jsonValue)
+		{
+			return EnumerateNullIfNullItIs(jsonValue)
+				.Concat(EnumerateArrayIfNotNull(jsonValue as JsonArray))
+				.Concat(EnumerateObjectIfNotNull(jsonValue as JsonObject))
+				.Concat(EnumeratePrimitiveIfNotNull(jsonValue as JsonPrimitive));
+		}
+
+		static IEnumerable<EmitValue> EnumerateNullIfNullItIs(JsonValue jsonValue)
+		{
+			if (jsonValue == null)
+				yield return new EmitValue(JsonToken.Null);
+		}
+
+		static IEnumerable<EmitValue> EnumerateArrayIfNotNull(JsonArray jsonArray)
+		{
+			if (jsonArray == null) yield break;
+
+			yield return new EmitValue(JsonToken.StartArray);
+
+			foreach (var arrayItem in jsonArray)
+				foreach (var arrayItemEmit in EnumerateJson(arrayItem))
+					yield return arrayItemEmit;
+
+			yield return new EmitValue(JsonToken.EndArray);
+		}
+
+		static IEnumerable<EmitValue> EnumerateObjectIfNotNull(JsonObject jsonObject)
+		{
+			if (jsonObject == null) yield break;
+
+			yield return new EmitValue(JsonToken.StartObject);
+
+			foreach (var property in jsonObject)
+			{
+				yield return new EmitValue(JsonToken.PropertyName, property.Key);
+				foreach (var propertyValueEmit in EnumerateJson(property.Value))
+					yield return propertyValueEmit;
+			}
+
+			yield return new EmitValue(JsonToken.EndObject);
+		}
+
+		static IEnumerable<EmitValue> EnumeratePrimitiveIfNotNull(JsonPrimitive primitiveValue)
+		{
+			if (primitiveValue == null) yield break;
+
+			switch (primitiveValue.JsonType)
+			{
+				case JsonType.String:
+					yield return new EmitValue(JsonToken.String, primitiveValue.Value);
+					yield break;
+				case JsonType.Number:
+					yield return new EmitValue(
+						primitiveValue.Value is int ? JsonToken.Integer : JsonToken.Float, primitiveValue.Value);
+					yield break;
+				case JsonType.Boolean:
+					yield return new EmitValue(JsonToken.Boolean, primitiveValue.Value);
+					yield break;
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
 	}
 }

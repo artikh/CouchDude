@@ -89,9 +89,9 @@ namespace CouchDude.Api
 		}
 
 		/// <inheritdoc/>
-		public void Create()
+		public void Create(bool throwIfExists = true)
 		{
-			databaseApi.Create().WaitForResult();
+			databaseApi.Create(throwIfExists).WaitForResult();
 		}
 
 		/// <inheritdoc/>

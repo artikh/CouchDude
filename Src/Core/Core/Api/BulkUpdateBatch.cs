@@ -165,18 +165,12 @@ namespace CouchDude.Api
 
 			var error = new CouchError(serializer, errorString);
 
-			switch (error.Error)
-			{
-				case CouchError.Conflict:
-					exceptions.Add(error.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
-					break;
-				case CouchError.Forbidden:
-					exceptions.Add(error.CreateInvalidDocumentException(documentId));
-					break;
-				default:
-					exceptions.Add(error.CreateCouchCommunicationException());
-					break;
-			}
+			if (error.IsConflict)
+				exceptions.Add(error.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
+			else if (error.IsForbidden)
+				exceptions.Add(error.CreateInvalidDocumentException(documentId));
+			else 
+				exceptions.Add(error.CreateCouchCommunicationException());
 		}
 
 		private JsonObject FormatDescriptor()

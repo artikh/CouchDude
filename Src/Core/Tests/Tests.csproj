@@ -60,9 +60,8 @@
     <Reference Include="Moq">
       <HintPath>..\packages\Moq.4.0.10827\lib\NET40\Moq.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.0.4.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.4.0.4\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.0.5.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.4.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -125,6 +124,7 @@
     <Compile Include="Unit\Utils\FlexibleIso8601DateTimeParserTests.cs" />
     <Compile Include="Unit\Utils\JsonObjectComparierTest.cs" />
     <Compile Include="Unit\Utils\SystemJsonValueReaderTest.cs" />
+    <Compile Include="Unit\Utils\SystemJsonValueWriterTest.cs" />
     <Compile Include="Unit\Utils\TaskUtilsTasks.cs" />
     <Compile Include="Unit\ViewQueryTests.cs" />
     <Compile Include="Unit\Impl\ViewQueryUriConverterConvertFromTests.cs" />

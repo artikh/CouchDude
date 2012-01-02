@@ -33,7 +33,7 @@ namespace CouchDude.Tests.SampleData
 				ok = true,
 				id = StandardDocId,
 				rev = StandardRevision
-			}.ToJObject();
+			}.ToJsonObject();
 
 		public readonly static DocumentInfo StandardDococumentInfo = new DocumentInfo(StandardDocId, StandardRevision);
 

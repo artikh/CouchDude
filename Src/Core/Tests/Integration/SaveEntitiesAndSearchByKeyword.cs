@@ -49,6 +49,7 @@ namespace CouchDude.Tests.Integration
 				}
 			}.ToDocument();
 
+			databaseApi.Synchronously.Create(throwIfExists: false);
 			var existingLucineDesignDocRevision = databaseApi.Synchronously.RequestLastestDocumentRevision("_design/lucene");
 			if (existingLucineDesignDocRevision != null)
 			{
@@ -82,6 +83,7 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
 				session.Save(entityA);
 				session.Save(entityB);
 				session.SaveChanges();
