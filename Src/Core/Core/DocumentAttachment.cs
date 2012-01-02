@@ -18,27 +18,31 @@
 
 using System;
 using System.IO;
+using System.Json;
 using System.Threading.Tasks;
+using CouchDude.Api;
 using CouchDude.Utils;
-using Newtonsoft.Json.Linq;
 
-namespace CouchDude.Api
+namespace CouchDude
 {
-	/// <summary>CouchDB attacment implemented by wrapping the <see cref="JObject"/> recived from CouchDB.</summary>
-	/// <remarks>All ancestors are quasi-immutable. Data underneath in could change, but </remarks>
-	internal class WrappingDocumentAttachment : JsonFragment, IDocumentAttachment
+	/// <summary>CouchDB attachment backed by part of document JSON.</summary>
+	public class DocumentAttachment
 	{
-		private const string StubPropertyName = "stub";
-		private const string ContentTypePropertyName = "content_type";
-		private const string LengthPropertyName = "length";
-		private const string DataPropertyName = "data";
-
+		/// <summary>Inline data property name.</summary>
+		protected const string DataPropertyName = "data";
+		/// <summary>Inline indicator property name.</summary>
+		protected const string StubPropertyName = "stub";
+		/// <summary>Content type property name.</summary>
+		protected const string ContentTypePropertyName = "content_type";
+		/// <summary>Length property name.</summary>
+		protected const string LengthPropertyName = "length";
+		
 		private readonly static byte[] EmptyBuffer = new byte[0];
 		private readonly Document parentDocument;
 
 		/// <summary>Creates attachment wrapping existing attachment 
 		/// descriptor (probably loaded from CouchDB)</summary>
-		protected internal WrappingDocumentAttachment(string id, Document parentDocument)
+		protected internal DocumentAttachment(string id, Document parentDocument)
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 			if (parentDocument != null) throw new ArgumentNullException("parentDocument");
@@ -47,63 +51,50 @@ namespace CouchDude.Api
 			Id = id;
 		}
 
-		protected internal override JToken JsonToken { get { return JsonObject; } }
-
-		protected internal JObject JsonObject
+		private JsonObject AttachmentDescriptor
 		{
 			get
 			{
-				var attachmentDescriptor = parentDocument.JsonObject[Id] as JObject;
-				if (attachmentDescriptor == null)
-					parentDocument.JsonObject[Id] = attachmentDescriptor = new JObject();
-				return attachmentDescriptor;
+				return (JsonObject)parentDocument.RawJsonObject[DocumentAttachmentBag.AttachmentsPropertyName][Id];
 			}
 		}
 
-		/// <inheritdoc />
+		/// <summary>Unique (within documnet) identifier of the attachment.</summary>
 		public string Id { get; private set; }
 
-		/// <inheritdoc />
+		/// <summary>Attachment content (MIME) type.</summary>
 		public string ContentType
 		{
-			get { return JsonObject.Value<string>(ContentTypePropertyName); }
-			set { JsonObject[ContentTypePropertyName] = JToken.FromObject(value); }
+			get { return AttachmentDescriptor.GetPrimitiveProperty<string>(ContentTypePropertyName); }
+			set { AttachmentDescriptor[ContentTypePropertyName] = value; }
 		}
 
-		/// <inheritdoc />
+		/// <summary>Content length.</summary>
 		public virtual int Length
 		{
-			get { return JsonObject.Value<int>(LengthPropertyName); }
-			set { JsonObject[LengthPropertyName] = JToken.FromObject(value); }
+			get { return AttachmentDescriptor.GetPrimitiveProperty<int>(LengthPropertyName); }
+			set { AttachmentDescriptor[LengthPropertyName] = value; }
 		}
 
-		/// <inheritdoc />
+		/// <summary>Indicates wether attachment is included as base64 string within document or should 
+		/// be requested separatly.</summary>
 		public bool Inline 
 		{ 
-			get
-			{
-				var stubProperty = JsonObject.Property(StubPropertyName);
-				if (stubProperty == null) return true;
-				var stubPropertyValue = stubProperty.Value;
-				return stubPropertyValue.Type != JTokenType.Boolean || !stubPropertyValue.Value<bool>();
-			} 
-			protected set
-			{
-				if (value)
-					JsonObject.Remove(StubPropertyName);
-				else
-					JsonObject[StubPropertyName] = JToken.FromObject(true);
-			} 
+			get { return AttachmentDescriptor.GetPrimitiveProperty(StubPropertyName, defaultValue: true); } 
+			protected set { AttachmentDescriptor[StubPropertyName] = value ? (JsonValue) null : true; }
 		}
 
-		/// <inheritdoc />
-		public Task<Stream> OpenRead()
+		/// <summary>Syncrounous wrappers over async </summary>
+		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
+
+		/// <summary>Open attachment data stream for read.</summary>
+		public virtual Task<Stream> OpenRead()
 		{
 			if (Inline)
 				return Task.Factory.StartNew<Stream>(
 					() => {
 						// TODO: perhaps we should cache output here
-						var base64String = JsonObject.Value<string>(DataPropertyName);
+						var base64String = AttachmentDescriptor.GetPrimitiveProperty<string>(DataPropertyName);
 						var inlineData = base64String.HasNoValue() ? EmptyBuffer : Convert.FromBase64String(base64String);
 						return new MemoryStream(inlineData);
 					});
@@ -136,9 +127,8 @@ namespace CouchDude.Api
 			}
 		}
 
-		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
-
-		public void SetData(Stream dataStream)
+		/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		public virtual void SetData(Stream dataStream)
 		{
 			if (dataStream == null) throw new ArgumentNullException("dataStream");
 			if (!dataStream.CanRead)
@@ -152,7 +142,7 @@ namespace CouchDude.Api
 			{
 				dataStream.CopyTo(memoryStream);
 				var base64String = Convert.ToBase64String(memoryStream.GetBuffer(), offset: 0, length: (int)memoryStream.Length);
-				JsonObject[DataPropertyName] = JToken.FromObject(base64String);
+				AttachmentDescriptor[DataPropertyName] = base64String;
 			}
 		}
 	}

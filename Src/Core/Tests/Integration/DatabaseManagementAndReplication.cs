@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
 
@@ -20,7 +21,7 @@ namespace CouchDude.Tests.Integration
 			couchApi.Db(dbA).Synchronously.Create();
 			var docInfo = couchApi.Db(dbA).Synchronously.SaveDocument(savedDocument);
 
-			couchApi.Db(dbB).Create();
+			couchApi.Db(dbB).Synchronously.Create();
 
 			var replicationDescriptorId = dbA + "_to_" + dbB;
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
@@ -11,12 +12,12 @@ namespace CouchDude.Api
 			private const int DefaultConflictUpdateAttemps = 7;
 
 			private readonly DatabaseApi parent;
-			private readonly IDocument document;
+			private readonly Document document;
 			private volatile int overwriteAttemptsLeft = DefaultConflictUpdateAttemps;
 			private readonly Func<CouchError, DocumentInfo> conflictAction;
 			private readonly TaskCompletionSource<DocumentInfo> completionSource;
 
-			private DocumentSaver(DatabaseApi parent, IDocument document, bool overwriteConcurrentUpdates)
+			private DocumentSaver(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
 			{
 				this.parent = parent;
 				this.document = document;
@@ -28,7 +29,7 @@ namespace CouchDude.Api
 				else conflictAction = ThrowConflict;
 			}
 
-			public static Task<DocumentInfo> StartSaving(DatabaseApi parent, IDocument document, bool overwriteConcurrentUpdates)
+			public static Task<DocumentInfo> StartSaving(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
 			{
 				var saver = new DocumentSaver(parent, document, overwriteConcurrentUpdates);
 				return overwriteConcurrentUpdates ? saver.SaveOverriding() : saver.Save();
@@ -70,18 +71,14 @@ namespace CouchDude.Api
 
 			private async Task<DocumentInfo> Save()
 			{
-				var request = new HttpRequestMessage(
-					HttpMethod.Put, 
-					parent.uriConstructor.GetFullDocumentUri(document.Id)
-				) {
-					Content = new JsonContent(document)
-				};
+				var request = new HttpRequestMessage(HttpMethod.Put, parent.uriConstructor.GetFullDocumentUri(document.Id));
+				request.Content = new JsonContent(document.RawJsonObject);
 
 				var response = await parent.parent.RequestCouchDb(request).ConfigureAwait(false);
 				var documentId = document.Id;
 				if (!response.IsSuccessStatusCode)
 				{
-					var error = new CouchError(response);
+					var error = new CouchError(parent.parent.Serializer, response);
 					error.ThrowDatabaseMissingExceptionIfNedded(parent.uriConstructor);
 					if (error.IsConflict)
 						return conflictAction(error);

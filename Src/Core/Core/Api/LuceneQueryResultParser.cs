@@ -17,85 +17,40 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Json;
 using System.Linq;
 using CouchDude.Impl;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
 	/// <summary>Loads couchdb-lucene request result from provided <see cref="TextReader"/>.</summary>
-	public class LuceneQueryResultParser
+	internal class LuceneQueryResultParser : QueryResultParserBase
 	{
-		private static readonly JsonSerializer Serializer = JsonSerializer.Create(JsonFragment.CreateSerializerSettings());
-		
-#pragma warning disable 0649
-		// ReSharper disable UnassignedField.Local
-		// ReSharper disable InconsistentNaming
-		// ReSharper disable ClassNeverInstantiated.Local
-		private class RawViewResultRow
-		{
-			public JObject doc;
-			public string id;
-			public decimal score;
-			public JToken fields;
-		}
-
-		private class RawViewResult
-		{
-			public int total_rows;
-			public int offset;
-			public int skip;
-			public int limit;
-			public int search_duration;
-			public int fetch_duration;
-
-			public IList<RawViewResultRow> rows;
-		}
-		// ReSharper restore ClassNeverInstantiated.Local
-		// ReSharper restore InconsistentNaming
-		// ReSharper restore UnassignedField.Local
-#pragma warning restore 0649
-
 		/// <summary>Loads view request result from provided <see cref="TextReader"/>.</summary>
 		public static ILuceneQueryResult Parse(TextReader textReader, LuceneQuery query)
 		{
-			RawViewResult rawResult;
-			try
-			{
-				using (var reader = new JsonTextReader(textReader) {CloseInput = false})
-					rawResult = Serializer.Deserialize<RawViewResult>(reader);
-			}
-			catch (Exception e)
-			{
-				if (e is JsonReaderException || e is JsonSerializationException)
-					throw new ParseException(e, e.Message);
-				throw;
-			}
-
-			if (rawResult == null)
-				return LuceneQueryResult.Empty;
+			var response = ParseRawResponse(textReader);
+			var totalRows = GetTotalRows(response);
+			var offset = GetOffset(response);
+			var rawRows = GetRawRows(response);
+			var fetchDuration = TimeSpan.FromMilliseconds(response.GetPrimitiveProperty<int>("fetch_duration"));
+			var searchDuration = TimeSpan.FromMilliseconds(response.GetPrimitiveProperty<int>("search_duration"));
+			var limit = response.GetPrimitiveProperty<int>("limit");
+			var skip = response.GetPrimitiveProperty<int>("skip");
 
 			var rows = (
-				from rawRow in rawResult.rows ?? new RawViewResultRow[0]
-				let fields = rawRow.fields != null ? new JsonFragment(rawRow.fields) : null
-				let document = rawRow.doc != null ? new Document(rawRow.doc) : null
-				select new LuceneResultRow(rawRow.id, fields, rawRow.score, rawRow.id, document)
-			).ToList();
+				from rawRow in rawRows
+				let id = rawRow.GetPrimitiveProperty<string>("id")
+				let fields = rawRow.TryGetValue("fields")
+				let score = rawRow.GetPrimitiveProperty<decimal>("score")
+				let documentJsonObject = rawRow.TryGetValue("doc") as JsonObject
+				let document = documentJsonObject == null ? null : new Document(documentJsonObject)
+				select new LuceneResultRow(id, fields, score, id, document)
+			).ToArray();
 
-			return new LuceneQueryResult(
-				query, 
-				rows, 
-				count: rows.Count,
-				totalCount: rawResult.total_rows, 
-				offset: rawResult.offset, 
-				fetchDuration: TimeSpan.FromMilliseconds(rawResult.fetch_duration), 
-				searchDuration: TimeSpan.FromMilliseconds(rawResult.search_duration), 
-				limit: rawResult.limit, 
-				skip: rawResult.skip
-			);
+			return new LuceneQueryResult(query, rows, rows.Length, totalRows, offset, fetchDuration, searchDuration, limit, skip);
 		}
 	}
 }

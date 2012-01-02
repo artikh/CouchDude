@@ -28,25 +28,19 @@ namespace CouchDude
 	public class DocumentRevisionMissingException : ParseException
 	{
 		/// <constructor />
-		public DocumentRevisionMissingException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
+		public DocumentRevisionMissingException(SerializationInfo info, StreamingContext context): base(info, context) { }
 
 		/// <constructor />
-		public DocumentRevisionMissingException(IDocument document)
-			: base(GenerateMessage(document))
-		{
-		}
+		public DocumentRevisionMissingException(string documentJsonString): base(GenerateMessage(documentJsonString)) { }
 
-		private static string GenerateMessage(IDocument document = null)
+		private static string GenerateMessage(string documentJsonString = null)
 		{
 			var message = new StringBuilder("Required field '")
-				.Append(Api.Document.RevisionPropertyName)
+				.Append(Document.RevisionPropertyName)
 				.Append("' have not found on document. ")
 				.Append("Document revision should be supplied by CouchDB.");
-			if (document != null)
-				message.AppendLine().Append(document.ToString());
+			if (documentJsonString != null)
+				message.AppendLine().Append(documentJsonString);
 
 			return message.ToString();
 		}

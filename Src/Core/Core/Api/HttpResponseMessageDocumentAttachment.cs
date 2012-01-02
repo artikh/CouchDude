@@ -17,59 +17,44 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Json;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Api
 {
-	/// <summary><see cref="IDocumentAttachment"/> implementation returning from attachment request.</summary>
-	internal class HttpResponseMessageDocumentAttachment: JsonFragment, IDocumentAttachment
+	/// <summary><see cref="DocumentAttachment"/> implementation returning from attachment request.</summary>
+	internal class HttpResponseMessageDocumentAttachment: DocumentAttachment
 	{
-		private readonly string id;
-		private readonly HttpResponseMessage responseMessage;
-		private readonly HttpContentHeaders contentHeaders;
+		private readonly HttpContent content;
 
 		/// <constructor />
 		public HttpResponseMessageDocumentAttachment(string id, HttpResponseMessage responseMessage)
+			: this (id, new Document(), responseMessage) { }
+
+		/// <constructor />
+		private HttpResponseMessageDocumentAttachment(
+			string id, Document fakeDocument, HttpResponseMessage responseMessage): base(id, fakeDocument)
 		{
-			this.id = id;
-			this.responseMessage = responseMessage;
-			contentHeaders = responseMessage.Content.Headers;
+			content = responseMessage.Content;
+
+			var contentHeaders = responseMessage.Content.Headers;
+			var fakeDescriptor = new JsonObject(
+				new KeyValuePair<string, JsonValue>(LengthPropertyName, (int)contentHeaders.ContentLength.GetValueOrDefault(0)),
+				new KeyValuePair<string, JsonValue>(StubPropertyName, true),
+				new KeyValuePair<string, JsonValue>(ContentTypePropertyName, contentHeaders.ContentType.MediaType)
+			);
+			fakeDocument.RawJsonObject[DocumentAttachmentBag.AttachmentsPropertyName] =
+				new JsonObject(new KeyValuePair<string, JsonValue>(id, fakeDescriptor));
 		}
-
-		public string Id { get { return id; } }
-
-		// ReSharper disable ValueParameterNotUsed
-		public string ContentType { get { return contentHeaders.ContentType.MediaType; } set { ThrowNotImplemented(); } }
-
-		public int Length { get { return (int)contentHeaders.ContentLength.GetValueOrDefault(0); } set { ThrowNotImplemented(); } }
-		// ReSharper restore ValueParameterNotUsed
 
 		[JetBrains.Annotations.TerminatesProgram]
 		private void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
+		
+		public override Task<Stream> OpenRead() { return content.ReadAsStreamAsync(); }
 
-		public bool Inline { get { return false; } }
-
-		public Task<Stream> OpenRead() { return responseMessage.Content.ReadAsStreamAsync(); }
-
-		public void SetData(Stream dataStream) { ThrowNotImplemented(); }
-
-		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
-
-		private JToken jsonToken;
-		protected internal override JToken JsonToken
-		{
-			get
-			{
-				return jsonToken ?? (jsonToken = JObject.FromObject(new {
-					content_type = ContentType,
-					length = Length,
-					stub = true
-				}));
-			}
-		}
+		public override void SetData(Stream dataStream) { ThrowNotImplemented(); }
 	}
 }

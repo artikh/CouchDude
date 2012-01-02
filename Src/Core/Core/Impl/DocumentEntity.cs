@@ -17,7 +17,6 @@
 #endregion
 
 using System;
-using System.IO;
 using CouchDude.Configuration;
 using CouchDude.Utils;
 
@@ -28,6 +27,8 @@ namespace CouchDude.Impl
 	{
 		/// <summary>Document entity configuration.</summary>
 		private readonly IEntityConfig entityConfiguration;
+
+		private readonly ISerializer serializer;
 
 		private string entityId;
 		/// <summary>Entity identitifier.</summary>
@@ -86,39 +87,31 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Database raw document.</summary>
-		public IDocument Document { get; private set; }
-
-		/// <summary>Writes document to provided text writer.</summary>
-		/// <remarks>Caller is responsible for disposing <paramref name="writer"/>.</remarks>
-		public void WriteTo(TextWriter writer)
-		{
-			var document = SerializeToDocument();
-			document.WriteTo(writer);
-		}
+		public Document Document { get; private set; }
 
 		/// <summary>Creates instance from entity.</summary>
-		public static DocumentEntity FromEntity(object entity, IEntityConfigRepository configRepository)
+		public static DocumentEntity FromEntity(object entity, Settings settings)
 		{
 			var entityType = entity.GetType();
-			var entityConfiguration = configRepository.GetConfig(entityType);
+			var entityConfiguration = settings.GetConfig(entityType);
 			if (entityConfiguration == null)
 				throw new ConfigurationException("Entity type {0} have not been registred.", entityType);
 			
-
-			return new DocumentEntity(entityConfiguration, entity);
+			return new DocumentEntity(entityConfiguration, settings.Serializer, entity);
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document. If any error does occur returns <c>null</c>.</summary>
-		public static DocumentEntity TryFromDocument(IDocument document, IEntityConfigRepository settings)
+		public static DocumentEntity TryFromDocument(Document document, Settings settings)
 		{
+			var serializer = settings.Serializer;
 			if (document != null && !string.IsNullOrWhiteSpace(document.Type))
 			{
 				var entityConfiguration = settings.GetConfig(document.Type);
 				if (entityConfiguration != null)
 				{
-					var entity = document.TryDeserialize(entityConfiguration);
+					var entity = serializer.ConvertFromJson(entityConfiguration, document.RawJsonObject, throwOnError: false);
 					if (entity != null)
-						return new DocumentEntity(entityConfiguration, entity, document);
+						return new DocumentEntity(entityConfiguration, serializer, entity, document);
 				}
 			}
 
@@ -126,18 +119,18 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Creates entity/document pair from CouchDB document.</summary>
-		public static DocumentEntity FromDocument(
-			IDocument document, IEntityConfigRepository entityConfigRepository) 
+		public static DocumentEntity FromDocument(Document document, Settings settings) 
 		{
 			if(string.IsNullOrWhiteSpace(document.Type))
-				throw new DocumentTypeMissingException(document);
+				throw new DocumentTypeMissingException(document.ToString());
 
-			var entityConfiguration = entityConfigRepository.GetConfig(document.Type);
+			var entityConfiguration = settings.GetConfig(document.Type);
 			if (entityConfiguration == null)
 				throw new DocumentTypeNotRegistredException(document.Type);
 
-			var entity = document.Deserialize(entityConfiguration);
-			return new DocumentEntity(entityConfiguration, entity, document); 
+			var serializer = settings.Serializer;
+			var entity = serializer.ConvertFromJson(entityConfiguration, document.RawJsonObject, throwOnError: true);
+			return new DocumentEntity(entityConfiguration, serializer, entity, document); 
 		}
 
 		/// <summary>Maps entity to the JSON document.</summary>
@@ -158,8 +151,9 @@ namespace CouchDude.Impl
 		
 		private DocumentEntity(
 			IEntityConfig entityConfiguration,
+			ISerializer serializer,
 			object entity, 
-			IDocument document = null)
+			Document document = null)
 		{
 			if (entityConfiguration == null) throw new ArgumentNullException("entityConfiguration");
 			if (entity == null) throw new ArgumentNullException("entity");
@@ -167,14 +161,15 @@ namespace CouchDude.Impl
 			Entity = entity;
 			Document = document;
 			this.entityConfiguration = entityConfiguration;
+			this.serializer = serializer;
 		}
 
-		private IDocument SerializeToDocument()
+		private Document SerializeToDocument()
 		{
-			var newVersionOfDocument = Api.Document.Serialize(Entity, entityConfiguration);
+			var newVersionOfDocument = 
+				new Document(serializer.ConvertToJson(Entity, entityConfiguration, throwOnError: true));
 
-			var currentVersionOfDocument = Document != null;
-			if (currentVersionOfDocument)
+			if (Document != null)
 			{
 				// if revision info is not stored in entity it should be copied from current document (if present)
 				if (!entityConfiguration.IsRevisionPresent)

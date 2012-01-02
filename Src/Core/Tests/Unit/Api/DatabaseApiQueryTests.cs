@@ -21,7 +21,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using CouchDude.Api;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -125,7 +125,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpClientMock =
 				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
-					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonObject())
 				});
 
 			var couchApi = GetDatabaseApi(httpClientMock);

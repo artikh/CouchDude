@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using CouchDude.Configuration;
+using CouchDude.Serialization;
 using CouchDude.Utils;
 
 namespace CouchDude
@@ -64,6 +65,9 @@ namespace CouchDude
 
 		/// <summary>Document ID generator.</summary>
 		public IIdGenerator IdGenerator = new SequentialUuidIdGenerator();
+
+		/// <summary>Serializer instance.</summary>
+		public ISerializer Serializer = new NewtonsoftSerializer();
 
 		/// <summary>Reports</summary>
 		public bool Incomplete

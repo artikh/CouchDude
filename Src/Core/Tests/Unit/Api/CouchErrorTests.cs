@@ -20,6 +20,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
+using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -29,10 +30,9 @@ namespace CouchDude.Tests.Unit.Api
 		private static string ProccessResponse(string responseString)
 		{
 			var error =
-				new CouchError(
-					new HttpResponseMessage(HttpStatusCode.InternalServerError) {
-						Content = new StringContent(responseString, Encoding.UTF8)
-					});
+				new CouchError(new NewtonsoftSerializer(), new HttpResponseMessage(HttpStatusCode.InternalServerError) {
+					Content = new StringContent(responseString, Encoding.UTF8)
+				});
 			return error.ToString();
 		}
 

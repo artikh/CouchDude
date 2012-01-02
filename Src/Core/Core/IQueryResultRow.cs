@@ -16,18 +16,20 @@
 */
 #endregion
 
+using System.Json;
+
 namespace CouchDude
 {
 	/// <summary>Common interface of query result row.</summary>
 	public interface IQueryResultRow
 	{
 		/// <summary>Query row main value.</summary>
-		IJsonFragment Value { get; }
+		JsonValue Value { get; }
 
 		/// <summary>Document ID associated with row.</summary>
 		string DocumentId { get; }
 
 		/// <summary>Document associated with the row.</summary>
-		IDocument Document { get; }
+		Document Document { get; }
 	}
 }

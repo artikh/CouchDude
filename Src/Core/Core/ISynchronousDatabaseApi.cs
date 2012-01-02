@@ -26,14 +26,14 @@ namespace CouchDude
 	{
 		/// <summary>Requests CouchDB for document using <paramref name="docId"/> 
 		/// and <paramref name="revision"/> and waits for result of the operation.</summary>
-		IDocument RequestDocument(string docId, string revision = null);
+		Document RequestDocument(string docId, string revision = null);
 
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
-		DocumentInfo SaveDocument(IDocument document);
+		DocumentInfo SaveDocument(Document document);
 
 		/// <summary>Saves new document to CouchDB detecting conflicts and resolving them by discarding 
 		/// remote version of document in favour of local one. Client code waits on result.</summary>
-		DocumentInfo SaveDocument(IDocument document, bool overwriteConcurrentUpdates);
+		DocumentInfo SaveDocument(Document document, bool overwriteConcurrentUpdates);
 		
 		/// <summary>Creates new document by copying another document's content.</summary>
 		DocumentInfo CopyDocument(
@@ -60,7 +60,7 @@ namespace CouchDude
 		ILuceneQueryResult QueryLucene(LuceneQuery query);
 
 		/// <summary>Demands database to be created and waits for result of the operation.</summary>
-		void Create();
+		void Create(bool throwIfExists = true);
 
 		/// <summary>Demands database to be deleted and waits for result of the operation.</summary>
 		void Delete();

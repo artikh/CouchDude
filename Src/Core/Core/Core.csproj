@@ -12,7 +12,6 @@
     <AssemblyName>CouchDude</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <CodeContractsAssemblyMode>0</CodeContractsAssemblyMode>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -22,28 +21,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeContractsEnableRuntimeChecking>True</CodeContractsEnableRuntimeChecking>
-    <CodeContractsRuntimeOnlyPublicSurface>False</CodeContractsRuntimeOnlyPublicSurface>
-    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
-    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
-    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
-    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
-    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
-    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
-    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
-    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
-    <CodeContractsShowSquigglies>False</CodeContractsShowSquigglies>
-    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
-    <CodeContractsEmitXMLDocs>True</CodeContractsEmitXMLDocs>
-    <CodeContractsCustomRewriterAssembly />
-    <CodeContractsCustomRewriterClass />
-    <CodeContractsLibPaths />
-    <CodeContractsExtraRewriteOptions />
-    <CodeContractsExtraAnalysisOptions />
-    <CodeContractsBaseLineFile />
-    <CodeContractsCacheAnalysisResults>False</CodeContractsCacheAnalysisResults>
-    <CodeContractsRuntimeCheckingLevel>Full</CodeContractsRuntimeCheckingLevel>
-    <CodeContractsReferenceAssembly>Build</CodeContractsReferenceAssembly>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Debug\CouchDude.xml</DocumentationFile>
   </PropertyGroup>
@@ -54,28 +31,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <CodeContractsEnableRuntimeChecking>True</CodeContractsEnableRuntimeChecking>
-    <CodeContractsRuntimeOnlyPublicSurface>True</CodeContractsRuntimeOnlyPublicSurface>
-    <CodeContractsRuntimeThrowOnFailure>True</CodeContractsRuntimeThrowOnFailure>
-    <CodeContractsRuntimeCallSiteRequires>False</CodeContractsRuntimeCallSiteRequires>
-    <CodeContractsRunCodeAnalysis>False</CodeContractsRunCodeAnalysis>
-    <CodeContractsNonNullObligations>False</CodeContractsNonNullObligations>
-    <CodeContractsBoundsObligations>False</CodeContractsBoundsObligations>
-    <CodeContractsArithmeticObligations>False</CodeContractsArithmeticObligations>
-    <CodeContractsRedundantAssumptions>False</CodeContractsRedundantAssumptions>
-    <CodeContractsRunInBackground>True</CodeContractsRunInBackground>
-    <CodeContractsShowSquigglies>False</CodeContractsShowSquigglies>
-    <CodeContractsUseBaseLine>False</CodeContractsUseBaseLine>
-    <CodeContractsEmitXMLDocs>True</CodeContractsEmitXMLDocs>
-    <CodeContractsCustomRewriterAssembly />
-    <CodeContractsCustomRewriterClass />
-    <CodeContractsLibPaths />
-    <CodeContractsExtraRewriteOptions />
-    <CodeContractsExtraAnalysisOptions />
-    <CodeContractsBaseLineFile />
-    <CodeContractsCacheAnalysisResults>False</CodeContractsCacheAnalysisResults>
-    <CodeContractsRuntimeCheckingLevel>ReleaseRequires</CodeContractsRuntimeCheckingLevel>
-    <CodeContractsReferenceAssembly>Build</CodeContractsReferenceAssembly>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <DocumentationFile>bin\Release\CouchDude.xml</DocumentationFile>
   </PropertyGroup>
@@ -101,9 +56,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\JsonValue.0.6.0\lib\40\Microsoft.Server.Common.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.0.4.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.4.0.4\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.0.5.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.4.0.5\lib\net40\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -118,22 +72,28 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Api\DbUriConstructor.cs" />
-    <Compile Include="Api\DocumentAttachmentBag.cs" />
+    <Compile Include="Api\QueryResultParserBase.cs" />
+    <Compile Include="DocumentAttachment.cs" />
+    <Compile Include="DocumentAttachmentBag.cs" />
     <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
+    <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
+    <Compile Include="Serialization\EntityContractResolver.cs" />
+    <Compile Include="ISerializer.cs" />
+    <Compile Include="Serialization\NewtonsoftSerializer.cs" />
+    <Compile Include="Serialization\NewtonsoftSerializerDefautSettings.cs" />
+    <Compile Include="Serialization\SerializerBase.cs" />
     <Compile Include="Api\UriConstructor.cs" />
-    <Compile Include="Api\WrappingDocumentAttachment.cs" />
     <Compile Include="Api\IsoUtcDateTimeConverter.cs" />
-    <Compile Include="Api\JsonContent.cs" />
-    <Compile Include="Api\LoadContext.cs" />
+    <Compile Include="Api\DatabaseApiReference.cs" />
     <Compile Include="Api\ReplicatorApi.cs" />
     <Compile Include="Api\SynchronousCouchApi.cs" />
     <Compile Include="Api\SynchronousDatabaseApi.cs" />
     <Compile Include="Api\LuceneQueryResultParser.cs" />
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
-    <Compile Include="Api\Serialization\UriConverter.cs" />
+    <Compile Include="Serialization\UriConverter.cs" />
     <Compile Include="Api\SyncronousDocumentAttachmentWrapper.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
@@ -148,8 +108,7 @@
     <Compile Include="Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMember.cs" />
     <Compile Include="Configuration\PropertyOrPubilcFieldSpecialMember.cs" />
     <Compile Include="Configuration\SequentialUuidIdGenerator.cs" />
-    <Compile Include="Api\Document.Serialization.cs" />
-    <Compile Include="Api\Document.cs" />
+    <Compile Include="Document.cs" />
     <Compile Include="DatabaseInfo.cs" />
     <Compile Include="DocumentInfo.cs" />
     <Compile Include="Exceptions\DocumentAttachmentMissingException.cs" />
@@ -168,10 +127,8 @@
     <Compile Include="Exceptions\RaceConditionDetectedException.cs" />
     <Compile Include="Exceptions\ViewNotFoundException.cs" />
     <Compile Include="Factory.cs" />
-    <Compile Include="IDocumentAttachmentBag.cs" />
     <Compile Include="IBulkUpdateBatch.cs" />
     <Compile Include="ICouchApi.cs" />
-    <Compile Include="IDocumentAttachment.cs" />
     <Compile Include="ILuceneQueryResult.cs" />
     <Compile Include="IReplicatorApi.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
@@ -179,6 +136,7 @@
     <Compile Include="ISyncronousDocumentAttachment.cs" />
     <Compile Include="ReplicationState.cs" />
     <Compile Include="ReplicationTaskDescriptor.cs" />
+    <Compile Include="SerializerExtensions.cs" />
     <Compile Include="Utils\CheckIf.cs" />
     <Compile Include="Impl\SynchronousSessionMethods.cs" />
     <Compile Include="IQuery.cs" />
@@ -193,10 +151,18 @@
     <Compile Include="Impl\QueryResultExtensions.cs" />
     <Compile Include="LuceneSort.cs" />
     <Compile Include="LuceneType.cs" />
+    <Compile Include="Utils\DictionaryUtils.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
     <Compile Include="Impl\OptionListParser.cs" />
     <Compile Include="Utils\FlexibleIso8601DateTimeParser.cs" />
     <Compile Include="Utils\HttpClientHelpers.cs" />
+    <Compile Include="Utils\IJsonVisiter.cs" />
+    <Compile Include="Utils\JsonContent.cs" />
+    <Compile Include="Utils\JsonObjectComparier.cs" />
+    <Compile Include="Utils\JsonValueExtensions.cs" />
+    <Compile Include="Utils\LazyConcurrentDictionary.cs" />
+    <Compile Include="Utils\SystemJsonValueReader.cs" />
+    <Compile Include="Utils\SystemJsonValueWriter.cs" />
     <Compile Include="Utils\TaskUtils.cs" />
     <Compile Include="Exceptions\ConventionException.cs">
       <DependentUpon>ConventionException.tt</DependentUpon>
@@ -229,10 +195,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="IDocument.cs" />
     <Compile Include="IEntityConfigRepository.cs" />
-    <Compile Include="IJsonFragment.cs" />
-    <Compile Include="Api\JsonFragment.cs" />
     <Compile Include="LuceneResultRow.cs" />
     <Compile Include="Api\DatabaseApi.cs" />
     <Compile Include="Impl\CouchSessionFactory.cs" />
@@ -319,11 +282,14 @@
     </None>
     <Compile Include="Impl\CouchSession.Query.cs" />
     <None Include="packages.config" />
+    <None Include="postBuild.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Core.crunchproject.local.xml" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>cd $(ProjectDir)

@@ -22,6 +22,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using CouchDude.Serialization;
 using CouchDude.Utils;
 using JetBrains.Annotations;
 
@@ -49,7 +50,7 @@ namespace CouchDude.Impl
 				new CustomOption<ViewQuery>(
 					"stale",
 					defaultValue: null,
-					getStringValue: query => query.StaleViewIsOk ? (query.UpdateIfStale ? "update_after" : "ok") : null,
+					getStringValue: (query, serializer) => query.StaleViewIsOk ? (query.UpdateIfStale ? "update_after" : "ok") : null,
 					setStringValue: 
 						(query, stringValue) => {
 							switch (stringValue)
@@ -174,23 +175,25 @@ namespace CouchDude.Impl
 		}
 
 		[Pure]
-		internal static Uri ToUri(ViewQuery viewQuery)
+		internal static Uri ToUri(ViewQuery viewQuery, ISerializer serializer = null)
 		{
 			var uriString = ToUriString(viewQuery);
 			return uriString == null? null: new Uri(uriString, UriKind.Relative);
 		}
 
-		internal static string ToUriString(ViewQuery viewQuery)
+		internal static string ToUriString(ViewQuery viewQuery, ISerializer serializer = null)
 		{
 			if (viewQuery.ViewName.HasNoValue() || (viewQuery.DesignDocumentName.HasNoValue() && !SpecialViewNames.Any(n => n == viewQuery.ViewName)))
 				return null;
+
+			serializer = serializer ?? new NewtonsoftSerializer();
 
 			var uri = new StringBuilder();
 			if (!String.IsNullOrEmpty(viewQuery.DesignDocumentName))
 				uri.Append("_design/").Append(viewQuery.DesignDocumentName).Append("/_view/");
 			uri.Append(viewQuery.ViewName);
 
-			var queryString = Serializer.ToQueryString(viewQuery);
+			var queryString = Serializer.ToQueryString(viewQuery, serializer);
 			if (queryString.Length > 0)
 				uri.Append("?").Append(queryString);
 

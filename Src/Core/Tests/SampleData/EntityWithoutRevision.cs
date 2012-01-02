@@ -42,7 +42,7 @@ namespace CouchDude.Tests.SampleData
 				};
 		}
 
-		public static IDocument CreateDocumentWithRevision()
+		public static Document CreateDocumentWithRevision()
 		{
 			return new {
 				_id = StandardDocId,

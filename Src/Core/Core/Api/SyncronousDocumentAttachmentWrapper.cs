@@ -23,9 +23,9 @@ namespace CouchDude.Api
 {
 	internal struct SyncronousDocumentAttachmentWrapper: ISyncronousDocumentAttachment
 	{
-		private readonly IDocumentAttachment parent;
+		private readonly DocumentAttachment parent;
 
-		public SyncronousDocumentAttachmentWrapper(IDocumentAttachment parent) : this() { this.parent = parent; }
+		public SyncronousDocumentAttachmentWrapper(DocumentAttachment parent) : this() { this.parent = parent; }
 
 		public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }
 	}

@@ -29,8 +29,8 @@ namespace CouchDude.Tests.SampleData
 
 		public new static SimpleDerivedEntity CreateStandardWithoutRevision() { return new SimpleDerivedEntity { Id = StandardId, Age = 42 }; }
 
-		public new static IDocument CreateDocument() { return new { _id = StandardDocId, _rev = StandardRevision, type = DocType, age = 42 }.ToDocument(); }
+		public new static Document CreateDocument() { return new { _id = StandardDocId, _rev = StandardRevision, type = DocType, age = 42 }.ToDocument(); }
 
-		public new static IDocument CreateDocumentWithoutRevision() { return new { _id = StandardDocId, type = DocType, age = 42 }.ToDocument(); }
+		public new static Document CreateDocumentWithoutRevision() { return new { _id = StandardDocId, type = DocType, age = 42 }.ToDocument(); }
 	}
 }

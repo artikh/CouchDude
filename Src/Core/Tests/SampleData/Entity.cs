@@ -17,10 +17,8 @@
 #endregion
 
 using System;
-
-using CouchDude.Api;
+using System.Json;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace CouchDude.Tests.SampleData
 {
@@ -31,11 +29,11 @@ namespace CouchDude.Tests.SampleData
 		public const string StandardDocId = DocType + ".doc1";
 		public const string DocType = "entity";
 
-		public static JObject OkResponse = new {
+		public static JsonObject OkResponse = new {
 				ok = true,
 				id = StandardDocId,
 				rev = StandardRevision
-			}.ToJObject();
+			}.ToJsonObject();
 
 		public readonly static DocumentInfo StandardDococumentInfo = new DocumentInfo(StandardDocId, StandardRevision);
 
@@ -62,7 +60,7 @@ namespace CouchDude.Tests.SampleData
 			       	};
 		}
 
-		public static IDocument CreateDocWithRevision()
+		public static Document CreateDocWithRevision()
 		{
 			return new Document(
 				new {
@@ -75,7 +73,7 @@ namespace CouchDude.Tests.SampleData
 				}.ToJsonTextReader());
 		}
 
-		public static IDocument CreateDocWithoutRevision()
+		public static Document CreateDocWithoutRevision()
 		{
 			return new Document(
 				new {

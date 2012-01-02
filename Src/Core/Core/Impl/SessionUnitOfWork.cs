@@ -33,12 +33,12 @@ namespace CouchDude.Impl
 			new Dictionary<Tuple<string, Type>, DocumentEntity>();
 		private readonly IDictionary<string, DocumentEntity> documentIdMap = new Dictionary<string, DocumentEntity>();
 
-		private readonly IEntityConfigRepository entityConfigRepository;
+		private readonly Settings settings;
 
 		/// <constructor />
-		public SessionUnitOfWork(IEntityConfigRepository entityConfigRepository)
+		public SessionUnitOfWork(Settings settings)
 		{
-			this.entityConfigRepository = entityConfigRepository;
+			this.settings = settings;
 		}
 
 
@@ -136,14 +136,14 @@ namespace CouchDude.Impl
 		}
 
 		/// <summary>Updates cache with provided document.</summary>
-		public void UpdateWithDocument(IDocument document)
+		public void UpdateWithDocument(Document document)
 		{
 			if(document == null || document.Id == null) return;
 
 			DocumentEntity documentEntity;
 			if (!documentIdMap.TryGetValue(document.Id, out documentEntity) && document.Revision.HasValue())
 			{
-				documentEntity = DocumentEntity.TryFromDocument(document, entityConfigRepository);
+				documentEntity = DocumentEntity.TryFromDocument(document, settings);
 				if (documentEntity != null)
 					RegisterDocumentEntity(documentEntity);
 			}
@@ -161,7 +161,7 @@ namespace CouchDude.Impl
 			DocumentEntity documentEntity;
 			if (!entityMap.TryGetValue(entity, out documentEntity))
 				documentEntity = RegisterDocumentEntity(
-					DocumentEntity.FromEntity(entity, entityConfigRepository));
+					DocumentEntity.FromEntity(entity, settings));
 			return documentEntity;
 		}
 
@@ -204,7 +204,7 @@ namespace CouchDude.Impl
 
 		private IEnumerable<Tuple<string, Type>> GetDocumentEntityIdentities(DocumentEntity documentEntity)
 		{
-			return entityConfigRepository
+			return settings
 				.GetAllRegistredBaseTypes(documentEntity.EntityType)
 				.Select(type => new Tuple<string, Type>(documentEntity.EntityId, type));
 		}

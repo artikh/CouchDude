@@ -23,7 +23,8 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldSaveAndLoadDerivedEntities() 
 		{
-			var sessionFactory = ConfigureCouchDude.With()
+			var sessionFactory = 
+				ConfigureCouchDude.With()
 					.ServerUri("http://127.0.0.1:5984")
 					.DefaultDatabaseName("testdb")
 					.MappingEntities()
@@ -41,6 +42,8 @@ namespace CouchDude.Tests.Integration
 
 			using(var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
+
 				session.Save<Animal>(musa, fluffy, zoidberg);
 				session.SaveChanges();
 			}
@@ -80,6 +83,7 @@ namespace CouchDude.Tests.Integration
 
 			using(var session = sessionFactory.CreateSession())
 			{
+				session.RawApi.Synchronously.Create(throwIfExists: false);
 				session.Save<Animal>(musa, fluffy, zoidberg);
 				session.SaveChanges();
 			}

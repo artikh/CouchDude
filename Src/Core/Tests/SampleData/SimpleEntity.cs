@@ -30,9 +30,9 @@ namespace CouchDude.Tests.SampleData
 
 		public static SimpleEntity CreateStandardWithoutRevision() { return new SimpleEntity {Id = StandardId, Age = 42}; }
 
-		public static IDocument CreateDocument() { return new {_id = StandardDocId, _rev = StandardRevision, type = DocType, age = 42}.ToDocument(); }
+		public static Document CreateDocument() { return new {_id = StandardDocId, _rev = StandardRevision, type = DocType, age = 42}.ToDocument(); }
 
-		public static IDocument CreateDocumentWithoutRevision() { return new {_id = StandardDocId, type = DocType, age = 42}.ToDocument(); }
+		public static Document CreateDocumentWithoutRevision() { return new {_id = StandardDocId, type = DocType, age = 42}.ToDocument(); }
 
 		public string Id { get; set; }
 		

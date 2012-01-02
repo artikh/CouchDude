@@ -88,18 +88,21 @@ namespace CouchDude
 
 		/// <summary>Requestes update sequence number to be included to query result.</summary>
 		public bool IncludeUpdateSequenceNumber { get; set; }
+		
+		/// <summary>Serializer reference.</summary>
+		internal ISerializer Serializer { get; set; }
 
 		/// <summary>Gets query URI.</summary>
 		public override string ToString()
 		{
-			return ViewQueryUriConverter.ToUriString(this);
+			return ViewQueryUriConverter.ToUriString(this, Serializer);
 		}
 
 		/// <summary>Gets query URI.</summary>
 		[Pure]
 		public Uri ToUri()
 		{
-			return ViewQueryUriConverter.ToUri(this);
+			return ViewQueryUriConverter.ToUri(this, Serializer);
 		}
 
 		/// <summary>Cretates copy of current clone.</summary>

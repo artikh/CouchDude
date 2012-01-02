@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Json;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -27,7 +28,9 @@ namespace CouchDude.Api
 {
 	internal class BulkUpdateBatch: IBulkUpdateBatch
 	{
+		private const string DeletedFlagPropertyName = "_deleted";
 		private readonly DbUriConstructor uriConstructor;
+		private readonly ISerializer serializer;
 
 		private enum OperationType
 		{
@@ -42,8 +45,8 @@ namespace CouchDude.Api
 			public string DocumentId;
 			public string DocumentRevision;
 
-			private IDocument document;
-			public IDocument Document
+			private Document document;
+			public Document Document
 			{
 				get { return document; }  
 				set
@@ -62,7 +65,11 @@ namespace CouchDude.Api
 		readonly IDictionary<string, DocumentInfo> result = new Dictionary<string, DocumentInfo>();
 
 		/// <constructor />
-		public BulkUpdateBatch(DbUriConstructor uriConstructor) { this.uriConstructor = uriConstructor; }
+		public BulkUpdateBatch(DbUriConstructor uriConstructor, ISerializer serializer)
+		{
+			this.uriConstructor = uriConstructor;
+			this.serializer = serializer;
+		}
 
 		private void Add(UpdateDescriptor updateDescriptor)
 		{
@@ -70,7 +77,7 @@ namespace CouchDude.Api
 			docIdToUpdateDescriptorMap.Add(updateDescriptor.DocumentId, updateDescriptor);
 		}
 
-		public void Create(IDocument document)
+		public void Create(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -81,7 +88,7 @@ namespace CouchDude.Api
 			Add(new UpdateDescriptor{ Document = document, Operation = OperationType.Create });
 		}
 
-		public void Update(IDocument document)
+		public void Update(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -92,7 +99,7 @@ namespace CouchDude.Api
 			Add(new UpdateDescriptor { Document = document, Operation = OperationType.Update });
 		}
 
-		public void Delete(IDocument document)
+		public void Delete(Document document)
 		{
 			if (document == null) throw new ArgumentNullException("document");
 			if (document.Id.HasNoValue())
@@ -111,7 +118,8 @@ namespace CouchDude.Api
 
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
-		public async Task<IDictionary<string, DocumentInfo>> Execute(Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
+		public async Task<IDictionary<string, DocumentInfo>> Execute(
+			Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
 			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
 			var request =
@@ -120,12 +128,12 @@ namespace CouchDude.Api
 			var response = await startRequest(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowCouchCommunicationException();
 			}
 
-			dynamic responseDescriptors = new JsonFragment(await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+			dynamic responseDescriptors = await response.Content.ReadAsJsonArrayAsync().ConfigureAwait(false);
 			foreach (var responseDescriptor in responseDescriptors)
 			{
 				string errorName = responseDescriptor.error;
@@ -155,46 +163,41 @@ namespace CouchDude.Api
 			var docIdToUpdateDescriptor = docIdToUpdateDescriptorMap[documentId];
 			var operation = docIdToUpdateDescriptor.Operation.ToString().ToLower();
 
-			var error = new CouchError(errorString);
+			var error = new CouchError(serializer, errorString);
 
-			switch (error.Error)
-			{
-				case CouchError.Conflict:
-					exceptions.Add(error.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
-					break;
-				case CouchError.Forbidden:
-					exceptions.Add(error.CreateInvalidDocumentException(documentId));
-					break;
-				default:
-					exceptions.Add(error.CreateCouchCommunicationException());
-					break;
-			}
+			if (error.IsConflict)
+				exceptions.Add(error.CreateStaleStateException(operation, documentId, docIdToUpdateDescriptor.DocumentRevision));
+			else if (error.IsForbidden)
+				exceptions.Add(error.CreateInvalidDocumentException(documentId));
+			else 
+				exceptions.Add(error.CreateCouchCommunicationException());
 		}
 
-		private string FormatDescriptor()
+		private JsonObject FormatDescriptor()
 		{
-			var descriptorString = new StringBuilder("{\"docs\":[");
+			var descriptor = new JsonObject();
+			var array = new JsonArray();
+
 			foreach(var updateDescriptor in updateDescriptors)
 				switch(updateDescriptor.Operation)
 				{
 					case OperationType.Create:
 					case OperationType.Update:
-						descriptorString.Append(updateDescriptor.Document.ToString()).Append(",");
+						array.Add(updateDescriptor.Document.RawJsonObject);
 						break;
 					case OperationType.Delete:
-						descriptorString.AppendFormat(
-							@"{{""_id"":""{0}"",""_rev"":""{1}"",""_deleted"":true}},",
-							updateDescriptor.DocumentId,
-							updateDescriptor.DocumentRevision);
+						array.Add(new JsonObject(
+							new KeyValuePair<string, JsonValue>(Document.IdPropertyName, updateDescriptor.DocumentId),
+							new KeyValuePair<string, JsonValue>(Document.RevisionPropertyName, updateDescriptor.DocumentRevision),
+							new KeyValuePair<string, JsonValue>(DeletedFlagPropertyName, true)
+						));
 						break;
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
+			descriptor.Add("docs", array);
 
-			if (descriptorString[descriptorString.Length - 1] == ',')
-				descriptorString.Remove(descriptorString.Length - 1, 1);
-			descriptorString.Append("]}");
-			return descriptorString.ToString();
+			return descriptor;
 		}
 	}
 }

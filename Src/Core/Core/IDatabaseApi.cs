@@ -27,14 +27,14 @@ namespace CouchDude
 	{
 		/// <summary>Requests CouchDB for document using <paramref name="documentId"/> 
 		/// and <paramref name="revision"/>.</summary>
-		Task<IDocument> RequestDocument(string documentId, string revision = null);
+		Task<Document> RequestDocument(string documentId, string revision = null);
 
 		/// <summary>Saves new document to CouchDB.</summary>
-		Task<DocumentInfo> SaveDocument(IDocument document);
+		Task<DocumentInfo> SaveDocument(Document document);
 
 		/// <summary>Saves new document to CouchDB detecting conflicts and resolving them by discarding 
 		/// remote version of document in favour of local one.</summary>
-		Task<DocumentInfo> SaveDocument(IDocument document, bool overwriteConcurrentUpdates);
+		Task<DocumentInfo> SaveDocument(Document document, bool overwriteConcurrentUpdates);
 
 		/// <summary>Creates new document by copying another document's content.</summary>
 		Task<DocumentInfo> CopyDocument(
@@ -44,11 +44,11 @@ namespace CouchDude
 			string targetDocumentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
-		Task<IDocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
+		Task<DocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
 
 		/// <summary>Saves document attachment directly to database. If <paramref name="documentRevision"/> is <c>null</c>
 		/// creates new document for attachment.</summary>
-		Task<DocumentInfo> SaveAttachment(IDocumentAttachment attachment, string documentId, string documentRevision = null);
+		Task<DocumentInfo> SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
 		Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision = null);
@@ -71,7 +71,7 @@ namespace CouchDude
 		Task<IDictionary<string, DocumentInfo>> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);
 
 		/// <summary>Demands database to be created.</summary>
-		Task Create();
+		Task Create(bool throwIfExists = true);
 
 		/// <summary>Demands database to be deleted.</summary>
 		Task Delete();

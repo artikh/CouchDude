@@ -18,7 +18,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Json;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -41,12 +41,21 @@ namespace CouchDude.Api
 			Synchronously = new SynchronousDatabaseApi(this);
 		}
 
-		public async Task Create()
+		public async Task Create(bool throwIfExists = true)
 		{
 			var response = await parent
 				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
-				new CouchError(response).ThrowCouchCommunicationException();
+			{
+				var couchError = new CouchError(parent.Serializer, response);
+				if (couchError.IsAlreadyDatabaseExists)
+					if (throwIfExists)
+						throw new CouchCommunicationException(
+							"Database {0} already exists", uriConstructor.DatabaseName);
+					else
+						return;
+				couchError.ThrowCouchCommunicationException();
+			}
 		}
 
 		public async Task Delete()
@@ -55,13 +64,13 @@ namespace CouchDude.Api
 				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowCouchCommunicationException();
 			}
 		}
 
-		public async Task<IDocumentAttachment> RequestAttachment(
+		public async Task<DocumentAttachment> RequestAttachment(
 			string attachmentId, string documentId, string documentRevision = null)
 		{
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
@@ -74,7 +83,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				if (error.IsAttachmentMissingFromDocument)
 					return null;
@@ -85,7 +94,7 @@ namespace CouchDude.Api
 		}
 
 		public async Task<DocumentInfo> SaveAttachment(
-			IDocumentAttachment attachment, string documentId, string documentRevision = null)
+			DocumentAttachment attachment, string documentId, string documentRevision = null)
 		{
 			if (attachment == null) throw new ArgumentNullException("attachment");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
@@ -102,7 +111,7 @@ namespace CouchDude.Api
 			}
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowCouchCommunicationException();
 			}
@@ -121,7 +130,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowAttachmentMissingException(attachmentId, documentId, documentRevision);
 				error.ThrowDocumentNotFoundIfNedded(documentId, documentRevision);
@@ -135,10 +144,10 @@ namespace CouchDude.Api
 			var response =
 				await parent.RequestCouchDb(new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			var exists = true;
-			IJsonFragment responseJson = null;
+			JsonObject responseJson = null;
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				if (error.IsDatabaseMissing)
 					exists = false;
 				else
@@ -146,14 +155,12 @@ namespace CouchDude.Api
 			}
 			else
 			{
-				using (var stream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
-				using (var reader = new StreamReader(stream))
-					responseJson = new JsonFragment(reader);
+				responseJson = await response.Content.ReadAsJsonObjectAsync().ConfigureAwait(false);
 			}
 			return new DatabaseInfo(exists, uriConstructor.DatabaseName, responseJson);
 		}
 
-		public async Task<IDocument> RequestDocument(string documentId, string revision)
+		public async Task<Document> RequestDocument(string documentId, string revision)
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
 			
@@ -163,7 +170,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				if (response.StatusCode == HttpStatusCode.NotFound)
 					return null;
@@ -171,6 +178,15 @@ namespace CouchDude.Api
 			}
 			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
 				return new Document(reader);
+		}
+
+		public Task<DocumentInfo> SaveDocument(Document document, bool overwriteConcurrentUpdates)
+		{
+			if (document == null) throw new ArgumentNullException("document");
+			if (document.Id.HasNoValue())
+				throw new ArgumentException("Document ID should not be empty or null.", "document");
+
+			return DocumentSaver.StartSaving(this, document, overwriteConcurrentUpdates);
 		}
 
 		public async Task<DocumentInfo> DeleteDocument(string documentId, string revision)
@@ -184,7 +200,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowStaleStateExceptionIfNedded("delete", documentId, revision);
 				error.ThrowCouchCommunicationException();
@@ -192,17 +208,8 @@ namespace CouchDude.Api
 			return await ReadDocumentInfo(response).ConfigureAwait(false);
 		}
 
-		public Task<DocumentInfo> SaveDocument(IDocument document) { return SaveDocument(document, overwriteConcurrentUpdates: false); }
+		public Task<DocumentInfo> SaveDocument(Document document) { return SaveDocument(document, overwriteConcurrentUpdates: false); }
 
-		public Task<DocumentInfo> SaveDocument(IDocument document, bool overwriteConcurrentUpdates)
-		{
-			if (document == null) throw new ArgumentNullException("document");
-			if (document.Id.HasNoValue())
-				throw new ArgumentException("Document ID should not be empty or null.", "document");
-
-			return DocumentSaver.StartSaving(this, document, overwriteConcurrentUpdates);
-		}
-		
 		public async Task<DocumentInfo> CopyDocument(
 			string originalDocumentId,
 			string targetDocumentId,
@@ -225,9 +232,9 @@ namespace CouchDude.Api
 
 			if (!response.IsSuccessStatusCode)
 			{
-				var couchApiError = new CouchError(response);
+				var couchApiError = new CouchError(parent.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-				if (couchApiError.StatusCode == HttpStatusCode.Conflict)
+				if (couchApiError.IsConflict)
 					throw new StaleObjectStateException(
 						"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected",
 						originalDocumentId,
@@ -254,7 +261,7 @@ namespace CouchDude.Api
 
 		private async Task<IDictionary<string, DocumentInfo>> BulkUpdateInternal(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
-			var unitOfWork = new BulkUpdateBatch(uriConstructor);
+			var unitOfWork = new BulkUpdateBatch(uriConstructor, parent.Serializer);
 			updateCommandBuilder(unitOfWork);
 			if (unitOfWork.IsEmpty)
 				return EmptyDictionary;
@@ -273,7 +280,7 @@ namespace CouchDude.Api
 
 			if (!response.IsSuccessStatusCode)
 			{
-				var couchApiError = new CouchError(response);
+				var couchApiError = new CouchError(parent.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				couchApiError.ThrowStaleStateExceptionIfNedded("update", documentId);
 				couchApiError.ThrowInvalidDocumentExceptionIfNedded(documentId);
@@ -298,7 +305,7 @@ namespace CouchDude.Api
 			var response = await StartQuery(uriConstructor.GetQueryUri(query)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowViewNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();
@@ -314,7 +321,7 @@ namespace CouchDude.Api
 			var response = await StartQuery(uriConstructor.GetQueryUri(query)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(response);
+				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowLuceneIndexNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();
@@ -332,9 +339,7 @@ namespace CouchDude.Api
 
 		private static async Task<DocumentInfo> ReadDocumentInfo(HttpResponseMessage response)
 		{
-			dynamic couchResponse;
-			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
-				couchResponse = new JsonFragment(reader);
+			dynamic couchResponse = await response.Content.ReadAsJsonObjectAsync().ConfigureAwait(false);
 			var id = (string) couchResponse.id;
 			var revision = (string) couchResponse.rev;
 

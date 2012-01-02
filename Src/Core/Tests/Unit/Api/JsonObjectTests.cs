@@ -25,7 +25,7 @@ using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit.Api
 {
-	public class JsonFragmentTests
+	public class JsonObjectTests
 	{
 		public enum UserSex
 		{
@@ -66,7 +66,7 @@ namespace CouchDude.Tests.Unit.Api
 		[InlineData("\t")]
 		public void ShouldThrowOnNullEmptyOrWhiteSpaceJsonString(string json)
 		{
-			var excetpion = Assert.Throws<ArgumentNullException>(() => new JsonFragment(json));
+			var excetpion = Assert.Throws<ArgumentNullException>(() => new JsonObject(json));
 			Assert.Contains("json", excetpion.Message);
 		}
 
@@ -76,29 +76,29 @@ namespace CouchDude.Tests.Unit.Api
 		[InlineData("[}")]
 		public void ShouldThrowParseExceptionOnIncorrectJsonString(string json)
 		{
-			Assert.Throws<ParseException>(() => new JsonFragment(json));
+			Assert.Throws<ParseException>(() => new JsonObject(json));
 		}
 
 		[Fact]
 		public void ShouldCastToDynamicAsRawJson()
 		{
-			var jsonFragment = new JsonFragment("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}");
-			dynamic dynamicFragment = jsonFragment;
+			var jsonObject = new JsonObject("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}");
+			dynamic dynamicObject = jsonObject;
 
-			Assert.Null((string)dynamicFragment.Id);
-			Assert.Null((string)dynamicFragment.Revision);
-			Assert.Null((string)dynamicFragment.Type);
+			Assert.Null((string)dynamicObject.Id);
+			Assert.Null((string)dynamicObject.Revision);
+			Assert.Null((string)dynamicObject.Type);
 
-			Assert.Equal("8A7FD19B",     (string)dynamicFragment._id);
-			Assert.Equal("1-42",         (string)dynamicFragment._rev);
-			Assert.Equal("simpleEntity", (string)dynamicFragment.type);
-			Assert.Equal("John",         (string)dynamicFragment.name);
+			Assert.Equal("8A7FD19B",     (string)dynamicObject._id);
+			Assert.Equal("1-42",         (string)dynamicObject._rev);
+			Assert.Equal("simpleEntity", (string)dynamicObject.type);
+			Assert.Equal("John",         (string)dynamicObject.name);
 		}
 
 		[Fact]
 		public void ShouldExposeArraysAsDynamic()
 		{
-			dynamic doc = new JsonFragment("{\"array\": [\"str1\", 42]}");
+			dynamic doc = new JsonObject("{\"array\": [\"str1\", 42]}");
 
 			Assert.Equal("str1", (string)doc.array[0]);
 			Assert.Equal(42, (int)doc.array[1]);
@@ -109,33 +109,33 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			using(var textReader = new StringReader("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}"))
 			{
-				dynamic fragment = new JsonFragment(textReader);
+				dynamic obj = new JsonObject(textReader);
 
-				Assert.Equal("8A7FD19B", (string)fragment._id);
-				Assert.Equal("1-42", (string)fragment._rev);
-				Assert.Equal("simpleEntity", (string)fragment.type);
-				Assert.Equal("John", (string)fragment.name);
+				Assert.Equal("8A7FD19B", (string)obj._id);
+				Assert.Equal("1-42", (string)obj._rev);
+				Assert.Equal("simpleEntity", (string)obj.type);
+				Assert.Equal("John", (string)obj.name);
 			}
 		}
 
 		[Fact]
 		public void ShouldParseJsonString()
 		{
-			dynamic fragment = new JsonFragment("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}");
+			dynamic obj = new JsonObject("{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}");
 
-			Assert.Equal("8A7FD19B", (string)fragment._id);
-			Assert.Equal("1-42", (string)fragment._rev);
-			Assert.Equal("simpleEntity", (string)fragment.type);
-			Assert.Equal("John", (string)fragment.name);
+			Assert.Equal("8A7FD19B", (string)obj._id);
+			Assert.Equal("1-42", (string)obj._rev);
+			Assert.Equal("simpleEntity", (string)obj.type);
+			Assert.Equal("John", (string)obj.name);
 		}
 
 		[Fact]
 		public void ShouldProduceTextReaderForContent()
 		{
 			const string jsonString = "{\"_id\":\"8A7FD19B\",\"_rev\":\"1-42\",\"type\":\"simpleEntity\",\"name\":\"John\"}";
-			var fragment = new JsonFragment(jsonString);
+			var obj = new JsonObject(jsonString);
 			
-			using (var textReader = fragment.Read())
+			using (var textReader = obj.Read())
 			{
 				var producedJsonString = textReader.ReadToEnd();
 				Assert.Equal(jsonString, producedJsonString);
@@ -146,98 +146,60 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullArgumentToDeserialize()
 		{
-			Assert.Throws<ArgumentNullException>(() => new JsonFragment().Deserialize(null));
+			Assert.Throws<ArgumentNullException>(() => new JsonObject().Deserialize(null));
 		}
 
 		[Fact]
 		public void ShouldDeserializeStringProperty()
 		{
-			var fragment = new { name = "John" }.ToJsonFragment();
-			var entity = (User)fragment.Deserialize(typeof(User));
+			var jsonObject = new { name = "John" }.ToJsonObject();
+			var entity = (User)jsonObject.Deserialize(typeof(User));
 			Assert.Equal("John", entity.Name);
 		}
 
 		[Fact]
 		public void ShouldDeserializeIntProperty()
 		{
-			var fragment = new { age = 18 }.ToJsonFragment();
-			var entity = (User)fragment.Deserialize(typeof(User));
+			var jsonObject = new { age = 18 }.ToJsonObject();
+			var entity = (User)jsonObject.Deserialize(typeof(User));
 			Assert.Equal(18, entity.Age);
 		}
 
 		[Fact]
 		public void ShouldDeserializeDateTimeProperty()
 		{
-			var fragment = new { timestamp = "2011-06-01T12:04:34.444Z" }.ToJsonFragment();
-			var entity = (User)fragment.Deserialize(typeof(User));
+			var jsonObject = new { timestamp = "2011-06-01T12:04:34.444Z" }.ToJsonObject();
+			var entity = (User)jsonObject.Deserialize(typeof(User));
 			Assert.Equal(new DateTime(2011, 06, 01, 12, 04, 34, 444, DateTimeKind.Utc), entity.Timestamp);
 		}
 
 		[Fact]
 		public void ShouldDeserializeFields()
 		{
-			var fragment = new { field = "quantum mechanics" }.ToJsonFragment();
-			var entity = (User)fragment.Deserialize(typeof(User));
+			var jsonObject = new { field = "quantum mechanics" }.ToJsonObject();
+			var entity = (User)jsonObject.Deserialize(typeof(User));
 			Assert.Equal("quantum mechanics", entity.Field);
 		}
 
 		[Fact]
 		public void ShouldDeserializeEnumsAsStrings()
 		{
-			var fragment = new { sex = "female" }.ToJsonFragment();
-			var entity = (User)fragment.Deserialize(typeof(User));
+			var jsonObject = new { sex = "female" }.ToJsonObject();
+			var entity = (User)jsonObject.Deserialize(typeof(User));
 			Assert.Equal(UserSex.Female, entity.Sex);
 		}
 
 		[Fact]
 		public void ShouldThrowParseExceptionOnDeserializationError()
 		{
-			var obj = new JsonFragment(@"{ ""age"": ""not an integer"" }");
+			var obj = new JsonObject(@"{ ""age"": ""not an integer"" }");
 			Assert.Throws<ParseException>(() => obj.Deserialize(typeof(User)));
-		}
-		
-		[Fact]
-		public void ShouldThrowOnNullArgumentToSerialize()
-		{
-			Assert.Throws<ArgumentNullException>(() => JsonFragment.Serialize(null));
-		}
-
-		[Fact]
-		public void ShouldSerializeEnumsAsString()
-		{
-			var entity = new User(sex: UserSex.Female );
-			dynamic fragment = JsonFragment.Serialize(entity);
-			Assert.Equal("Female", (string)fragment.sex);
-		}
-
-		[Fact]
-		public void ShouldSerializeDatesAccodingToIso8601()
-		{
-			var entity = new User(timestamp: new DateTime(2011, 06, 01, 12, 04, 34, 444, DateTimeKind.Utc));
-			dynamic fragment = JsonFragment.Serialize(entity);
-			Assert.Equal("2011-06-01T12:04:34.444Z", (string)fragment.timestamp);
-		}
-
-		[Fact]
-		public void ShouldConvertPropertyNameToCamelCase()
-		{
-			var entity = new User(name: "john");
-			dynamic fragment = JsonFragment.Serialize(entity);
-			Assert.NotNull((string)fragment.name);
-		}
-
-		[Fact]
-		public void ShouldSerializePublicFields()
-		{
-			var entity = new User { Field = "quantum mechanics" };
-			dynamic fragment = JsonFragment.Serialize(entity);
-			Assert.Equal("quantum mechanics", (string)fragment.field);
 		}
 
 		[Fact]
 		public void ShouldParseDocumentInfo()
 		{
-			var obj = new JsonFragment(@"{ ""some_prop"": ""some value"" }");
+			var obj = new JsonObject(@"{ ""some_prop"": ""some value"" }");
 			Assert.Equal(@"{""some_prop"":""some value""}", obj.ToString());
 		}
 	}

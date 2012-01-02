@@ -1,6 +1,6 @@
-#region Licence Info 
+﻿#region Licence Info 
 /*
-	Copyright 2011 � Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko																					
+	Copyright 2011 · Artem Tikhomirov, Stas Girkin, Mikhail Anikeev-Naumenko																				
 																																					
 	Licensed under the Apache License, Version 2.0 (the "License");					
 	you may not use this file except in compliance with the License.					
@@ -16,19 +16,21 @@
 */
 #endregion
 
-using System.Net.Http;
-using System.Text;
+using System;
+using System.Collections.Concurrent;
 
-namespace CouchDude.Api
+namespace CouchDude.Utils
 {
-	internal class JsonContent: StringContent
+	/// <summary>Wrapper over <see cref="ConcurrentDictionary{TValue,TKey}"/></summary>
+	public class LazyConcurrentDictionary<TKey, TValue>
 	{
-		private const string JsonMediaType = "application/json";
+		readonly ConcurrentDictionary<TKey, TValue> innerDic = new ConcurrentDictionary<TKey, TValue>();
+		readonly Func<TKey, TValue> factory;
 
 		/// <constructor />
-		public JsonContent(string jsonString): base(jsonString, Encoding.UTF8, JsonMediaType) { }
+		public LazyConcurrentDictionary(Func<TKey, TValue> factory) { this.factory = factory; }
 
-		/// <constructor />
-		public JsonContent(IDocument document): this(document.ToString()) { }
+		/// <summary>Gets value for the key invoking factory if needed.</summary>
+		public TValue Get(TKey key) { return innerDic.GetOrAdd(key, factory); }
 	}
 }

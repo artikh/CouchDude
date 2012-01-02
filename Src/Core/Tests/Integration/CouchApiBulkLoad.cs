@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
@@ -29,6 +30,7 @@ namespace CouchDude.Tests.Integration
 		{
 			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
 			var dbApi = couchApi.Db("testdb");
+			dbApi.Synchronously.Create(throwIfExists: false);
 
 			var doc1Id = Guid.NewGuid() + ".doc1";
 			var doc2Id = Guid.NewGuid() + ".doc2";
@@ -49,20 +51,20 @@ namespace CouchDude.Tests.Integration
 			Assert.Equal(doc2Id, result[doc2Id].Id);
 			Assert.Equal(doc3Id, result[doc3Id].Id);
 
-			dynamic loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
+			var loadedDoc1 = dbApi.Synchronously.RequestDocument(doc1Id);
 			Assert.NotNull(loadedDoc1);
-			Assert.Equal("James Scully", (string)loadedDoc1.name);
+			Assert.Equal("James Scully", (string)loadedDoc1.RawJsonObject["name"]);
 
-			dynamic loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
+			var loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
 			Assert.NotNull(loadedDoc2);
-			Assert.Equal("John Smith", (string)loadedDoc2.name);
-			Assert.Equal(42, (int)loadedDoc2.age);
+			Assert.Equal("John Smith", (string)loadedDoc2.RawJsonObject["name"]);
+			Assert.Equal(42, (int)loadedDoc2.RawJsonObject["age"]);
 
 			var loadedDoc3 = dbApi.Synchronously.RequestDocument(doc3Id);
 			Assert.Null(loadedDoc3);
 
-			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1._rev);
-			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2._rev);
+			dbApi.DeleteDocument(doc1Id, (string)loadedDoc1.RawJsonObject["_rev"]);
+			dbApi.DeleteDocument(doc2Id, (string)loadedDoc2.RawJsonObject["_rev"]);
 		}
 	}
 }

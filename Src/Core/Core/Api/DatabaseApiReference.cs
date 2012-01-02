@@ -16,32 +16,31 @@
 */
 #endregion
 
-using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using System;
 
-namespace CouchDude.Tests
+namespace CouchDude.Api
 {
-	public class JTokenStringCompairer: IEqualityComparer<string>
+	/// <summary>Wraps weak reference to database API.</summary>
+	public struct DatabaseApiReference
 	{
-		public bool Equals(string x, string y)
+		/// <summary>Default value of the refernce.</summary>
+		public static readonly DatabaseApiReference Empty = default(DatabaseApiReference);
+
+		readonly WeakReference dbApiWeakReference;
+
+		/// <constructor />
+		public DatabaseApiReference(IDatabaseApi dbApi = null)
 		{
-			var xToken = Parse(x);
-			var yToken = Parse(y);
-			return JToken.DeepEquals(xToken, yToken);
+			dbApiWeakReference = dbApi == null? null: new WeakReference(dbApi, trackResurrection: false);
 		}
 
-		private static JToken Parse(string str)
+		/// <summary>Returns <see cref="IDatabaseApi"/> </summary>
+		public IDatabaseApi GetOrThrowIfUnavaliable(Func<string> operation)
 		{
-			using (var reader = new StringReader(str))
-			using (var jsonReader = new JsonTextReader(reader))
-				return JToken.ReadFrom(jsonReader);
-		}
-
-		public int GetHashCode(string obj)
-		{
-			return JObject.Parse(obj).GetHashCode();
+			var dbApi = dbApiWeakReference.Target as IDatabaseApi;
+			if (dbApi == null)
+				throw new LazyLoadingException("Unable to {0} because IDatabaseApi is unavaliable", operation());
+			return dbApi;
 		}
 	}
 }

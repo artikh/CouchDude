@@ -23,6 +23,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using CouchDude.Serialization;
 using CouchDude.Utils;
 using JetBrains.Annotations;
 
@@ -31,7 +32,7 @@ namespace CouchDude.Impl
 	/// <summary>Converts <see cref="LuceneQuery"/> to <see cref="Uri"/>, <see cref="string"/> and back.</summary>
 	public class LuceneQueryUriConverter : TypeConverter
 	{
-		private static readonly OptionListSerializer<LuceneQuery> Serializer =
+		private static readonly OptionListSerializer<LuceneQuery> OptionListSerializer =
 			new OptionListSerializer<LuceneQuery>(
 				new StringOption<LuceneQuery>(q => q.Query, "q"),
 				new StringOption<LuceneQuery>(q => q.Analyzer, "analyzer"),
@@ -44,7 +45,7 @@ namespace CouchDude.Impl
 					  var fields = stringValue.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
 					  return fields.Length == 0? null: fields;
 					  },
-					serialize: value => value == null? null: string.Join(",", value)
+					serialize: (value, serializer) => value == null? null: string.Join(",", value)
 				),
 				new PositiveIntegerOption<LuceneQuery>(q => q.Limit, "limit"),
 				new PositiveIntegerOption<LuceneQuery>(q => q.Skip, "skip"),
@@ -64,7 +65,7 @@ namespace CouchDude.Impl
 					    .ToArray();
 					  return sorts.Length == 0 ? null : sorts;
 					  },
-					serialize: value => value == null? null: string.Join(",", value.Select(s => s.ToString()))
+					serialize: (value, serializer) => value == null ? null : string.Join(",", value.Select(s => s.ToString()))
 				),
 				new BooleanOption<LuceneQuery>(q => q.DoNotBlockIfStale, "stale", "ok", null, defaultValue: null)
 			);
@@ -155,7 +156,7 @@ namespace CouchDude.Impl
 
 				var queryStringGroup = match.Groups["queryString"];
 				if (queryStringGroup.Success)
-					Serializer.Parse(queryStringGroup.Value, ref viewQuery);
+					OptionListSerializer.Parse(queryStringGroup.Value, ref viewQuery);
 
 				return true;
 			}
@@ -164,16 +165,19 @@ namespace CouchDude.Impl
 		}
 
 		[Pure]
-		internal static Uri ToUri(LuceneQuery viewQuery)
+		internal static Uri ToUri(LuceneQuery viewQuery, ISerializer serializer = null)
 		{
-			var uriString = ToUriString(viewQuery);
+			var uriString = ToUriString(viewQuery, serializer);
 			return uriString == null? null: new Uri(uriString, UriKind.Relative);
 		}
 
-		internal static string ToUriString(LuceneQuery viewQuery)
+		internal static string ToUriString(LuceneQuery viewQuery, ISerializer serializer = null)
 		{
 			if (viewQuery.DesignDocumentName.HasNoValue() || viewQuery.IndexName.HasNoValue())
 				return null;
+
+			if (serializer == null)
+				serializer = new NewtonsoftSerializer();
 
 			var uri = new StringBuilder();
 			uri.Append("_design/")
@@ -181,7 +185,7 @@ namespace CouchDude.Impl
 				 .Append("/")
 				 .Append(viewQuery.IndexName);
 
-			var queryString = Serializer.ToQueryString(viewQuery);
+			var queryString = OptionListSerializer.ToQueryString(viewQuery, serializer);
 			if (queryString.Length > 0)
 				uri.Append("?").Append(queryString);
 

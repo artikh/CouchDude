@@ -73,11 +73,11 @@ namespace CouchDude.Impl
 		}
 
 
-		private static IEnumerable<T> DeserializeViewData<T, TRow>(IEnumerable<TRow> rows) where TRow : IQueryResultRow
+		private IEnumerable<T> DeserializeViewData<T, TRow>(IEnumerable<TRow> rows) where TRow : IQueryResultRow
 		{
 			return from row in rows
 			       select row.Value into value
-			       select value == null ? default(T) : (T) value.TryDeserialize(typeof (T));
+			       select value == null ? default(T) : settings.Serializer.ConvertFromJson<T>(value, throwOnError: false);
 		}
 
 		private void UpdateUnitOfWork<TRow>(IEnumerable<TRow> rows) where TRow: IQueryResultRow

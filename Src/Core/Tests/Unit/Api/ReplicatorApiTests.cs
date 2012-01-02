@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using CouchDude.Utils;
+using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

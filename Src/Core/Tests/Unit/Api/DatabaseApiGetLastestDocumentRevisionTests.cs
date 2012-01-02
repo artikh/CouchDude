@@ -21,7 +21,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using CouchDude.Api;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -100,7 +100,7 @@ namespace CouchDude.Tests.Unit.Api
 			var webExeption = new WebException("Something wrong detected");
 			var handler = new MockMessageHandler(webExeption);
 
-			IDatabaseApi databaseApi = GetDatabaseApi(handler);
+			var databaseApi = GetDatabaseApi(handler);
 
 			var couchCommunicationException =
 				Assert.Throws<CouchCommunicationException>(
@@ -116,7 +116,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler =
 				new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.BadRequest)
 				{
-					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonString())
+					Content = new JsonContent(new { error = "bad_request", reason = "Mock reason" }.ToJsonObject())
 				});
 
 			IDatabaseApi databaseApi = GetDatabaseApi(handler);

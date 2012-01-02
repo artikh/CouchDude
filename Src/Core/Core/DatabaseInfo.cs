@@ -1,4 +1,5 @@
 using System;
+using System.Json;
 using CouchDude.Utils;
 
 namespace CouchDude
@@ -31,23 +32,20 @@ namespace CouchDude
 		public readonly int FileFormatVersion;
 
 		/// <summary>Converts database info document into easy to use object.</summary>
-		public DatabaseInfo(bool exists, string name, IJsonFragment dbInfo = null)
+		public DatabaseInfo(bool exists, string name, JsonObject dbInfo = null)
 		{
 			Name = name;
 			Exists = exists;
 			if (exists && dbInfo != null)
 			{
-				dynamic info = dbInfo;
-				DocumentCount = ValueOrDefault((int?)info.doc_count);
-				UpdateSequenceNumber = ValueOrDefault((int?)info.update_seq);
-				PurgeOperationsPerformed = ValueOrDefault((int?)info.purge_seq);
-				DoesCompactionRunning = ValueOrDefault((bool?)info.compact_running);
+				DocumentCount = dbInfo.GetPrimitiveProperty<int>("doc_count");
+				UpdateSequenceNumber = dbInfo.GetPrimitiveProperty<int>("update_seq");
+				PurgeOperationsPerformed = dbInfo.GetPrimitiveProperty<int>("purge_seq");
+				DoesCompactionRunning = dbInfo.GetPrimitiveProperty<bool>("compact_running");
 
-				FileSizeInBytes = ValueOrDefault((int?)info.disk_size);
-				FileFormatVersion = ValueOrDefault((int?)info.disk_format_version);
+				FileSizeInBytes = dbInfo.GetPrimitiveProperty<int>("disk_size");
+				FileFormatVersion = dbInfo.GetPrimitiveProperty<int>("disk_format_version");
 			}
 		}
-
-		private static T ValueOrDefault<T>(T? value) where T: struct { return value ?? default(T); }
 	}
 }

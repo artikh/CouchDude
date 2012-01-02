@@ -16,6 +16,8 @@
 */
 #endregion
 
+using System.Json;
+
 namespace CouchDude
 {
 	/// <summary>CouchDB-lucene query result row.</summary>
@@ -25,7 +27,7 @@ namespace CouchDude
 		public LuceneResultRow() { }
 
 		/// <constructor />
-		public LuceneResultRow(string id, IJsonFragment fields, decimal score, string documentId, IDocument document)
+		public LuceneResultRow(string id, JsonValue fields, decimal score, string documentId, Document document)
 		{
 			Id = id;
 			Score = score;
@@ -41,14 +43,14 @@ namespace CouchDude
 		public decimal Score { get; private set; }
 
 		/// <summary>All the fields that were stored with this match</summary>
-		public IJsonFragment Fields { get; private set; }
+		public JsonValue Fields { get; private set; }
 
-		IJsonFragment IQueryResultRow.Value { get { return Fields; } }
+		JsonValue IQueryResultRow.Value { get { return Fields; } }
 
 		/// <summary>Document ID associated with view row.</summary>
 		public string DocumentId { get; private set; }
 
 		/// <summary>Document associated with the row.</summary>
-		public IDocument Document { get; private set; }
+		public Document Document { get; private set; }
 	}
 }
