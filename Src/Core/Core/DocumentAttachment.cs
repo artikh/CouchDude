@@ -18,71 +18,33 @@
 
 using System;
 using System.IO;
-using System.Json;
 using System.Threading.Tasks;
 using CouchDude.Api;
-using CouchDude.Utils;
 
 namespace CouchDude
 {
-	/// <summary>CouchDB attachment backed by part of document JSON.</summary>
+	/// <summary>Document attachment.</summary>
 	public class DocumentAttachment
 	{
-		/// <summary>Inline data property name.</summary>
-		protected const string DataPropertyName = "data";
-		/// <summary>Inline indicator property name.</summary>
-		protected const string StubPropertyName = "stub";
-		/// <summary>Content type property name.</summary>
-		protected const string ContentTypePropertyName = "content_type";
-		/// <summary>Length property name.</summary>
-		protected const string LengthPropertyName = "length";
-		
-		private readonly static byte[] EmptyBuffer = new byte[0];
-		private readonly Document parentDocument;
+		static readonly MemoryStream EmptyStream = new MemoryStream(0);
 
-		/// <summary>Creates attachment wrapping existing attachment 
-		/// descriptor (probably loaded from CouchDB)</summary>
-		protected internal DocumentAttachment(string id, Document parentDocument)
-		{
-			if (id.HasNoValue()) throw new ArgumentNullException("id");
-			if (parentDocument != null) throw new ArgumentNullException("parentDocument");
-			
-			this.parentDocument = null;
-			Id = id;
-		}
+		Stream setStream = EmptyStream;
 
-		private JsonObject AttachmentDescriptor
-		{
-			get
-			{
-				return (JsonObject)parentDocument.RawJsonObject[DocumentAttachmentBag.AttachmentsPropertyName][Id];
-			}
-		}
+		/// <constructor />
+		public DocumentAttachment(string id) { Id = id; }
 
 		/// <summary>Unique (within documnet) identifier of the attachment.</summary>
 		public string Id { get; private set; }
 
 		/// <summary>Attachment content (MIME) type.</summary>
-		public string ContentType
-		{
-			get { return AttachmentDescriptor.GetPrimitiveProperty<string>(ContentTypePropertyName); }
-			set { AttachmentDescriptor[ContentTypePropertyName] = value; }
-		}
+		public virtual string ContentType { get; set; }
 
 		/// <summary>Content length.</summary>
-		public virtual int Length
-		{
-			get { return AttachmentDescriptor.GetPrimitiveProperty<int>(LengthPropertyName); }
-			set { AttachmentDescriptor[LengthPropertyName] = value; }
-		}
+		public virtual long Length { get; private set; }
 
 		/// <summary>Indicates wether attachment is included as base64 string within document or should 
 		/// be requested separatly.</summary>
-		public bool Inline 
-		{ 
-			get { return AttachmentDescriptor.GetPrimitiveProperty(StubPropertyName, defaultValue: true); } 
-			protected set { AttachmentDescriptor[StubPropertyName] = value ? (JsonValue) null : true; }
-		}
+		public virtual bool Inline { get; set; }
 
 		/// <summary>Syncrounous wrappers over async </summary>
 		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
@@ -90,60 +52,18 @@ namespace CouchDude
 		/// <summary>Open attachment data stream for read.</summary>
 		public virtual Task<Stream> OpenRead()
 		{
-			if (Inline)
-				return Task.Factory.StartNew<Stream>(
-					() => {
-						// TODO: perhaps we should cache output here
-						var base64String = AttachmentDescriptor.GetPrimitiveProperty<string>(DataPropertyName);
-						var inlineData = base64String.HasNoValue() ? EmptyBuffer : Convert.FromBase64String(base64String);
-						return new MemoryStream(inlineData);
-					});
-			else
-			{
-				var attachmentId = Id;
-				var documentId = parentDocument.Id;
-				var documentRevision = parentDocument.Revision;
-
-				var databaseApi = parentDocument
-					.DatabaseApiReference
-					.GetOrThrowIfUnavaliable(
-						operation: () =>
-							string.Format("load attachment {0} from document {1}(rev:{2})", attachmentId, documentId, documentRevision)
-					);
-
-				return databaseApi
-					.RequestAttachment(attachmentId, documentId, documentRevision)
-					.ContinueWith(
-						requestAttachmentTask =>
-						{
-							var recivedAttachment = requestAttachmentTask.Result;
-							Length = recivedAttachment.Length;
-							ContentType = recivedAttachment.ContentType;
-							Inline = recivedAttachment.Inline;
-							return recivedAttachment.OpenRead();
-						}
-					)
-					.Unwrap();
-			}
+			return TaskEx.FromResult(setStream);
 		}
 
 		/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
 		public virtual void SetData(Stream dataStream)
 		{
-			if (dataStream == null) throw new ArgumentNullException("dataStream");
-			if (!dataStream.CanRead)
-				throw new ArgumentOutOfRangeException("dataStream", dataStream, "Stream should be readable");
-
-			Inline = true;
-
-			// TODO: we should not have intermediate byte array here
-			using (dataStream)
-			using (var memoryStream = new MemoryStream())
+			setStream = dataStream;
+			try
 			{
-				dataStream.CopyTo(memoryStream);
-				var base64String = Convert.ToBase64String(memoryStream.GetBuffer(), offset: 0, length: (int)memoryStream.Length);
-				AttachmentDescriptor[DataPropertyName] = base64String;
+				Length = setStream.Length;
 			}
+			catch (NotSupportedException) { }
 		}
 	}
 }

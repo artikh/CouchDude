@@ -17,9 +17,7 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Json;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -28,33 +26,37 @@ namespace CouchDude.Api
 	/// <summary><see cref="DocumentAttachment"/> implementation returning from attachment request.</summary>
 	internal class HttpResponseMessageDocumentAttachment: DocumentAttachment
 	{
-		private readonly HttpContent content;
-
-		/// <constructor />
-		public HttpResponseMessageDocumentAttachment(string id, HttpResponseMessage responseMessage)
-			: this (id, new Document(), responseMessage) { }
-
-		/// <constructor />
-		private HttpResponseMessageDocumentAttachment(
-			string id, Document fakeDocument, HttpResponseMessage responseMessage): base(id, fakeDocument)
-		{
-			content = responseMessage.Content;
-
-			var contentHeaders = responseMessage.Content.Headers;
-			var fakeDescriptor = new JsonObject(
-				new KeyValuePair<string, JsonValue>(LengthPropertyName, (int)contentHeaders.ContentLength.GetValueOrDefault(0)),
-				new KeyValuePair<string, JsonValue>(StubPropertyName, true),
-				new KeyValuePair<string, JsonValue>(ContentTypePropertyName, contentHeaders.ContentType.MediaType)
-			);
-			fakeDocument.RawJsonObject[DocumentAttachmentBag.AttachmentsPropertyName] =
-				new JsonObject(new KeyValuePair<string, JsonValue>(id, fakeDescriptor));
-		}
-
-		[JetBrains.Annotations.TerminatesProgram]
-		private void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
+		private readonly HttpContent httpContent;
 		
-		public override Task<Stream> OpenRead() { return content.ReadAsStreamAsync(); }
+		/// <constructor />
+		public HttpResponseMessageDocumentAttachment(string id, HttpResponseMessage responseMessage): base(id)
+		{
+			httpContent = responseMessage.Content;
+		}
+		
+		[JetBrains.Annotations.TerminatesProgram]
+		private static void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
+		
+		public override Task<Stream> OpenRead() { return httpContent.ReadAsStreamAsync(); }
 
 		public override void SetData(Stream dataStream) { ThrowNotImplemented(); }
+
+		public override string ContentType
+		{
+			get { return httpContent.Headers.ContentType.MediaType; } 
+			// ReSharper disable ValueParameterNotUsed
+			set { ThrowNotImplemented(); }
+			// ReSharper restore ValueParameterNotUsed
+		}
+
+		public override long Length { get { return httpContent.Headers.ContentLength ?? 0; } }
+
+		public override bool Inline
+		{
+			get { return false; }
+			// ReSharper disable ValueParameterNotUsed
+			set { ThrowNotImplemented(); }
+			// ReSharper restore ValueParameterNotUsed
+		}
 	}
 }

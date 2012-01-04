@@ -36,11 +36,7 @@ namespace CouchDude
 		DocumentInfo SaveDocument(Document document, bool overwriteConcurrentUpdates);
 		
 		/// <summary>Creates new document by copying another document's content.</summary>
-		DocumentInfo CopyDocument(
-			string originalDocumentId,
-			string targetDocumentId,
-			string originalDocumentRevision = null,
-			string targetDocumentRevision = null);
+		DocumentInfo CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null);
 
 		/// <summary>Retrives current document revision from CouchDB and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
@@ -49,6 +45,16 @@ namespace CouchDude
 		/// <summary>Deletes document of provided <paramref name="docId"/> if it's revision
 		/// is equal to provided <paramref name="revision"/> and waits for the result of the operation.</summary>
 		DocumentInfo DeleteDocument(string docId, string revision);
+		
+		/// <summary>Requests document attachment directly from database.</summary>
+		DocumentAttachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
+
+		/// <summary>Saves document attachment directly to database. If <paramref name="documentRevision"/> is <c>null</c>
+		/// creates new document for attachment.</summary>
+		DocumentInfo SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
+
+		/// <summary>Requests document attachment directly from database.</summary>
+		DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision = null);
 
 		/// <summary>Creates, updates and deletes several documents as a whole from database. </summary>
 		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);

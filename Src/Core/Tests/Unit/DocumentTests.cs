@@ -17,11 +17,10 @@
 #endregion
 
 using System.IO;
-using CouchDude.Api;
 using Xunit;
 using Xunit.Extensions;
 
-namespace CouchDude.Tests.Unit.Api
+namespace CouchDude.Tests.Unit
 {
 	public class DocumentTests
 	{

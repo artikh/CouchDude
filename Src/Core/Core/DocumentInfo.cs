@@ -32,6 +32,14 @@ namespace CouchDude
 		public readonly string Revision;
 
 		/// <constructor />
+		public DocumentInfo(string id)
+		{
+			if (id.HasNoValue()) throw new ArgumentNullException("id");
+			Id = id;
+			Revision = null;
+		}
+
+		/// <constructor />
 		public DocumentInfo(string id, string revision)
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");

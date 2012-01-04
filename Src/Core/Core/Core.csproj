@@ -79,6 +79,8 @@
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
     <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
+    <Compile Include="Exceptions\DocumentAttachmentNotFoundException.cs" />
+    <Compile Include="Exceptions\DocumentNotFoundException.cs" />
     <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
     <Compile Include="Serialization\EntityContractResolver.cs" />
     <Compile Include="ISerializer.cs" />
@@ -233,6 +235,7 @@
     <Compile Include="Impl\ViewQueryResult.cs" />
     <Compile Include="Impl\ViewQueryUriConverter.cs" />
     <Compile Include="ViewResultRow.cs" />
+    <Compile Include="WrappingDocumentAttachment.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\CouchDude.licenseheader">

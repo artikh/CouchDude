@@ -37,11 +37,7 @@ namespace CouchDude
 		Task<DocumentInfo> SaveDocument(Document document, bool overwriteConcurrentUpdates);
 
 		/// <summary>Creates new document by copying another document's content.</summary>
-		Task<DocumentInfo> CopyDocument(
-			string originalDocumentId,
-			string targetDocumentId,
-			string originalDocumentRevision = null, 
-			string targetDocumentRevision = null);
+		Task<DocumentInfo> CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
 		Task<DocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);

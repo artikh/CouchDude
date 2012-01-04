@@ -136,6 +136,18 @@ namespace CouchDude.Api
 			return new StaleObjectStateException("Document {0} {1} conflict detected", docId, operation);
 		}
 
+		public void ThrowStaleStateExceptionForDocumentCopyIfNedded(object originalDocumentId, object originalDocumentRevision, object targetDocumentId, object targetDocumentRevision)
+		{
+			if(IsConflict)
+				throw new StaleObjectStateException(
+					"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected",
+					originalDocumentId,
+					originalDocumentRevision,
+					targetDocumentId,
+					targetDocumentRevision
+				);
+		}
+
 		public void ThrowInvalidDocumentExceptionIfNedded(string docId)
 		{
 			if (statusCode == HttpStatusCode.Forbidden)
@@ -185,7 +197,7 @@ namespace CouchDude.Api
 		public bool IsAttachmentMissingFromDocument { get { return statusCode == HttpStatusCode.NotFound && reason == AttachmentMissing; } }
 
 		public bool IsDatabaseMissing { get { return error == NotFound && reason == NoDbFile; } }
-		
+
 		public bool IsAlreadyDatabaseExists
 		{
 			get { return error == FileExists && statusCode == HttpStatusCode.PreconditionFailed; }

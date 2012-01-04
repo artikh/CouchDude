@@ -39,6 +39,8 @@ namespace CouchDude.Utils
 		/// <summary>Returns primitive value of the property or defalut value.</summary>
 		public static T GetPrimitiveProperty<T>(this JsonObject self, string propertyName, T defaultValue = default(T))
 		{
+			if (self == null) return defaultValue;
+
 			JsonValue propertyValue;
 			if (self.TryGetValue(propertyName, out propertyValue))
 			{
@@ -51,6 +53,33 @@ namespace CouchDude.Utils
 				}
 			}
 			return defaultValue;
+		}
+
+		/// <summary>Returns JSON object value of the property or null.</summary>
+		public static JsonObject GetObjectProperty(this JsonObject self, string propertyName)
+		{
+			if (self != null)
+			{
+				JsonValue jsonValue;
+				if (self.TryGetValue(propertyName, out jsonValue))
+					return jsonValue as JsonObject;
+			}
+			return null;
+		}
+
+		/// <summary>Returns JSON object value of the property or creates new one.</summary>
+		public static JsonObject GetOrCreateObjectProperty(this JsonObject self, string propertyName)
+		{
+			JsonObject jsonObject = null;
+
+			JsonValue jsonValue;
+			if (self.TryGetValue(propertyName, out jsonValue))
+				jsonObject = jsonValue as JsonObject;
+
+			if (jsonObject == null)
+				self[propertyName] = jsonObject = new JsonObject();
+
+			return jsonObject;
 		}
 	}
 }

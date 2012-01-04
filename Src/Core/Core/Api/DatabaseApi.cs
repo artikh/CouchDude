@@ -76,8 +76,7 @@ namespace CouchDude.Api
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
 
-			var attachmentUri = uriConstructor.GetFullAttachmentUri(
-				attachmentId, documentId, documentRevision);
+			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Get, attachmentUri);
 
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
@@ -88,6 +87,8 @@ namespace CouchDude.Api
 				if (error.IsAttachmentMissingFromDocument)
 					return null;
 				error.ThrowDocumentNotFoundIfNedded(documentId, documentRevision);
+				error.ThrowStaleStateExceptionIfNedded(
+					string.Format("request attachment ID '{0}'", attachmentId), documentId, documentRevision);
 				error.ThrowCouchCommunicationException();
 			}
 			return new HttpResponseMessageDocumentAttachment(attachmentId, response);
@@ -106,13 +107,15 @@ namespace CouchDude.Api
 			var requestMessage = new HttpRequestMessage(HttpMethod.Put, attachmentUri);
 			using (var requestContentStream = await attachment.OpenRead().ConfigureAwait(false))
 			{
-				requestMessage.Content = new StreamContent(requestContentStream, attachment.Length);
+				requestMessage.Content = new StreamContent(requestContentStream);
 				response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			}
 			if (!response.IsSuccessStatusCode)
 			{
 				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
+				error.ThrowStaleStateExceptionIfNedded(
+					string.Format("saveing attachment ID '{0}'", attachment.Id), documentId, documentRevision);
 				error.ThrowCouchCommunicationException();
 			}
 			return await ReadDocumentInfo(response).ConfigureAwait(false);
@@ -210,22 +213,16 @@ namespace CouchDude.Api
 
 		public Task<DocumentInfo> SaveDocument(Document document) { return SaveDocument(document, overwriteConcurrentUpdates: false); }
 
-		public async Task<DocumentInfo> CopyDocument(
-			string originalDocumentId,
-			string targetDocumentId,
-			string originalDocumentRevision = null,
-			string targetDocumentRevision = null)
+		public async Task<DocumentInfo> CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null)
 		{
 			if (string.IsNullOrEmpty(originalDocumentId))
 				throw new ArgumentNullException("originalDocumentId");
 			if (string.IsNullOrEmpty(targetDocumentId))
 				throw new ArgumentNullException("targetDocumentId");
 
-			var fullOriginalDocumentUri = uriConstructor.GetFullDocumentUri(
-				originalDocumentId, originalDocumentRevision);
+			var fullOriginalDocumentUri = uriConstructor.GetFullDocumentUri(originalDocumentId, originalDocumentRevision);
 			var request = new HttpRequestMessage(CopyHttpMethod, fullOriginalDocumentUri);
-			var targetDocumentUriString = uriConstructor.GetDocumentUriString(
-				targetDocumentId, targetDocumentRevision);
+			var targetDocumentUriString = uriConstructor.GetDocumentUriString(targetDocumentId, targetDocumentRevision);
 			request.Headers.AddWithoutValidation("Destination", targetDocumentUriString);
 
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
@@ -234,14 +231,8 @@ namespace CouchDude.Api
 			{
 				var couchApiError = new CouchError(parent.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-				if (couchApiError.IsConflict)
-					throw new StaleObjectStateException(
-						"Document {0}(rev:{1}) to {2}(rev:{3}) copy conflict detected",
-						originalDocumentId,
-						originalDocumentRevision,
-						targetDocumentId,
-						targetDocumentRevision
-					);
+				couchApiError.ThrowStaleStateExceptionForDocumentCopyIfNedded(
+					originalDocumentId, originalDocumentRevision, targetDocumentId, targetDocumentRevision);
 				couchApiError.ThrowCouchCommunicationException();
 			}
 			return await ReadDocumentInfo(response).ConfigureAwait(false);

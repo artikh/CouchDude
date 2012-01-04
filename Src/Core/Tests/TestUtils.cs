@@ -22,7 +22,6 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-using CouchDude.Api;
 using CouchDude.Serialization;
 using System.Json;
 using Xunit;
@@ -65,6 +64,13 @@ namespace CouchDude.Tests
 		public static TextReader ToJsonTextReader(this object self) { return self.ToJsonString().ToTextReader(); }
 
 		public static TextReader ToTextReader(this string text) { return new StringReader(text); }
+
+		public static string ReadAsUtf8String(this Stream stream) 
+		{
+			using (stream)
+			using (var reader = new StreamReader(stream))
+				return reader.ReadToEnd();
+		}
 
 		public static string GetBodyString(this HttpResponseMessage response)
 		{

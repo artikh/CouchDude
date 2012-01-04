@@ -43,19 +43,26 @@ namespace CouchDude
 		public dynamic AsDynamic() { return RawJsonObject.AsDynamic(); }
 
 		/// <constructor />
-		public Document() { }
+		public Document(): this(new JsonObject()) { }
 
 		/// <summary>Parses CouchDB document string.</summary>
 		/// <exception cref="ArgumentNullException">Provided string is null or empty.</exception>
 		/// <exception cref="ParseException">Provided string contains no or invalid JSON document.</exception>
-		public Document(string jsonString) : this(ParseString(jsonString)) { }
+		public Document(string jsonString): this(ParseString(jsonString)) { }
 
 		/// <summary>Loads CouchDB document from provided text reader.</summary>
 		/// <param name="textReader"><see cref="TextReader"/> to read JSON from. Should be closed (disposed) by caller.</param>
 		/// <remarks>Text reader should be disposed outside of the constructor,</remarks>
 		/// <exception cref="ArgumentNullException">Provided text reader is null.</exception>
 		/// <exception cref="ParseException">Provided text reader is empty or not JSON.</exception>
-		public Document(TextReader textReader) : this(LoadTextReader(textReader)) { }
+		public Document(TextReader textReader): this(LoadTextReader(textReader)) { }
+
+		/// <constructor />
+		public Document(JsonObject jsonObject)
+		{
+			if (jsonObject == null) throw new ArgumentNullException("jsonObject");
+			RawJsonObject = jsonObject;
+		}
 
 		private static JsonObject ParseString(string jsonString)
 		{
@@ -79,13 +86,6 @@ namespace CouchDude
 			{
 				throw new ParseException(e, "Error parsing documnet JSON text reader");
 			}
-		}
-
-		/// <constructor />
-		public Document(JsonObject jsonObject)
-		{
-			if (jsonObject == null) throw new ArgumentNullException("jsonObject");
-			RawJsonObject = jsonObject;
 		}
 
 		/// <summary>Document identifier or <c>null</c> if no _id property 

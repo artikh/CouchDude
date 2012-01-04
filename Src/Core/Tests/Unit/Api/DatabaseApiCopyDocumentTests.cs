@@ -33,7 +33,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			databaseApi.Synchronously.CopyDocument("doc1", "doc2");
+			databaseApi.Synchronously.CopyDocument("doc1", null, "doc2");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", httpMock.Request.RequestUri.ToString());
 			Assert.Equal("COPY", httpMock.Request.Method.ToString());
@@ -47,7 +47,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			databaseApi.Synchronously.CopyDocument(
-				"doc1", "doc2", "1-1a517022a0c2d4814d51abfedf9bfee7", "2-2a517022a0c2d4814d51abfedf9bfee7");
+				"doc1", "1-1a517022a0c2d4814d51abfedf9bfee7", "doc2", "2-2a517022a0c2d4814d51abfedf9bfee7");
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
@@ -59,7 +59,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldParseReturningDocInfo()
 		{
 			var databaseApi = CreateCouchApi().Db("testdb");
-			var resultObject = databaseApi.Synchronously.CopyDocument("doc1", "doc2");
+			var resultObject = databaseApi.Synchronously.CopyDocument("doc1", null, "doc2");
 			Assert.Equal(new DocumentInfo(id: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7"), resultObject);
 		}
 
@@ -69,8 +69,8 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = new MockMessageHandler(new { ok = true }.ToJsonString());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument("doc1", null));
-			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument(null, "doc2"));
+			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument("doc1", null, null));
+			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument(null, null, "doc2"));
 		}
 
 		[Fact]
@@ -80,7 +80,7 @@ namespace CouchDude.Tests.Unit.Api
 				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
 			});
 			Assert.Throws<DatabaseMissingException>(
-				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.CopyDocument("doc1", "doc2")
+				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.CopyDocument("doc1", null, "doc2")
 			);
 		}
 

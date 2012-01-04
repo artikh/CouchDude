@@ -38,6 +38,9 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AsyncCtpLibrary, Version=1.0.4107.18181, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\AsyncCTP.0.3\lib\net40\AsyncCtpLibrary.dll</HintPath>
+    </Reference>
     <Reference Include="Common.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Common.Logging.2.0.0\lib\2.0\Common.Logging.dll</HintPath>
@@ -106,6 +109,8 @@
     <Compile Include="Unit\Api\CouchApiTests.cs" />
     <Compile Include="Unit\Api\DatabaseApiBulkUpdateTests.cs" />
     <Compile Include="Unit\Api\CouchApiFactoryTests.cs" />
+    <Compile Include="Unit\Api\DatabaseApiRequestAttachmentTest.cs" />
+    <Compile Include="Unit\Api\DatabaseApiSaveAttachmentTest.cs" />
     <Compile Include="Unit\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Api\ReplicatorApiTests.cs" />
     <Compile Include="Unit\Api\ViewResultParserTests.cs" />
@@ -114,6 +119,8 @@
     <Compile Include="Unit\Configuration\EntityRegistryTests.cs" />
     <Compile Include="Unit\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
     <Compile Include="Unit\Configuration\SequentialUuidIdGeneratorTests.cs" />
+    <Compile Include="Unit\DocumentAttachmentBagTests.cs" />
+    <Compile Include="Unit\DocumentAttachmentsTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionSaveChangesTests.cs" />
     <Compile Include="Unit\Impl\LuceneQueryUriConverterConvertFromTests.cs" />
     <Compile Include="Unit\Impl\LuceneQueryUriConverterConvertToTests.cs" />
@@ -136,7 +143,7 @@
     <Compile Include="Unit\Api\DatabaseApiRequestDocumentTests.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Unit\Api\DocumentTests.cs" />
+    <Compile Include="Unit\DocumentTests.cs" />
     <Compile Include="Unit\Serialization\NewtonsoftSerializer.ConvertFromJsonTests.cs" />
     <Compile Include="Unit\Serialization\NewtonsoftSerializer.ConvertToJsonTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionConstuctorTests.cs" />

@@ -34,8 +34,8 @@ namespace CouchDude
 		internal const string AttachmentsPropertyName = "_attachments";
 
 		private readonly Document parentDocument;
-		private readonly ConditionalWeakTable<string, DocumentAttachment> documentAttachmentInstances =
-			new ConditionalWeakTable<string, DocumentAttachment>();
+		private readonly ConditionalWeakTable<string, DocumentAttachment> 
+			documentAttachmentInstances = new ConditionalWeakTable<string, DocumentAttachment>();
 		
 		/// <constructor />
 		public DocumentAttachmentBag(Document parentDocument) { this.parentDocument = parentDocument; }
@@ -45,18 +45,19 @@ namespace CouchDude
 		/// <inheritdoc />
 		public IEnumerator<DocumentAttachment> GetEnumerator()
 		{
-			var attachments =
-				from pair in GetDescriptorIdPairs()
-				select GetOrCreateDocumentAttachment(pair.Key);
-			return attachments.GetEnumerator();
+			return (from pair in GetDescriptorIdPairs() select GetOrCreateDocumentAttachment(pair.Key)).GetEnumerator();
 		}
 
 		/// <inheritdoc />
-		public void Delete(string id)
+		public void Delete(string attachmentId)
 		{
-			var attachmentsObject = GetAttachmentsObject();
-			if (attachmentsObject != null)
-				attachmentsObject.Remove(id);
+			if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
+
+			var attachmentsObject = parentDocument.RawJsonObject.GetObjectProperty(AttachmentsPropertyName);
+			if (attachmentsObject == null || !attachmentsObject.ContainsKey(attachmentId))
+				throw new KeyNotFoundException(
+					string.Format("Attachment with id {0} have not found on the document", attachmentId));
+			attachmentsObject.Remove(attachmentId);
 		}
 
 		/// <inheritdoc />
@@ -64,20 +65,18 @@ namespace CouchDude
 		{
 			get
 			{
-				var attachmentsObject = GetAttachmentsObject();
-				if (attachmentsObject != null)
-				{
-					var attachmentDescriptor = attachmentsObject[attachmentId] as JsonObject;
-					if (attachmentDescriptor != null)
-						return GetOrCreateDocumentAttachment(attachmentId);
-				}
+				if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
+
+				var attachmentDescriptor = parentDocument.RawJsonObject.GetObjectProperty(AttachmentsPropertyName).GetObjectProperty(attachmentId);
+				if (attachmentDescriptor != null)
+					return GetOrCreateDocumentAttachment(attachmentId);
 				return null;
 			}
 		}
 
 		private IEnumerable<KeyValuePair<string, JsonObject>> GetDescriptorIdPairs()
 		{
-			var attachmentsObject = GetAttachmentsObject();
+			var attachmentsObject = parentDocument.RawJsonObject.GetObjectProperty(AttachmentsPropertyName);
 			if (attachmentsObject == null)
 				return Enumerable.Empty<KeyValuePair<string, JsonObject>>();
 			return from property in attachmentsObject
@@ -86,42 +85,45 @@ namespace CouchDude
 						 select new KeyValuePair<string, JsonObject>(property.Key, descriptor);
 		}
 
-		private DocumentAttachment CreateNewAttachment(string id, string contentType = null)
+		private DocumentAttachment CreateNewAttachment(string attachmentId, string contentType = null)
 		{
-			if (id.HasNoValue()) throw new ArgumentNullException("id");
-			var attachmensObject = GetOrCreateAttachmentsObject();
-			if (attachmensObject.ContainsKey(id)) 
-				throw new InvalidOperationException(string.Format("Attachment with ID:{0} already present on document", id));
+			var attachmensObject = parentDocument.RawJsonObject.GetOrCreateObjectProperty(AttachmentsPropertyName);
+			if (attachmensObject.ContainsKey(attachmentId)) 
+				throw new InvalidOperationException(string.Format("Attachment with ID:{0} already present on document", attachmentId));
+			attachmensObject[attachmentId] = new JsonObject();
 
-			var attachmet = new DocumentAttachment(id, parentDocument);
+			var attachmet = GetOrCreateDocumentAttachment(attachmentId);
 			if (contentType.HasValue())
 				attachmet.ContentType = contentType;
 			return attachmet;
 		}
 
 		/// <summary>Creates inline document attachment from provided string.</summary>
-		public DocumentAttachment Create(string id, string stringData, string contentType = "text/plain")
+		public DocumentAttachment Create(string attachmentId, string stringData, string contentType = "text/plain")
 		{
+			if(string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
 			if (stringData == null) throw new ArgumentNullException("stringData");
 			
-			return Create(id, Encoding.UTF8.GetBytes(stringData), contentType);
+			return Create(attachmentId, Encoding.UTF8.GetBytes(stringData), contentType);
 		}
 
 		/// <summary>Creates inline document attachment from provided byte array.</summary>
-		public DocumentAttachment Create(string id, byte[] rawData, string contentType = "application/octet-stream")
+		public DocumentAttachment Create(string attachmentId, byte[] rawData, string contentType = "application/octet-stream")
 		{
+			if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
 			if (rawData == null) throw new ArgumentNullException("rawData");
 			
 			using (var memoryStream = new MemoryStream(rawData))
-				return Create(id, memoryStream, contentType);
+				return Create(attachmentId, memoryStream, contentType);
 		}
 
 		/// <summary>Creates new inline attachment reading data from provided stream.</summary>
-		public DocumentAttachment Create(string id, Stream dataStream, string contentType = "application/octet-stream")
+		public DocumentAttachment Create(string attachmentId, Stream dataStream, string contentType = "application/octet-stream")
 		{
+			if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
 			if (dataStream == null) throw new ArgumentNullException("dataStream");
 
-			var attachment = CreateNewAttachment(id, contentType);
+			var attachment = CreateNewAttachment(attachmentId, contentType);
 			attachment.SetData(dataStream);
 			return attachment;
 		}
@@ -129,20 +131,7 @@ namespace CouchDude
 		private DocumentAttachment GetOrCreateDocumentAttachment(string attachmentId)
 		{
 			return documentAttachmentInstances.GetValue(
-				attachmentId, id => new DocumentAttachment(attachmentId, parentDocument));
-		}
-
-		private JsonObject GetAttachmentsObject()
-		{
-			return parentDocument.RawJsonObject[AttachmentsPropertyName] as JsonObject;
-		}
-
-		private JsonObject GetOrCreateAttachmentsObject()
-		{
-			var attachmentsObject = GetAttachmentsObject();
-			if (attachmentsObject == null)
-				parentDocument.RawJsonObject[AttachmentsPropertyName] = attachmentsObject = new JsonObject();
-			return attachmentsObject;
+				attachmentId, id => new WrappingDocumentAttachment(attachmentId, parentDocument));
 		}
 	}
 }

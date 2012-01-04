@@ -26,7 +26,6 @@ namespace CouchDude.Api
 	{
 		private readonly IDatabaseApi databaseApi;
 
-		/// <constructor />
 		public SynchronousDatabaseApi(IDatabaseApi databaseApi)
 		{
 			this.databaseApi = databaseApi;
@@ -54,16 +53,28 @@ namespace CouchDude.Api
 
 		public DocumentInfo CopyDocument(
 			string originalDocumentId, 
+			string originalDocumentRevision,
 			string targetDocumentId, 
-			string originalDocumentRevision = null,
 			string targetDocumentRevision = null)
 		{
-			return databaseApi.CopyDocument(
-					originalDocumentId, 
-					targetDocumentId,
-					originalDocumentRevision, 
-					targetDocumentRevision
-				).WaitForResult();
+			return databaseApi
+				.CopyDocument(originalDocumentId, originalDocumentRevision, targetDocumentId, targetDocumentRevision)
+				.WaitForResult();
+		}
+
+		public DocumentAttachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null)
+		{
+			return databaseApi.RequestAttachment(attachmentId, documentId, documentRevision).WaitForResult();
+		}
+
+		public DocumentInfo SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null)
+		{
+			return databaseApi.SaveAttachment(attachment, documentId, documentRevision).WaitForResult();
+		}
+
+		public DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision = null)
+		{
+			return databaseApi.DeleteAttachment(attachmentId, documentId, documentRevision).WaitForResult();
 		}
 
 		public IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder)
@@ -76,31 +87,26 @@ namespace CouchDude.Api
 			return databaseApi.RequestLastestDocumentRevision(docId).WaitForResult();
 		}
 
-		/// <inheritdoc/>
 		public IViewQueryResult Query(ViewQuery query)
 		{
 			return databaseApi.Query(query).WaitForResult();
 		}
 
-		/// <inheritdoc/>
 		public ILuceneQueryResult QueryLucene(LuceneQuery query)
 		{
 			return databaseApi.QueryLucene(query).WaitForResult();
 		}
 
-		/// <inheritdoc/>
 		public void Create(bool throwIfExists = true)
 		{
 			databaseApi.Create(throwIfExists).WaitForResult();
 		}
 
-		/// <inheritdoc/>
 		public void Delete()
 		{
 			databaseApi.Delete().WaitForResult();
 		}
 
-		/// <inheritdoc/>
 		public DatabaseInfo RequestInfo()
 		{
 			return databaseApi.RequestInfo().WaitForResult();
