@@ -96,7 +96,6 @@
     <Compile Include="Api\LuceneQueryResultParser.cs" />
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
     <Compile Include="Serialization\UriConverter.cs" />
-    <Compile Include="Api\SyncronousDocumentAttachmentWrapper.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />
     <Compile Include="Configuration\DefaultEntityConfigConventions.cs" />
@@ -135,7 +134,6 @@
     <Compile Include="IReplicatorApi.cs" />
     <Compile Include="ISynchronousCouchApi.cs" />
     <Compile Include="ISynchronousReplicatorApi.cs" />
-    <Compile Include="ISyncronousDocumentAttachment.cs" />
     <Compile Include="ReplicationState.cs" />
     <Compile Include="ReplicationTaskDescriptor.cs" />
     <Compile Include="SerializerExtensions.cs" />

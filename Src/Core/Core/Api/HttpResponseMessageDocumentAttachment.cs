@@ -33,10 +33,7 @@ namespace CouchDude.Api
 		{
 			httpContent = responseMessage.Content;
 		}
-		
-		[JetBrains.Annotations.TerminatesProgram]
-		private static void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
-		
+
 		public override Task<Stream> OpenRead() { return httpContent.ReadAsStreamAsync(); }
 
 		public override void SetData(Stream dataStream) { ThrowNotImplemented(); }
@@ -58,5 +55,8 @@ namespace CouchDude.Api
 			set { ThrowNotImplemented(); }
 			// ReSharper restore ValueParameterNotUsed
 		}
+
+		[JetBrains.Annotations.TerminatesProgram]
+		private static void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
 	}
 }

@@ -18,9 +18,8 @@
 
 using System;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
-using CouchDude.Api;
+using CouchDude.Utils;
 
 namespace CouchDude
 {
@@ -45,8 +44,11 @@ namespace CouchDude
 		/// be requested separatly.</summary>
 		public virtual bool Inline { get; set; }
 
-		/// <summary>Syncrounous wrappers over async </summary>
-		public ISyncronousDocumentAttachment Syncronously { get { return new SyncronousDocumentAttachmentWrapper(this); } }
+		/// <summary>Syncrounous versions of async <see cref="DocumentAttachment"/> methods.</summary>
+		public SyncronousDocumentAttachmentMethods Syncronously
+		{
+			get { return new SyncronousDocumentAttachmentMethods(this); }
+		}
 
 		/// <summary>Open attachment data stream for read.</summary>
 		public virtual Task<Stream> OpenRead()
@@ -58,11 +60,20 @@ namespace CouchDude
 		public virtual void SetData(Stream dataStream)
 		{
 			setStream = dataStream;
-			try
-			{
-				Length = setStream.Length;
-			}
+			try { Length = setStream.Length; }
 			catch (NotSupportedException) { }
+		}
+
+		/// <summary>Synchronous version of <see cref="DocumentAttachment"/> methods.</summary>
+		public struct SyncronousDocumentAttachmentMethods
+		{
+			private readonly DocumentAttachment parent;
+
+			/// <constructor />
+			public SyncronousDocumentAttachmentMethods(DocumentAttachment parent) : this() { this.parent = parent; }
+
+			/// <summary>Open attachment data stream for read and waits for result.</summary>
+			public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }
 		}
 	}
 }
