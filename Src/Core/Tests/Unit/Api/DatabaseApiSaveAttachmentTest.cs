@@ -22,18 +22,6 @@ namespace CouchDude.Tests.Unit.Api
 		}
 
 		[Fact]
-		public void ShouldThrowDocumentNotFoundException()
-		{
-			var httpMock = new MockMessageHandler(
-				HttpStatusCode.NotFound, new { error = "not_found", reason = "missing" }.ToJsonString());
-			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
-
-			Assert.Throws<DocumentNotFoundException>(
-				() => databaseApi.Synchronously.SaveAttachment(new DocumentAttachment("attachment1"), "doc1", "rev1")
-			);
-		}
-
-		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn500()
 		{
 			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty);

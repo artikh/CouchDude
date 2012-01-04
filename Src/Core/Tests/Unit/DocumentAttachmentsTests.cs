@@ -20,7 +20,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { }}
 				}.ToJsonObject());
 
-			Assert.Equal("attachment1", document.DocumentAttachments["attachment1"].Id);
+			Assert.Equal("attachment1", document.Attachments["attachment1"].Id);
 		}
 
 		[Fact]
@@ -32,7 +32,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { length = 42 }}
 				}.ToJsonObject());
 
-			Assert.Equal(42, document.DocumentAttachments["attachment1"].Length);
+			Assert.Equal(42, document.Attachments["attachment1"].Length);
 		}
 
 		[Fact]
@@ -44,7 +44,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { content_type = "text/plain" }}
 				}.ToJsonObject());
 
-			Assert.Equal("text/plain", document.DocumentAttachments["attachment1"].ContentType);
+			Assert.Equal("text/plain", document.Attachments["attachment1"].ContentType);
 		}
 
 		[Fact]
@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { stub = true }}
 				}.ToJsonObject());
 
-			Assert.False(document.DocumentAttachments["attachment1"].Inline);
+			Assert.False(document.Attachments["attachment1"].Inline);
 		}
 
 		[Fact]
@@ -68,7 +68,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { }}
 				}.ToJsonObject());
 
-			Assert.True(document.DocumentAttachments["attachment1"].Inline);
+			Assert.True(document.Attachments["attachment1"].Inline);
 		}
 
 		[Fact]
@@ -84,7 +84,7 @@ namespace CouchDude.Tests.Unit
 
 			Assert.Equal(
 				"There is a theory which states", 
-				document.DocumentAttachments["attachment1"].Syncronously.OpenRead().ReadAsUtf8String());
+				document.Attachments["attachment1"].Syncronously.OpenRead().ReadAsUtf8String());
 		}
 
 		[Fact]
@@ -111,7 +111,7 @@ namespace CouchDude.Tests.Unit
 
 			document.DatabaseApiReference = new DatabaseApiReference(databaseApi);
 
-			Assert.Equal("test", document.DocumentAttachments["attachment1"].Syncronously.OpenRead().ReadAsUtf8String());
+			Assert.Equal("test", document.Attachments["attachment1"].Syncronously.OpenRead().ReadAsUtf8String());
 		}
 		
 		[Fact]
@@ -123,7 +123,7 @@ namespace CouchDude.Tests.Unit
 					_attachments = new { attachment1 = new { stub = true, content_type = "text/plain" } }
 				}.ToJsonObject());
 
-			Assert.Throws<LazyLoadingException>(() => document.DocumentAttachments["attachment1"].Syncronously.OpenRead());
+			Assert.Throws<LazyLoadingException>(() => document.Attachments["attachment1"].Syncronously.OpenRead());
 		}
 
 		[Fact]
@@ -132,10 +132,10 @@ namespace CouchDude.Tests.Unit
 			var docJson = new { _id = "doc1", _attachments = new { a1 = new { } } }.ToJsonObject();
 			var document = new Document(docJson);
 
-			document.DocumentAttachments["a1"].Inline = false;
+			document.Attachments["a1"].Inline = false;
 			Assert.Equal(true, (bool)docJson.AsDynamic()._attachments.a1.stub);
 
-			document.DocumentAttachments["a1"].Inline = true;
+			document.Attachments["a1"].Inline = true;
 			Assert.False(docJson["_attachments"]["a1"].ContainsKey("stub"));
 		}
 	}

@@ -28,11 +28,12 @@ namespace CouchDude
 {
 	/// <summary>CouchDB document implemented wrapping <see cref="JsonObject"/>.</summary>
 	/// <remarks>Document object is not thread safe and should not be used concurrently.</remarks>
-	public class Document
+	public partial class Document
 	{
 		internal const string RevisionPropertyName = "_rev";
 		internal const string TypePropertyName = "type";
 		internal const string IdPropertyName = "_id";
+		private  const string AttachmentsPropertyName = "_attachments";
 
 		private DocumentAttachmentBag documentAttachmentBag;
 
@@ -113,7 +114,7 @@ namespace CouchDude
 		}
 		
 		/// <summary>Attachment collection.</summary>
-		public DocumentAttachmentBag DocumentAttachments
+		public DocumentAttachmentBag Attachments
 		{
 			get { return documentAttachmentBag ?? (documentAttachmentBag = new DocumentAttachmentBag(this)); }
 		}

@@ -31,8 +31,8 @@ namespace CouchDude.Tests.Unit
 		public void ShouldThrowInvalidOperationExceptionOnDuplicateAttachmentCreation() 
 		{
 			var doc = new Document();
-			Assert.DoesNotThrow(() => doc.DocumentAttachments.Create("attachment1", "test"));
-			Assert.Throws<InvalidOperationException>(() => doc.DocumentAttachments.Create("attachment1", "test"));
+			Assert.DoesNotThrow(() => doc.Attachments.Create("attachment1", "test"));
+			Assert.Throws<InvalidOperationException>(() => doc.Attachments.Create("attachment1", "test"));
 		}
 		
 		[Fact]
@@ -49,7 +49,7 @@ namespace CouchDude.Tests.Unit
 			}.ToJsonObject());
 
 			// ReSharper disable RedundantEnumerableCastCall
-			var attachments = doc.DocumentAttachments.OfType<DocumentAttachment>().ToArray();
+			var attachments = doc.Attachments.OfType<DocumentAttachment>().ToArray();
 			// ReSharper restore RedundantEnumerableCastCall
 			Assert.Equal(3, attachments.Length);
 			Assert.Equal("text/plain", attachments[0].ContentType);
@@ -63,14 +63,14 @@ namespace CouchDude.Tests.Unit
 		[Fact]
 		public void ShouldEnumerateEmptyAttachmentsCollection() 
 		{
-			Assert.Equal(0, new Document().DocumentAttachments.ToArray().Length);
+			Assert.Equal(0, new Document().Attachments.ToArray().Length);
 		}
 
 		[Fact]
 		public void ShouldDeleteOriginalAttachmentDescription() 
 		{
 			var doc = new Document(new { _id = "doc1", _attachments = new { attachment1 = new { } } }.ToJsonObject());
-			doc.DocumentAttachments.Delete("attachment1");
+			doc.Attachments.Delete("attachment1");
 			Assert.False(doc.RawJsonObject["_attachments"].ContainsKey("attachment1"));
 		}
 
@@ -78,60 +78,60 @@ namespace CouchDude.Tests.Unit
 		public void ShouldThrowKeyNotFoundOnWhenDeletingNoneExistingAttachment() 
 		{
 			var doc = new Document(new { _id = "doc1", _attachments = new { attachment1 = new { } } }.ToJsonObject());
-			Assert.Throws<KeyNotFoundException>(() => doc.DocumentAttachments.Delete("attachment2"));
+			Assert.Throws<KeyNotFoundException>(() => doc.Attachments.Delete("attachment2"));
 		}
 
 		[Fact]
 		public void ShouldCreateSameObjectFromIndexProperty() 
 		{
 			var doc = new Document();
-			Assert.Same(doc.DocumentAttachments["attachment1"], doc.DocumentAttachments["attachment1"]);
+			Assert.Same(doc.Attachments["attachment1"], doc.Attachments["attachment1"]);
 		}
 
 		[Fact]
 		public void ShouldThrowArgumentNullExceptionOnIndexProperty()
 		{
 			var doc = new Document();
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments[null]);
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments[""]);
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments["		"]);
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments[null]);
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments[""]);
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments["		"]);
 		}
 
 		[Fact]
 		public void ShouldThrowArgumentNullExceptionOnDeleteMethod()
 		{
 			var doc = new Document();
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Delete(null));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Delete(""));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Delete("		"));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Delete(null));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Delete(""));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Delete("		"));
 		}
 
 		[Fact]
 		public void ShouldThrowArgumentNullExceptionOnCreationMethods() 
 		{
 			var doc = new Document();
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("", "test"));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("		", "test"));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create(null, "test"));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("attachment1", (string)null));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("", new byte[0]));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("		", new byte[0]));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create(null, new byte[0]));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("attachment1", (byte[])null));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("", new MemoryStream()));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("		", new MemoryStream()));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create(null, new MemoryStream()));
-			Assert.Throws<ArgumentNullException>(() => doc.DocumentAttachments.Create("attachment1", (Stream)null));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("", "test"));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("		", "test"));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create(null, "test"));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("attachment1", (string)null));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("", new byte[0]));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("		", new byte[0]));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create(null, new byte[0]));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("attachment1", (byte[])null));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("", new MemoryStream()));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("		", new MemoryStream()));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create(null, new MemoryStream()));
+			Assert.Throws<ArgumentNullException>(() => doc.Attachments.Create("attachment1", (Stream)null));
 
 		}
 
-		static void TestCreation(Func<DocumentAttachmentBag, DocumentAttachment> createAction)
+		static void TestCreation(Func<Document.DocumentAttachmentBag, DocumentAttachment> createAction)
 		{
 			var document = new Document(new {_id = "doc1"}.ToJsonObject());
 
-			var createdAttachment = createAction(document.DocumentAttachments);
+			var createdAttachment = createAction(document.Attachments);
 
-			var newAttachment = document.DocumentAttachments["attachment1"];
+			var newAttachment = document.Attachments["attachment1"];
 
 			Assert.Same(createdAttachment, newAttachment);
 			Assert.Equal("attachment1", newAttachment.Id);

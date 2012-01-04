@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using CouchDude.Api;
 
@@ -26,9 +27,7 @@ namespace CouchDude
 	/// <summary>Document attachment.</summary>
 	public class DocumentAttachment
 	{
-		static readonly MemoryStream EmptyStream = new MemoryStream(0);
-
-		Stream setStream = EmptyStream;
+		Stream setStream;
 
 		/// <constructor />
 		public DocumentAttachment(string id) { Id = id; }
@@ -52,7 +51,7 @@ namespace CouchDude
 		/// <summary>Open attachment data stream for read.</summary>
 		public virtual Task<Stream> OpenRead()
 		{
-			return TaskEx.FromResult(setStream);
+			return TaskEx.FromResult(setStream ?? new MemoryStream(0));
 		}
 
 		/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
