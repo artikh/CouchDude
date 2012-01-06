@@ -71,7 +71,7 @@ namespace CouchDude.Api
 			}
 		}
 
-		public async Task<DocumentAttachment> RequestAttachment(
+		public async Task<Attachment> RequestAttachment(
 			string attachmentId, string documentId, string documentRevision = null)
 		{
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
@@ -93,11 +93,11 @@ namespace CouchDude.Api
 					string.Format("request attachment ID '{0}'", attachmentId), documentId, documentRevision);
 				error.ThrowCouchCommunicationException();
 			}
-			return new HttpResponseMessageDocumentAttachment(attachmentId, response);
+			return new HttpResponseMessageAttachment(attachmentId, response);
 		}
 
 		public async Task<DocumentInfo> SaveAttachment(
-			DocumentAttachment attachment, string documentId, string documentRevision = null)
+			Attachment attachment, string documentId, string documentRevision = null)
 		{
 			if (attachment == null) throw new ArgumentNullException("attachment");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");

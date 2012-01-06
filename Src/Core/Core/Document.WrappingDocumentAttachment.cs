@@ -11,7 +11,7 @@ namespace CouchDude
 	{
 		/// <summary>CouchDB attachment backed by part of document JSON.</summary>
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public class WrappingDocumentAttachment : DocumentAttachment
+		public class WrappingAttachment : Attachment
 		{
 			/// <summary>Inline data property name.</summary>
 			protected const string DataPropertyName = "data";
@@ -30,7 +30,7 @@ namespace CouchDude
 
 			/// <summary>Creates attachment wrapping existing attachment 
 			/// descriptor (probably loaded from CouchDB)</summary>
-			protected internal WrappingDocumentAttachment(string id, Document parentDocument)
+			protected internal WrappingAttachment(string id, Document parentDocument)
 				: base(id)
 			{
 				if (id.HasNoValue()) throw new ArgumentNullException("id");

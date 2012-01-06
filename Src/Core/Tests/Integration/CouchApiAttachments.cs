@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Integration
 
 		void SaveNewAttachmentToNonexistingDocument()
 		{
-			var attachment = new DocumentAttachment(attachmentId);
+			var attachment = new Attachment(attachmentId);
 			attachment.SetData(attachmentDataBuffer);
 			attachment.ContentType = "application/x-file";
 			var docInfo = dbApi.Synchronously.SaveAttachment(attachment, documentId);
@@ -67,14 +67,14 @@ namespace CouchDude.Tests.Integration
 		void UpdateAttachment()
 		{
 			GenerateNewAttachmentDataBuffer();
-			var attachment = new DocumentAttachment(attachmentId);
+			var attachment = new Attachment(attachmentId);
 			attachment.SetData(attachmentDataBuffer);
 			attachment.ContentType = "application/x-file";
 			var docInfo = dbApi.Synchronously.SaveAttachment(attachment, documentId, lastKnownRevision);
 			lastKnownRevision = docInfo.Revision;
 		}
 
-		void CheckAttachment(DocumentAttachment attachment, bool shouldBeInline)
+		void CheckAttachment(Attachment attachment, bool shouldBeInline)
 		{
 			Assert.Equal("application/x-file", attachment.ContentType);
 			Assert.Equal(attachmentId, attachment.Id);

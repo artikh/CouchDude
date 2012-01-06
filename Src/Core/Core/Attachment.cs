@@ -24,8 +24,8 @@ using CouchDude.Utils;
 
 namespace CouchDude
 {
-	/// <summary>Document attachment.</summary>
-	public class DocumentAttachment
+	/// <summary>CouchDB document attachment.</summary>
+	public class Attachment
 	{
 		/// <summary>Default MIME type document attachment should declare.</summary>
 		protected const string DefaultContentType = "application/octet-stream";
@@ -34,7 +34,7 @@ namespace CouchDude
 		Stream setStream;
 
 		/// <constructor />
-		public DocumentAttachment(string id) { Id = id; }
+		public Attachment(string id) { Id = id; }
 
 		/// <summary>Unique (within documnet) identifier of the attachment.</summary>
 		public string Id { get; private set; }
@@ -45,14 +45,14 @@ namespace CouchDude
 			get { return contentType ?? DefaultContentType; } set { contentType = value; }
 		}
 
-		/// <summary>Content length.</summary>
+		/// <summary>Attachment data length.</summary>
 		public virtual long Length { get; private set; }
 
-		/// <summary>Indicates wether attachment is included as base64 string within document or should 
-		/// be requested separatly.</summary>
+		/// <summary>Indicates wether attachment is loaded as a part of the document or should 
+		/// it be requested separatly.</summary>
 		public virtual bool Inline { get; set; }
 
-		/// <summary>Syncrounous versions of async <see cref="DocumentAttachment"/> methods.</summary>
+		/// <summary>Syncrounous versions of async <see cref="Attachment"/> methods.</summary>
 		public SyncronousDocumentAttachmentMethods Syncronously
 		{
 			get { return new SyncronousDocumentAttachmentMethods(this); }
@@ -64,33 +64,34 @@ namespace CouchDude
 			return TaskEx.FromResult(setStream ?? new MemoryStream(0));
 		}
 
-		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		/// <summary>Sets attachment data. Bytes are written to database with parent document.</summary>
 		public virtual void SetData(Stream dataStream)
 		{
 			setStream = dataStream;
 			try { Length = setStream.Length; }
 			catch (NotSupportedException) { }
 		}
-		
-		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
+
+		/// <summary>Sets attachment data. Bytes are written to database with parent document.</summary>
 		public void SetData(byte[] data)
 		{
 			SetData(new MemoryStream(data));
 		}
 
-		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		/// <summary>Sets attachment data as UTF-8 string. 
+		/// Bytes are written to database with parent document.</summary>
 		public void SetData(string data)
 		{
 			SetData(Encoding.UTF8.GetBytes(data));
 		}
 
-		/// <summary>Synchronous version of <see cref="DocumentAttachment"/> methods.</summary>
+		/// <summary>Synchronous version of <see cref="Attachment"/> methods.</summary>
 		public struct SyncronousDocumentAttachmentMethods
 		{
-			private readonly DocumentAttachment parent;
+			private readonly Attachment parent;
 
 			/// <constructor />
-			public SyncronousDocumentAttachmentMethods(DocumentAttachment parent) : this() { this.parent = parent; }
+			public SyncronousDocumentAttachmentMethods(Attachment parent) : this() { this.parent = parent; }
 
 			/// <summary>Open attachment data stream for read and waits for result.</summary>
 			public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }

@@ -23,13 +23,13 @@ using System.Threading.Tasks;
 
 namespace CouchDude.Api
 {
-	/// <summary><see cref="DocumentAttachment"/> implementation returning from attachment request.</summary>
-	internal class HttpResponseMessageDocumentAttachment: DocumentAttachment
+	/// <summary><see cref="Attachment"/> implementation returning from attachment request.</summary>
+	internal class HttpResponseMessageAttachment: Attachment
 	{
 		private readonly HttpContent httpContent;
 		
 		/// <constructor />
-		public HttpResponseMessageDocumentAttachment(string id, HttpResponseMessage responseMessage): base(id)
+		public HttpResponseMessageAttachment(string id, HttpResponseMessage responseMessage): base(id)
 		{
 			httpContent = responseMessage.Content;
 		}

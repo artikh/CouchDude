@@ -49,7 +49,7 @@ namespace CouchDude.Tests.Unit
 			}.ToJsonObject());
 
 			// ReSharper disable RedundantEnumerableCastCall
-			var attachments = doc.Attachments.OfType<DocumentAttachment>().ToArray();
+			var attachments = doc.Attachments.OfType<Attachment>().ToArray();
 			// ReSharper restore RedundantEnumerableCastCall
 			Assert.Equal(3, attachments.Length);
 			Assert.Equal("text/plain", attachments[0].ContentType);
@@ -125,7 +125,7 @@ namespace CouchDude.Tests.Unit
 
 		}
 
-		static void TestCreation(Func<Document.DocumentAttachmentBag, DocumentAttachment> createAction)
+		static void TestCreation(Func<Document.DocumentAttachmentBag, Attachment> createAction)
 		{
 			var document = new Document(new {_id = "doc1"}.ToJsonObject());
 

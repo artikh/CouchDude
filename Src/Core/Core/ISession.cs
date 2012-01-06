@@ -24,30 +24,30 @@ namespace CouchDude
 	/// <summary>CouchDB session interface.</summary>
 	public interface ISession: IDisposable
 	{
-		/// <summary>Attaches entities to the session, assigning it an identifier if needed.</summary>
-		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
-		void Save<TEntity>(params TEntity[] entities) where TEntity : class;
-
-		/// <summary>Marks provided enties for deletion from CouchDB.</summary>
-		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
-		void Delete<TEntity>(params TEntity[] entities) where TEntity : class;
-
-		/// <summary>Attaches entity to the session, assigning it an identifier if needed.</summary>
-		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
-		void Save<TEntity>(TEntity entity) where TEntity : class;
-
-		/// <summary>Marks provided entity for deletion from CouchDB.</summary>
-		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
-		void Delete<TEntity>(TEntity entity) where TEntity : class;
-
 		/// <summary>Loads entity from CouchDB placing in to first level cache.</summary>
 		Task<TEntity> Load<TEntity>(string entityId) where TEntity : class;
-
+		
 		/// <summary>Queries CouchDB view, returning  paged list of  ether documents or view data items.</summary>
 		Task<IViewQueryResult<T>> Query<T>(ViewQuery query);
 
 		/// <summary>Queries lucene-couchdb index.</summary>
 		Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query);
+
+		/// <summary>Attaches entities to the session, assigning it an identifier if needed.</summary>
+		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Save<TEntity>(params TEntity[] entities) where TEntity : class;
+
+		/// <summary>Attaches entity to the session, assigning it an identifier if needed.</summary>
+		/// <remarks>No changes to database are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Save<TEntity>(TEntity entity) where TEntity : class;
+
+		/// <summary>Marks provided enties for deletion from CouchDB.</summary>
+		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Delete<TEntity>(params TEntity[] entities) where TEntity : class;
+
+		/// <summary>Marks provided entity for deletion from CouchDB.</summary>
+		/// <remarks>No changes to databas are made until <see cref="StartSavingChanges"/> is called.</remarks>
+		void Delete<TEntity>(TEntity entity) where TEntity : class;
 
 		/// <summary>Synchronous session methods.</summary>
 		ISynchronousSessionMethods Synchronously { get; }

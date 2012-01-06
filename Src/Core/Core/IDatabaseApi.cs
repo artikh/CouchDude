@@ -44,11 +44,11 @@ namespace CouchDude
 		Task<DocumentInfo> CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
-		Task<DocumentAttachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
+		Task<Attachment> RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
 
 		/// <summary>Saves document attachment directly to database. If <paramref name="documentRevision"/> is <c>null</c>
 		/// creates new document for attachment.</summary>
-		Task<DocumentInfo> SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
+		Task<DocumentInfo> SaveAttachment(Attachment attachment, string documentId, string documentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
 		Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision);

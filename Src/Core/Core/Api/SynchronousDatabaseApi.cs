@@ -65,12 +65,12 @@ namespace CouchDude.Api
 				.WaitForResult();
 		}
 
-		public DocumentAttachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null)
+		public Attachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null)
 		{
 			return databaseApi.RequestAttachment(attachmentId, documentId, documentRevision).WaitForResult();
 		}
 
-		public DocumentInfo SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null)
+		public DocumentInfo SaveAttachment(Attachment attachment, string documentId, string documentRevision = null)
 		{
 			return databaseApi.SaveAttachment(attachment, documentId, documentRevision).WaitForResult();
 		}

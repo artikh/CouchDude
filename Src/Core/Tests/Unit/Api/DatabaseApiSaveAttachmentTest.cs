@@ -15,7 +15,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var documentAttachment = new DocumentAttachment("attachment1") {
+			var documentAttachment = new Attachment("attachment1") {
 				ContentType = "text/html", 
 				Inline = true
 			};
@@ -35,7 +35,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var documentAttachment = new DocumentAttachment("attachment1") {
+			var documentAttachment = new Attachment("attachment1") {
 				ContentType = "text/html", 
 				Inline = true
 			};
@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
-				() => databaseApi.Synchronously.SaveAttachment(new DocumentAttachment("attachment1"), "doc1", "rev1")
+				() => databaseApi.Synchronously.SaveAttachment(new Attachment("attachment1"), "doc1", "rev1")
 			);
 		}
 
@@ -67,7 +67,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<CouchCommunicationException>(
-				() => databaseApi.Synchronously.SaveAttachment(new DocumentAttachment("attachment1"), "doc1", "rev1")
+				() => databaseApi.Synchronously.SaveAttachment(new Attachment("attachment1"), "doc1", "rev1")
 			);
 		}
 		

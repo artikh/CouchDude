@@ -51,11 +51,11 @@ namespace CouchDude
 		DocumentInfo DeleteDocument(string docId, string revision);
 		
 		/// <summary>Requests document attachment directly from database.</summary>
-		DocumentAttachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
+		Attachment RequestAttachment(string attachmentId, string documentId, string documentRevision = null);
 
 		/// <summary>Saves document attachment directly to database. If <paramref name="documentRevision"/> is <c>null</c>
 		/// creates new document for attachment.</summary>
-		DocumentInfo SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
+		DocumentInfo SaveAttachment(Attachment attachment, string documentId, string documentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
 		DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision);

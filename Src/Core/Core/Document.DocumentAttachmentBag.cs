@@ -31,12 +31,12 @@ namespace CouchDude
 	public partial class Document
 	{
 		/// <summary>Document's attachment colloction.</summary>
-		public class DocumentAttachmentBag : IEnumerable<DocumentAttachment>
+		public class DocumentAttachmentBag : IEnumerable<Attachment>
 		{
 			readonly Document parentDocument;
 
-			readonly ConditionalWeakTable<string, DocumentAttachment>
-				documentAttachmentInstances = new ConditionalWeakTable<string, DocumentAttachment>();
+			readonly ConditionalWeakTable<string, Attachment>
+				documentAttachmentInstances = new ConditionalWeakTable<string, Attachment>();
 
 			/// <constructor />
 			public DocumentAttachmentBag(Document parentDocument) { this.parentDocument = parentDocument; }
@@ -44,7 +44,7 @@ namespace CouchDude
 			IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
 
 			/// <inheritdoc />
-			public IEnumerator<DocumentAttachment> GetEnumerator()
+			public IEnumerator<Attachment> GetEnumerator()
 			{
 				return
 					(from pair in GetDescriptorIdPairs() select GetOrCreateDocumentAttachment(pair.Key)).
@@ -64,7 +64,7 @@ namespace CouchDude
 			}
 
 			/// <inheritdoc />
-			public DocumentAttachment this[string attachmentId]
+			public Attachment this[string attachmentId]
 			{
 				get
 				{
@@ -90,7 +90,7 @@ namespace CouchDude
 				       select new KeyValuePair<string, JsonObject>(property.Key, descriptor);
 			}
 
-			DocumentAttachment CreateNewAttachment(string attachmentId, string contentType = null)
+			Attachment CreateNewAttachment(string attachmentId, string contentType = null)
 			{
 				var attachmensObject =
 					parentDocument.RawJsonObject.GetOrCreateObjectProperty(AttachmentsPropertyName);
@@ -106,7 +106,7 @@ namespace CouchDude
 			}
 
 			/// <summary>Creates inline document attachment from provided string.</summary>
-			public DocumentAttachment Create(
+			public Attachment Create(
 				string attachmentId, string stringData, string contentType = "text/plain")
 			{
 				if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
@@ -116,7 +116,7 @@ namespace CouchDude
 			}
 
 			/// <summary>Creates inline document attachment from provided byte array.</summary>
-			public DocumentAttachment Create(
+			public Attachment Create(
 				string attachmentId, byte[] rawData, string contentType = "application/octet-stream")
 			{
 				if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
@@ -127,7 +127,7 @@ namespace CouchDude
 			}
 
 			/// <summary>Creates new inline attachment reading data from provided stream.</summary>
-			public DocumentAttachment Create(
+			public Attachment Create(
 				string attachmentId, Stream dataStream, string contentType = "application/octet-stream")
 			{
 				if (string.IsNullOrWhiteSpace(attachmentId)) throw new ArgumentNullException("attachmentId");
@@ -138,10 +138,10 @@ namespace CouchDude
 				return attachment;
 			}
 
-			DocumentAttachment GetOrCreateDocumentAttachment(string attachmentId)
+			Attachment GetOrCreateDocumentAttachment(string attachmentId)
 			{
 				return documentAttachmentInstances.GetValue(
-					attachmentId, id => new WrappingDocumentAttachment(attachmentId, parentDocument));
+					attachmentId, id => new WrappingAttachment(attachmentId, parentDocument));
 			}
 		}
 	}

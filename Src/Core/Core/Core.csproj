@@ -74,12 +74,12 @@
     <Compile Include="AdditionalDocumentProperty.cs" />
     <Compile Include="Api\DbUriConstructor.cs" />
     <Compile Include="Api\QueryResultParserBase.cs" />
-    <Compile Include="DocumentAttachment.cs" />
+    <Compile Include="Attachment.cs" />
     <Compile Include="Document.DocumentAttachmentBag.cs" />
     <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\CouchApi.cs" />
     <Compile Include="Api\CouchError.cs" />
-    <Compile Include="Api\HttpResponseMessageDocumentAttachment.cs" />
+    <Compile Include="Api\HttpResponseMessageAttachment.cs" />
     <Compile Include="Exceptions\DocumentAttachmentNotFoundException.cs" />
     <Compile Include="Exceptions\DocumentNotFoundException.cs" />
     <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
