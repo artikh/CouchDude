@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Text;
 using CouchDude.Utils;
 using JetBrains.Annotations;
@@ -41,13 +42,54 @@ namespace CouchDude.Api
 			databaseUriWithSlash = new Uri(DatabaseUri + "/");
 		}
 
-		public Uri BulkUpdateUri { get { return bulkUpdateUri ?? (bulkUpdateUri = new Uri(databaseUriWithSlash, "_bulk_docs")); } }
+		public Uri BulkUpdateUri
+		{
+			get { return bulkUpdateUri ?? (bulkUpdateUri = new Uri(databaseUriWithSlash, "_bulk_docs")); }
+		}
 
 		[Pure]
-		public Uri GetFullDocumentUri(string docId, string revision = null)
+		public Uri GetQueryUri(ViewQuery query)
 		{
-			var documentUriString = GetDocumentUriString(docId, revision);
+			return new Uri(databaseUriWithSlash, query.ToUri());
+		}
+
+		[Pure]
+		public Uri GetQueryUri(LuceneQuery query)
+		{
+			var sectionFtiBaseUri = new Uri(databaseFtiEndpoint, query.SectionName + "/");
+			var databaseFtiBaseUri = new Uri(sectionFtiBaseUri, databaseNameWithSlash);
+			return new Uri(databaseFtiBaseUri, query.ToUri());
+		}
+
+		[Pure]
+		public Uri GetFullDocumentUri(
+			string docId, 
+			string revision = null,
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
+		{
+			var documentUriString = GetDocumentUriString(docId, revision, additionalProperties);
 			return new Uri(databaseUriWithSlash, documentUriString).LeaveDotsAndSlashesEscaped();
+		}
+
+		[Pure]
+		public string GetDocumentUriString(
+			string documentId, 
+			string revision, 
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
+		{
+			var uriStringBuilder = new StringBuilder();
+			AppendDocId(uriStringBuilder, documentId);
+
+			var delimiter = '?';
+			foreach (var documentQueryParam in GetDocumentQueryParams(revision, additionalProperties))
+			{
+				uriStringBuilder.Append(delimiter);
+				if(delimiter == '?')
+					delimiter = '&';
+				uriStringBuilder.Append(documentQueryParam.Key).Append('=').Append(documentQueryParam.Value);
+			}
+
+			return uriStringBuilder.ToString();
 		}
 
 		[Pure]
@@ -55,15 +97,6 @@ namespace CouchDude.Api
 		{
 			var attachmentUriString = GetAttachmentUriString(attachmentId, docId, revision);
 			return new Uri(databaseUriWithSlash, attachmentUriString).LeaveDotsAndSlashesEscaped();
-		}
-
-		[Pure]
-		public string GetDocumentUriString(string docId, string revision = null)
-		{
-			var uriStringBuilder = new StringBuilder();
-			AppendDocId(uriStringBuilder, docId);
-			AppendRevisionIfNeeded(uriStringBuilder, revision);
-			return uriStringBuilder.ToString();
 		}
 
 		[Pure]
@@ -77,6 +110,31 @@ namespace CouchDude.Api
 			return uriStringBuilder.ToString();
 		}
 
+		private static IEnumerable<KeyValuePair<string, string>> GetDocumentQueryParams(
+			string revision, AdditionalDocumentProperty additionalProperties)
+		{
+			if (!string.IsNullOrEmpty(revision))
+				yield return new KeyValuePair<string, string>("rev", revision);
+
+			if(additionalProperties == default(AdditionalDocumentProperty))
+				yield break;
+			
+			if((additionalProperties & AdditionalDocumentProperty.Attachments) == AdditionalDocumentProperty.Attachments)
+				yield return new KeyValuePair<string, string>("attachments", "true");
+
+			if ((additionalProperties & AdditionalDocumentProperty.Conflicts) == AdditionalDocumentProperty.Conflicts)
+				yield return new KeyValuePair<string, string>("conflicts", "true");
+
+			if ((additionalProperties & AdditionalDocumentProperty.DeletedConflicts) == AdditionalDocumentProperty.DeletedConflicts)
+				yield return new KeyValuePair<string, string>("deleted_conflicts", "true");
+
+			if ((additionalProperties & AdditionalDocumentProperty.RevisionHistory) == AdditionalDocumentProperty.RevisionHistory)
+				yield return new KeyValuePair<string, string>("revs", "true");
+
+			if ((additionalProperties & AdditionalDocumentProperty.RevisionInfo) == AdditionalDocumentProperty.RevisionInfo)
+				yield return new KeyValuePair<string, string>("revs_info", "true");
+		}
+		
 		private static void AppendRevisionIfNeeded(StringBuilder uriStringBuilder, string revision)
 		{
 			if (!String.IsNullOrEmpty(revision))
@@ -100,20 +158,6 @@ namespace CouchDude.Api
 			var originalLength = stringBuilder.Length;
 			stringBuilder.Append(stringToAppend);
 			stringBuilder.Replace("/", "%2F", originalLength, stringToAppend.Length);
-		}
-
-		[Pure]
-		public Uri GetQueryUri(ViewQuery query)
-		{
-			return new Uri(databaseUriWithSlash, query.ToUri());
-		}
-
-		[Pure]
-		public Uri GetQueryUri(LuceneQuery query)
-		{
-			var sectionFtiBaseUri = new Uri(databaseFtiEndpoint, query.SectionName + "/");
-			var databaseFtiBaseUri = new Uri(sectionFtiBaseUri, databaseNameWithSlash);
-			return new Uri(databaseFtiBaseUri, query.ToUri());
 		}
 	}
 }

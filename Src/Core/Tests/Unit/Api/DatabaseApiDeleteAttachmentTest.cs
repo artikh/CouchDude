@@ -7,26 +7,18 @@ using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
 {
-	public class DatabaseApiSaveAttachmentTest
+	public class DatabaseApiDeleteAttachmentTest
 	{
 		[Fact]
-		public void ShouldSendAttachmentToCouchDB() 
+		public void ShouldSendDeleteRequestToCouchDB() 
 		{
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var documentAttachment = new DocumentAttachment("attachment1") {
-				ContentType = "text/html", 
-				Inline = true
-			};
-			documentAttachment.SetData(new MemoryStream(Encoding.UTF8.GetBytes("<p>test</p>")));
-
-			databaseApi.Synchronously.SaveAttachment(documentAttachment, "doc1", "rev1");
+			databaseApi.Synchronously.DeleteAttachment("attachment1", "doc1", "rev1");
 
 			Assert.Equal("http://example.com:5984/testdb/doc1/attachment1?rev=rev1", httpMock.Request.RequestUri.ToString());
-			Assert.Equal("PUT", httpMock.Request.Method.ToString());
-			Assert.Equal("text/html", httpMock.Request.Content.Headers.ContentType.MediaType);
-			Assert.Equal("<p>test</p>", httpMock.RequestBodyString);
+			Assert.Equal("DELETE", httpMock.Request.Method.ToString());
 		}
 
 		[Fact]
@@ -35,13 +27,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var documentAttachment = new DocumentAttachment("attachment1") {
-				ContentType = "text/html", 
-				Inline = true
-			};
-			documentAttachment.SetData(new MemoryStream(Encoding.UTF8.GetBytes("<p>test</p>")));
-
-			var docInfo = databaseApi.Synchronously.SaveAttachment(documentAttachment, "doc1", "rev1");
+			var docInfo = databaseApi.Synchronously.DeleteAttachment("attachment1", "doc1", "rev1");
 
 			Assert.Equal("doc1", docInfo.Id);
 			Assert.Equal("rev2", docInfo.Revision);
@@ -56,7 +42,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
-				() => databaseApi.Synchronously.SaveAttachment(new DocumentAttachment("attachment1"), "doc1", "rev1")
+				() => databaseApi.Synchronously.DeleteAttachment("attachment1", "doc1", "rev1")
 			);
 		}
 
@@ -67,7 +53,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<CouchCommunicationException>(
-				() => databaseApi.Synchronously.SaveAttachment(new DocumentAttachment("attachment1"), "doc1", "rev1")
+				() => databaseApi.Synchronously.DeleteAttachment("attachment1", "doc1", "rev1")
 			);
 		}
 		

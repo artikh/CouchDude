@@ -31,9 +31,12 @@ namespace CouchDude.Api
 			this.databaseApi = databaseApi;
 		}
 
-		public Document RequestDocument(string docId, string revision = null)
+		public Document RequestDocument(
+			string documentId,
+			string revision = null,
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
 		{
-			return databaseApi.RequestDocument(docId, revision).WaitForResult();
+			return databaseApi.RequestDocument(documentId, revision, additionalProperties).WaitForResult();
 		}
 
 		public DocumentInfo DeleteDocument(string docId, string revision)
@@ -72,7 +75,7 @@ namespace CouchDude.Api
 			return databaseApi.SaveAttachment(attachment, documentId, documentRevision).WaitForResult();
 		}
 
-		public DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision = null)
+		public DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision)
 		{
 			return databaseApi.DeleteAttachment(attachmentId, documentId, documentRevision).WaitForResult();
 		}

@@ -164,9 +164,9 @@ namespace CouchDude.Tests.Unit.Impl
 							LuceneQueryResult.Empty.ToTask();
 					});
 			dbApiMock
-				.Setup(api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
-				.Returns<string, string>(
-					(_, __) => {
+				.Setup(api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()))
+				.Returns<string, string, AdditionalDocumentProperty>(
+					(_, __, ___) => {
 						lock (executedOperations)
 							executedOperations.Add("RequestDocument");
 						return SimpleEntity.CreateDocument().ToTask();

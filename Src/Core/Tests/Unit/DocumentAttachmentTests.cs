@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using CouchDude.Api;
 using Moq;
 using Xunit;
+using Xunit.Extensions;
 
 namespace CouchDude.Tests.Unit
 {
-	public class DocumentAttachmentsTests
+	public class DocumentAttachmentTests
 	{
 		[Fact]
 		public void ShouldProjectAttachmentId()
@@ -29,10 +30,26 @@ namespace CouchDude.Tests.Unit
 			var document = new Document(
 				new {
 					_id = "doc1",
-					_attachments = new { attachment1 = new { length = 42 }}
+					_attachments = new { attachment1 = new { stub = true, length = 42 }}
 				}.ToJsonObject());
 
 			Assert.Equal(42, document.Attachments["attachment1"].Length);
+		}
+
+		[Theory]
+		[InlineData("aGVsbG8=", 5)]
+		[InlineData("aGVsbG8s", 6)]
+		[InlineData("aGVsbG8sdw==", 7)]
+		[InlineData("aGVsbG8sd28=", 8)]
+		public void ShouldReadAttachmentLengthFromDataIfInline(string base64String, int expectedLength)
+		{
+			var document = new Document(
+				new {
+					_id = "doc1",
+					_attachments = new { attachment1 = new { data = base64String }}
+				}.ToJsonObject());
+
+			Assert.Equal(expectedLength, document.Attachments["attachment1"].Length);
 		}
 
 		[Fact]

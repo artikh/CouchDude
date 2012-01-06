@@ -18,6 +18,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using CouchDude.Utils;
 
@@ -26,6 +27,10 @@ namespace CouchDude
 	/// <summary>Document attachment.</summary>
 	public class DocumentAttachment
 	{
+		/// <summary>Default MIME type document attachment should declare.</summary>
+		protected const string DefaultContentType = "application/octet-stream";
+
+		string contentType;
 		Stream setStream;
 
 		/// <constructor />
@@ -35,7 +40,10 @@ namespace CouchDude
 		public string Id { get; private set; }
 
 		/// <summary>Attachment content (MIME) type.</summary>
-		public virtual string ContentType { get; set; }
+		public virtual string ContentType
+		{
+			get { return contentType ?? DefaultContentType; } set { contentType = value; }
+		}
 
 		/// <summary>Content length.</summary>
 		public virtual long Length { get; private set; }
@@ -56,12 +64,24 @@ namespace CouchDude
 			return TaskEx.FromResult(setStream ?? new MemoryStream(0));
 		}
 
-		/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
 		public virtual void SetData(Stream dataStream)
 		{
 			setStream = dataStream;
 			try { Length = setStream.Length; }
 			catch (NotSupportedException) { }
+		}
+		
+		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		public void SetData(byte[] data)
+		{
+			SetData(new MemoryStream(data));
+		}
+
+		/// <summary>Sets attachment data (inline). Attachment gets saved with parent document.</summary>
+		public void SetData(string data)
+		{
+			SetData(Encoding.UTF8.GetBytes(data));
 		}
 
 		/// <summary>Synchronous version of <see cref="DocumentAttachment"/> methods.</summary>

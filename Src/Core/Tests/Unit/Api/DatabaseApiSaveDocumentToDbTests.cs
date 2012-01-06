@@ -44,7 +44,7 @@ namespace CouchDude.Tests.Unit.Api
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", mockMessageHandler.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Put, mockMessageHandler.Request.Method);
-			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), mockMessageHandler.RequestBody);
+			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), mockMessageHandler.RequestBodyString);
 			Assert.Equal(new DocumentInfo("doc1", "1-1a517022a0c2d4814d51abfedf9bfee7"), result);
 		}
 

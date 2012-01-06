@@ -30,12 +30,6 @@ namespace CouchDude.Utils
 	{
 		private readonly static Encoding DefaultHttpEncoding = Encoding.GetEncoding(0x6faf);
 
-		public static async Task<Document> ReadAsDocumentAsync(this HttpContent self)
-		{
-			using (var reader = await self.ReadAsTextReaderAsync().ConfigureAwait(false))
-				return new Document(reader);
-		}
-
 		public static async Task<JsonArray> ReadAsJsonArrayAsync(this HttpContent self)
 		{
 			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);

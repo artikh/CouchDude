@@ -54,9 +54,9 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			dbApiMock
-				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()))
 				.Returns(
-					(string id, string revision) => Entity.CreateDocWithRevision().ToTask());
+					(string _, string __, AdditionalDocumentProperty ___) => Entity.CreateDocWithRevision().ToTask());
 			dbApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
 				.Returns(Entity.StandardDococumentInfo.ToTask());
@@ -76,7 +76,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var couchApi = Mock.Of<ICouchApi>(
 				c => c.Db("testdb") ==  Mock.Of<IDatabaseApi>(
-					api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>()) == 
+					api => api.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()) == 
 						EntityWithoutRevision.CreateDocumentWithRevision().ToTask()
 			));
 
@@ -102,9 +102,9 @@ namespace CouchDude.Tests.Unit.Impl
 
 			var dbApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			dbApiMock
-				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()))
 				.Returns(
-					(string id, string revision) => {
+					(string id, string revision, AdditionalDocumentProperty additionalProperties) => {
 						requestedId = id;
 						return Entity.CreateDocWithRevision().ToTask();
 					});
@@ -118,15 +118,16 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			var databaseApiMock = new Mock<IDatabaseApi>(MockBehavior.Loose);
 			databaseApiMock
-				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>()))
+				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()))
 				.Returns(
-					(string id, string revision) => Task.Factory.StartNew(
-						() => new {
+					(string id, string revision, AdditionalDocumentProperty additionalProperties) => TaskEx.FromResult(
+						new {
 							_id = "entity" + ".doc1",
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
 							name = "John Smith"
-						}.ToDocument()));
+						}.ToDocument())
+				);
 			databaseApiMock
 				.Setup(ca => ca.SaveDocument(It.IsAny<Document>()))
 				.Returns(new DocumentInfo(Entity.StandardDocId, "42-1a517022a0c2d4814d51abfedf9bfee7").ToTask());

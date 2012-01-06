@@ -18,15 +18,19 @@
 
 using System;
 using System.Collections.Generic;
+using CouchDude.Api;
 
 namespace CouchDude
 {
 	/// <summary>Synchronous version of databes-level APIs.</summary>
 	public interface ISynchronousDatabaseApi
 	{
-		/// <summary>Requests CouchDB for document using <paramref name="docId"/> 
+		/// <summary>Requests CouchDB for document using <paramref name="documentId"/> 
 		/// and <paramref name="revision"/> and waits for result of the operation.</summary>
-		Document RequestDocument(string docId, string revision = null);
+		Document RequestDocument(
+			string documentId,
+			string revision = null,
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty));
 
 		/// <summary>Saves new document to CouchDB and waits for the result of the operation.</summary>
 		DocumentInfo SaveDocument(Document document);
@@ -54,7 +58,7 @@ namespace CouchDude
 		DocumentInfo SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
-		DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision = null);
+		DocumentInfo DeleteAttachment(string attachmentId, string documentId, string documentRevision);
 
 		/// <summary>Creates, updates and deletes several documents as a whole from database. </summary>
 		IDictionary<string, DocumentInfo> BulkUpdate(Action<IBulkUpdateBatch> updateCommandBuilder);

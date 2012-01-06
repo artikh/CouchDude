@@ -51,10 +51,31 @@ namespace CouchDude
 			}
 
 			/// <summary>Attachment content (MIME) type.</summary>
-			public override string ContentType { get { return AttachmentDescriptor.GetPrimitiveProperty<string>(ContentTypePropertyName); } set { AttachmentDescriptor[ContentTypePropertyName] = value; } }
+			public override string ContentType
+			{
+				get { return AttachmentDescriptor.GetPrimitiveProperty<string>(ContentTypePropertyName) ?? DefaultContentType; } 
+				set { AttachmentDescriptor[ContentTypePropertyName] = value; }
+			}
 
 			/// <summary>Content length.</summary>
-			public override long Length { get { return AttachmentDescriptor.GetPrimitiveProperty<int>(LengthPropertyName); } }
+			public override long Length
+			{
+				get
+				{
+					var data = AttachmentDescriptor.GetPrimitiveProperty<string>(DataPropertyName);
+					if(data != null)
+					{
+						var baseLength = 3*(data.Length/4);
+						if (data[data.Length - 2] == '=')
+							return baseLength - 2;
+						if (data[data.Length - 1] == '=')
+							return baseLength - 1;
+						return baseLength;
+					}
+
+					return AttachmentDescriptor.GetPrimitiveProperty<int>(LengthPropertyName);
+				}
+			}
 
 			/// <summary>Indicates wether attachment is included as base64 string within document or should 
 			/// be requested separatly.</summary>

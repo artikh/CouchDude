@@ -26,8 +26,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var attachment = 
-				databaseApi.Synchronously.RequestAttachment("attachment1", "doc1", "rev1");
+			var attachment = databaseApi.Synchronously.RequestAttachment("attachment1", "doc1", "rev1");
 
 			Assert.Equal(4, attachment.Length);
 			Assert.False(attachment.Inline);
@@ -50,8 +49,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowStaleObjectStateExceptionOnConflict() 
 		{
 			var httpMock = new MockMessageHandler(
-				HttpStatusCode.Conflict,
-				new { error = "conflict", reason = "Document update conflict." }.ToJsonString());
+				HttpStatusCode.Conflict, new { error = "conflict", reason = "Document update conflict." }.ToJsonString());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
@@ -63,8 +61,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowDocumentNotFoundException() 
 		{
 			var httpMock = new MockMessageHandler(
-				HttpStatusCode.NotFound, 
-				new { error = "not_found", reason = "missing" }.ToJsonString());
+				HttpStatusCode.NotFound, new { error = "not_found", reason = "missing" }.ToJsonString());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<DocumentNotFoundException>(

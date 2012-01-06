@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Json;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using CouchDude.Utils;
 
@@ -78,6 +79,7 @@ namespace CouchDude.Api
 
 			var attachmentUri = uriConstructor.GetFullAttachmentUri(attachmentId, documentId, documentRevision);
 			var requestMessage = new HttpRequestMessage(HttpMethod.Get, attachmentUri);
+			requestMessage.Headers.Accept.Clear();
 
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
@@ -108,6 +110,7 @@ namespace CouchDude.Api
 			using (var requestContentStream = await attachment.OpenRead().ConfigureAwait(false))
 			{
 				requestMessage.Content = new StreamContent(requestContentStream);
+				requestMessage.Content.Headers.ContentType = new MediaTypeHeaderValue(attachment.ContentType);
 				response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			}
 			if (!response.IsSuccessStatusCode)
@@ -115,14 +118,13 @@ namespace CouchDude.Api
 				var error = new CouchError(parent.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowStaleStateExceptionIfNedded(
-					string.Format("saveing attachment ID '{0}'", attachment.Id), documentId, documentRevision);
+					string.Format("saving attachment ID '{0}'", attachment.Id), documentId, documentRevision);
 				error.ThrowCouchCommunicationException();
 			}
 			return await ReadDocumentInfo(response).ConfigureAwait(false);
 		}
 
-		public async Task<DocumentInfo> DeleteAttachment(
-			string attachmentId, string documentId, string documentRevision = null)
+		public async Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision)
 		{
 			if (attachmentId.HasNoValue()) throw new ArgumentNullException("attachmentId");
 			if (documentId.HasNoValue()) throw new ArgumentNullException("documentId");
@@ -137,6 +139,8 @@ namespace CouchDude.Api
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowAttachmentMissingException(attachmentId, documentId, documentRevision);
 				error.ThrowDocumentNotFoundIfNedded(documentId, documentRevision);
+				error.ThrowStaleStateExceptionIfNedded(
+					string.Format("deleting attachment ID '{0}'", attachmentId), documentId, documentRevision);
 				error.ThrowCouchCommunicationException();
 			}
 			return await ReadDocumentInfo(response).ConfigureAwait(false);
@@ -163,11 +167,14 @@ namespace CouchDude.Api
 			return new DatabaseInfo(exists, uriConstructor.DatabaseName, responseJson);
 		}
 
-		public async Task<Document> RequestDocument(string documentId, string revision)
+		public async Task<Document> RequestDocument(
+			string documentId, 
+			string revision,
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
 			
-			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision);
+			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision, additionalProperties);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
 
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
@@ -180,7 +187,9 @@ namespace CouchDude.Api
 				error.ThrowCouchCommunicationException();
 			}
 			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
-				return new Document(reader);
+				return new Document(reader) {
+					DatabaseApiReference = new DatabaseApiReference(this)
+				};
 		}
 
 		public Task<DocumentInfo> SaveDocument(Document document, bool overwriteConcurrentUpdates)
@@ -213,7 +222,11 @@ namespace CouchDude.Api
 
 		public Task<DocumentInfo> SaveDocument(Document document) { return SaveDocument(document, overwriteConcurrentUpdates: false); }
 
-		public async Task<DocumentInfo> CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null)
+		public async Task<DocumentInfo> CopyDocument(
+			string originalDocumentId, 
+			string originalDocumentRevision,
+			string targetDocumentId,
+			string targetDocumentRevision = null)
 		{
 			if (string.IsNullOrEmpty(originalDocumentId))
 				throw new ArgumentNullException("originalDocumentId");

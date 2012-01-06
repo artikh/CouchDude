@@ -128,7 +128,7 @@ namespace CouchDude.Tests.Unit.Api
 				}
 			}.ToJsonString();
 
-			var sendDescriptor = handler.RequestBody;
+			var sendDescriptor = handler.RequestBodyString;
 			Assert.Equal(expectedDescriptor, sendDescriptor);
 
 			Assert.Equal("2-1a517022a0c2d4814d51abfedf9bfee7", result["doc1"].Revision);

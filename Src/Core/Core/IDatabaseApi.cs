@@ -19,6 +19,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CouchDude.Api;
 
 namespace CouchDude
 {
@@ -27,7 +28,10 @@ namespace CouchDude
 	{
 		/// <summary>Requests CouchDB for document using <paramref name="documentId"/> 
 		/// and <paramref name="revision"/>.</summary>
-		Task<Document> RequestDocument(string documentId, string revision = null);
+		Task<Document> RequestDocument(
+			string documentId, 
+			string revision = null, 
+			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty));
 
 		/// <summary>Saves new document to CouchDB.</summary>
 		Task<DocumentInfo> SaveDocument(Document document);
@@ -47,7 +51,7 @@ namespace CouchDude
 		Task<DocumentInfo> SaveAttachment(DocumentAttachment attachment, string documentId, string documentRevision = null);
 
 		/// <summary>Requests document attachment directly from database.</summary>
-		Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision = null);
+		Task<DocumentInfo> DeleteAttachment(string attachmentId, string documentId, string documentRevision);
 
 		/// <summary>Retrives current document revision from CouchDB. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>

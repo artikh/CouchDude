@@ -87,6 +87,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="IntegrationTestAttribute.cs" />
+    <Compile Include="Integration\CouchApiAttachments.cs" />
     <Compile Include="Integration\CouchApiBulkLoad.cs" />
     <Compile Include="Integration\DatabaseManagementAndReplication.cs" />
     <Compile Include="Integration\DatabaseMissingExceptionTests.cs" />
@@ -104,6 +105,7 @@
     <Compile Include="SampleData\ViewData.cs" />
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
+    <Compile Include="Unit\Api\DatabaseApiDeleteAttachmentTest.cs" />
     <Compile Include="Unit\Api\DatabaseApiDeleteDocumentTests.cs" />
     <Compile Include="Unit\Api\DatabaseApiManagmentOperationsTests.cs" />
     <Compile Include="Unit\Api\CouchApiTests.cs" />
@@ -120,7 +122,7 @@
     <Compile Include="Unit\Configuration\ParticularyNamedPropertyOrPubilcFieldSpecialMemberTests.cs" />
     <Compile Include="Unit\Configuration\SequentialUuidIdGeneratorTests.cs" />
     <Compile Include="Unit\DocumentAttachmentBagTests.cs" />
-    <Compile Include="Unit\DocumentAttachmentsTests.cs" />
+    <Compile Include="Unit\DocumentAttachmentTests.cs" />
     <Compile Include="Unit\Impl\CouchSessionSaveChangesTests.cs" />
     <Compile Include="Unit\Impl\LuceneQueryUriConverterConvertFromTests.cs" />
     <Compile Include="Unit\Impl\LuceneQueryUriConverterConvertToTests.cs" />

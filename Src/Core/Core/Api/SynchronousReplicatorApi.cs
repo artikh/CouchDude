@@ -3,7 +3,7 @@ using CouchDude.Utils;
 
 namespace CouchDude.Api
 {
-	class SynchronousReplicatorApi : ISynchronousReplicatorApi
+	internal class SynchronousReplicatorApi : ISynchronousReplicatorApi
 	{
 		private readonly ReplicatorApi replicatorApi;
 		public SynchronousReplicatorApi(ReplicatorApi replicatorApi) { this.replicatorApi = replicatorApi; }

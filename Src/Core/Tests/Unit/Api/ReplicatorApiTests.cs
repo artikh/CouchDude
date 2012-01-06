@@ -40,7 +40,7 @@ namespace CouchDude.Tests.Unit.Api
 					continuous = true, 
 					create_target = true
 				}.ToJsonString(),
-				httpClientMock.RequestBody
+				httpClientMock.RequestBodyString
 			);
 		}
 
@@ -73,7 +73,7 @@ namespace CouchDude.Tests.Unit.Api
 						continuous = true,
 						create_target = true
 					}.ToJsonString(),
-					httpClientMock.RequestBody
+					httpClientMock.RequestBodyString
 					);
 			}
 		}

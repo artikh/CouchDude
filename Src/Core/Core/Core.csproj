@@ -71,6 +71,7 @@
     <Compile Include="..\..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AdditionalDocumentProperty.cs" />
     <Compile Include="Api\DbUriConstructor.cs" />
     <Compile Include="Api\QueryResultParserBase.cs" />
     <Compile Include="DocumentAttachment.cs" />

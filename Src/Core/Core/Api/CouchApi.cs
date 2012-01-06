@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using CouchDude.Utils;
@@ -44,6 +45,8 @@ namespace CouchDude.Api
 			uriConstructor = new UriConstructor(serverUri);
 			synchronousCouchApi = new SynchronousCouchApi(this);
 			replicatorApi = new ReplicatorApi(this, serializer);
+
+			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }
