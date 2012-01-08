@@ -28,6 +28,11 @@ namespace CouchDude
 	[TypeConverter(typeof(ViewQueryUriConverter))]
 	public class ViewQuery: IQuery
 	{
+		bool group;
+		int? groupLevel;
+		int? limit;
+		int? skip;
+
 		/// <summary>Design document name (id without '_design/' prefix) to use view from.</summary>
 		public string DesignDocumentName { get; set; }
 
@@ -52,17 +57,72 @@ namespace CouchDude
 		public string EndDocumentId { get; set; }
 
 		/// <summary>Flag that indicates that query should run multiple reduce</summary>
-		public bool Group { get; set; }
+		public bool Group
+		{
+			get
+			{
+				if (SuppressReduce)
+					group = false;
+				return group;
+			} 
+			set
+			{
+				if(Group == value) return;
+
+				if(value && SuppressReduce)
+					throw new InvalidOperationException("Group and SuppressReduce options colud not be used at the same time");
+				if(!value && GroupLevel != null)
+					throw new InvalidOperationException(
+						"Group option could not be set false if GroupLevel option is set to anything except null");
+
+				group = value;
+			}
+		}
 
 		/// <summary>Indicates level of grouping which used when query executed</summary>
-		public int? GroupLevel { get; set; }
+		public int? GroupLevel
+		{
+			get
+			{
+				if (!Group) 
+					groupLevel = null;
+				return groupLevel;
+			}
+			set
+			{
+				if(value < 0) throw new ArgumentOutOfRangeException("value", value, "Value should be positive number");
+				if (GroupLevel == value) return;
+				if (value != null && SuppressReduce)
+					throw new InvalidOperationException(
+						"Group and SuppressReduce options colud not be used at the same time");
+				if (!Group)
+					Group = true;
+				groupLevel = value;
+			}
+		}
 
 		/// <summary>Limit the number of view rows in the output.</summary>
-		public int? Limit { get; set; }
+		public int? Limit
+		{
+			get { return limit; } 
+			set
+			{
+				if(value < 0) throw new ArgumentOutOfRangeException("value", value, "Value should be positive number");
+				limit = value;
+			}
+		}
 
 		/// <summary>Sets number of view rows to skip when fetching.</summary>
 		/// <remarks>You should not set this to more then single digit values.</remarks>
-		public int? Skip { get; set; }
+		public int? Skip
+		{
+			get { return skip; } 
+			set
+			{
+				if (value < 0) throw new ArgumentOutOfRangeException("value", value, "Value should be positive number");
+				skip = value;
+			}
+		}
 
 		/// <summary>CouchDB will not refresh the view even if it is stale.</summary>
 		public bool StaleViewIsOk { get; set; }
@@ -109,7 +169,6 @@ namespace CouchDude
 		public ViewQuery Clone()
 		{
 			// TODO: implement manual clonnign here
-
 			ViewQuery clone;
 			TryParse(ToString(), out clone);
 			return clone;

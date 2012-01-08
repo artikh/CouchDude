@@ -24,11 +24,19 @@ namespace CouchDude.Tests.Unit
 	public class ViewQueryTests
 	{
 		[Fact]
+		public void ShouldValidateNegativeNumbers() 
+		{
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ViewQuery().Limit = -1);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ViewQuery().Skip = -1);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new ViewQuery().GroupLevel = -1);
+		}
+
+		[Fact]
 		public void ShouldConvertFromStringAndBackUsingParseAndToString()
 		{
 			const string testUri =
 				"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey" +
-				"&limit=42&skip=42&descending=true&include_docs=true&inclusive_end=false&group=true&group_level=42&reduce=false&stale=update_after";
+				"&limit=42&skip=42&descending=true&include_docs=true&inclusive_end=false&group=true&group_level=42&stale=update_after";
 
 			var viewQuery = ViewQuery.Parse(testUri);
 			var generatedUri = viewQuery.ToString();
@@ -41,7 +49,7 @@ namespace CouchDude.Tests.Unit
 		{
 			var testUri = new Uri(
 				"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey" +
-					"&limit=42&skip=42&descending=true&include_docs=true&inclusive_end=false&group=true&group_level=42&reduce=false&stale=update_after", 
+					"&limit=42&skip=42&descending=true&include_docs=true&inclusive_end=false&group=true&group_level=42&stale=update_after", 
 				UriKind.Relative);
 
 			var viewQuery = ViewQuery.Parse(testUri);
@@ -55,11 +63,40 @@ namespace CouchDude.Tests.Unit
 		{
 			var query = ViewQuery.Parse(
 				"_design/dd/_view/pointOfView?startkey=%22first+key%22&startkey_docid=start+dockey&endkey=%22second+key%22&endkey_docid=end+dockey" +
-				"&limit=42&skip=42&stale=update_after&descending=true&reduce=false&include_docs=true&inclusive_end=false&group=true&group_level=42");
+				"&limit=42&skip=42&stale=update_after&descending=true&include_docs=true&inclusive_end=false&group=true&group_level=42");
 
 			var clone = query.Clone();
 
 			Assert.Equal(query, clone);
+		}
+
+		[Fact]
+		public void ShouldResetGroupingIfSuppressReduce()
+		{
+			var query = new ViewQuery {
+				Group = true,
+				GroupLevel = 42
+			};
+
+			query.SuppressReduce = true;
+
+			Assert.False(query.Group);
+			Assert.Null(query.GroupLevel);
+			Assert.Throws<InvalidOperationException>(() => query.Group = true);
+			Assert.Throws<InvalidOperationException>(() => query.GroupLevel = 42);
+		}
+
+		[Fact]
+		public void ShouldEnforceGroupingIfGroupLevelSet()
+		{
+			var query = new ViewQuery {
+				Group = false
+			};
+
+			query.GroupLevel = 42;
+
+			Assert.True(query.Group);
+			Assert.Throws<InvalidOperationException>(() => query.Group = false);
 		}
 	}
 }
