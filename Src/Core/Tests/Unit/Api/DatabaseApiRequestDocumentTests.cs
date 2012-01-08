@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Api
 					_id = "doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
-				}.ToJsonString());
+				}.ToJsonObject());
 
 			var databaseApi = GetDatabaseApi(handler);
 			var result = databaseApi.Synchronously.RequestDocument("doc1");
@@ -63,7 +63,7 @@ namespace CouchDude.Tests.Unit.Api
 					_id = "docs/doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 					name = "John Smith"
-				}.ToJsonString());
+				}.ToJsonObject());
 			var databaseApi = GetDatabaseApi(httpMock);
 			databaseApi.Synchronously.RequestDocument("docs/doc1");
 
@@ -74,7 +74,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowIfDatabaseMissing()
 		{
 			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => GetDatabaseApi(httpClient).Synchronously.RequestDocument("entity.doc1")
@@ -90,7 +90,7 @@ namespace CouchDude.Tests.Unit.Api
 						_id = "_design/docs/doc1",
 						_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
 						name = "John Smith"
-					}.ToJsonString());
+					}.ToJsonObject());
 			var databaseApi = GetDatabaseApi(httpMock);
 
 			databaseApi.Synchronously.RequestDocument("_design/docs/doc1");
@@ -102,7 +102,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnIncorrectJsonGettingDocumentById()
 		{
 			Assert.Throws<ParseException>(() => {
-				var httpMock = new MockMessageHandler("Some none-json [) content");
+				var httpMock = new MockMessageHandler("Some none-json [) content", MediaType.Json);
 				var databaseApi = GetDatabaseApi(httpMock);
 				databaseApi.Synchronously.RequestDocument("doc1");
 			});
@@ -121,7 +121,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowOnEmptyResponseGettingDocumentById()
 		{
 			Assert.Throws<ParseException>(() => {
-				var httpMock = new MockMessageHandler("    ");
+				var httpMock = new MockMessageHandler("    ", MediaType.Json);
 				var databaseApi = GetDatabaseApi(httpMock);
 				databaseApi.Synchronously.RequestDocument("doc1");
 			});
@@ -170,13 +170,118 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldRetriveSpecificDocumentRevision()
 		{
-			var httpMock = new MockMessageHandler(Entity.CreateDocWithRevision().ToString());
+			var httpMock = new MockMessageHandler(Entity.CreateDocWithRevision().RawJsonObject);
 			var databaseApi = GetDatabaseApi(httpMock);
 			databaseApi.Synchronously.RequestDocument(Entity.StandardDocId, Entity.StandardRevision);
 
 			Assert.Equal(
 				"http://example.com:5984/testdb/entity.doc1?rev=1-1a517022a0c2d4814d51abfedf9bfee7", 
 				httpMock.Request.RequestUri.ToString());
+		}
+
+		[Fact]
+		public void ShouldLoadMultipartResultTakingFirstSectionAndDiscardingTheRestIfNoAttachments() 
+		{
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.OK) {
+				Content = new MultipartContent("related", boundary: "6ad0c5d817d55a9956ffa537b38fa466") {
+					new StringContent(
+						new { _id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToJsonString(), 
+						Encoding.UTF8, "application/json"
+					),
+					new ByteArrayContent(new byte[] { 42, 42, 42 }),
+					new ByteArrayContent(new byte[] { 42, 42 }),
+					new ByteArrayContent(new byte[] { 42 })
+				}
+			});
+
+			var databaseApi = GetDatabaseApi(handler);
+			var result = databaseApi.Synchronously.RequestDocument("doc1");
+
+			Assert.Equal(
+				new {_id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), result
+			);
+		}
+
+		[Fact]
+		public void ShouldLoadAttachmentsFromMultipartResult() 
+		{
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.OK) {
+				Content = new MultipartContent("related", boundary: "6ad0c5d817d55a9956ffa537b38fa466") {
+					new StringContent(
+						new {	
+							_id = "doc1", 
+							_rev = "1-1a517022a0c2d4814d51abfedf9bfee7", 
+							name = "John Smith",
+							_attachments = new {
+								attachment1 = new {
+									content_type = "application/x-file",
+									length = 3,
+									follows = true
+								},
+								attachment2 = new {
+									content_type = "application/x-file",
+									length = 2,
+									follows = true
+								}
+							}
+						}.ToJsonString(), 
+						Encoding.UTF8, "application/json"
+					),
+					new ByteArrayContent(new byte[] { 42, 42, 42 }),
+					new ByteArrayContent(new byte[] { 42, 42 }),
+					new ByteArrayContent(new byte[] { 42 })
+				}
+			});
+
+			var databaseApi = GetDatabaseApi(handler);
+			var document = databaseApi.Synchronously.RequestDocument("doc1");
+
+			Assert.Equal(2, document.Attachments.Count);
+
+			Assert.Equal(new byte[] { 42, 42 }, document.Attachments["attachment2"].Syncronously.OpenRead().ReadAsByteArray());
+			Assert.Equal(2, document.Attachments["attachment2"].Length);
+			Assert.Equal("application/x-file", document.Attachments["attachment2"].ContentType);
+
+			Assert.Equal(new byte[] { 42, 42, 42 }, document.Attachments["attachment1"].Syncronously.OpenRead().ReadAsByteArray());
+			Assert.Equal(3, document.Attachments["attachment1"].Length);
+			Assert.Equal("application/x-file", document.Attachments["attachment1"].ContentType);
+		}
+
+		[Fact]
+		public void ShouldLoadNotAttachmentsFromMultipartResultIfNoFollowsPropertyDefined() 
+		{
+			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.OK) {
+				Content = new MultipartContent("related", boundary: "6ad0c5d817d55a9956ffa537b38fa466") {
+					new StringContent(
+						new {
+							_id = "doc1", 
+							_rev = "1-1a517022a0c2d4814d51abfedf9bfee7", 
+							name = "John Smith",
+							_attachments = new {
+								attachment1 = new { content_type = "application/x-file", data = "" },
+								attachment2 = new { content_type = "application/x-file", data = "" }
+							}
+						}.ToJsonString(), 
+						Encoding.UTF8, "application/json"
+					),
+					new ByteArrayContent(new byte[] { 42, 42, 42 }),
+					new ByteArrayContent(new byte[] { 42, 42 }),
+					new ByteArrayContent(new byte[] { 42 })
+				}
+			});
+
+			var databaseApi = GetDatabaseApi(handler);
+			var document = databaseApi.Synchronously.RequestDocument("doc1");
+
+			Assert.Equal(2, document.Attachments.Count);
+
+			Assert.Equal(new byte[0], document.Attachments["attachment2"].Syncronously.OpenRead().ReadAsByteArray());
+			Assert.Equal(0, document.Attachments["attachment2"].Length);
+			Assert.Equal("application/x-file", document.Attachments["attachment2"].ContentType);
+
+			Assert.Equal(new byte[0], document.Attachments["attachment1"].Syncronously.OpenRead().ReadAsByteArray());
+			Assert.Equal(0, document.Attachments["attachment1"].Length);
+			Assert.Equal("application/x-file", document.Attachments["attachment1"].ContentType);
 		}
 
 		private static IDatabaseApi GetDatabaseApi(MockMessageHandler httpMockMessageHandler)

@@ -19,6 +19,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -163,16 +164,16 @@ namespace CouchDude.Tests.Unit.Api
 			Assert.Null(mockMessageHandler.Request.Content);
 		}
 
-		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString)
+		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseJson)
 		{
 			MockMessageHandler mockMessageHandler;
-			return GetDbApi(statusCode, responseString, out mockMessageHandler);
+			return GetDbApi(statusCode, responseJson, out mockMessageHandler);
 		}
 
-		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseString, out MockMessageHandler handler)
+		private static IDatabaseApi GetDbApi(HttpStatusCode statusCode, string responseJson, out MockMessageHandler handler)
 		{
 			handler = new MockMessageHandler(new HttpResponseMessage(statusCode) {
-				Content = new StringContent(responseString)
+				Content = new JsonContent(responseJson)
 			});
 			return GetDbApi(handler);
 		}
@@ -182,10 +183,10 @@ namespace CouchDude.Tests.Unit.Api
 			return GetCouchApi(handler).Db("testdb");
 		}
 
-		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseString, out MockMessageHandler handler)
+		private static ICouchApi GetCouchApi(HttpStatusCode statusCode, string responseJson, out MockMessageHandler handler)
 		{
 			handler = new MockMessageHandler(new HttpResponseMessage(statusCode){
-				Content = new StringContent(responseString)
+				Content = new JsonContent(responseJson)
 			});
 			return GetCouchApi(handler);
 		}

@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -29,7 +30,6 @@ namespace CouchDude.Tests.Unit.Api
 			var attachment = databaseApi.Synchronously.RequestAttachment("attachment1", "doc1", "rev1");
 
 			Assert.Equal(4, attachment.Length);
-			Assert.False(attachment.Inline);
 			Assert.Equal("attachment1", attachment.Id);
 			Assert.Equal("text/plain", attachment.ContentType);
 		}
@@ -38,8 +38,8 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldReturnNullIfAttachmentHaveNotFoundOnExistingDocument() 
 		{
 			var httpMock = new MockMessageHandler(
-				HttpStatusCode.NotFound, 
-				new { error = "not_found", reason = "Document is missing attachment" }.ToJsonString());
+				HttpStatusCode.NotFound,
+				new { error = "not_found", reason = "Document is missing attachment" }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Null(databaseApi.Synchronously.RequestAttachment("attachment1", "doc1", "rev1"));
@@ -49,7 +49,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowStaleObjectStateExceptionOnConflict() 
 		{
 			var httpMock = new MockMessageHandler(
-				HttpStatusCode.Conflict, new { error = "conflict", reason = "Document update conflict." }.ToJsonString());
+				HttpStatusCode.Conflict, new { error = "conflict", reason = "Document update conflict." }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
@@ -61,7 +61,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowDocumentNotFoundException() 
 		{
 			var httpMock = new MockMessageHandler(
-				HttpStatusCode.NotFound, new { error = "not_found", reason = "missing" }.ToJsonString());
+				HttpStatusCode.NotFound, new { error = "not_found", reason = "missing" }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<DocumentNotFoundException>(
@@ -72,7 +72,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn500() 
 		{
-			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty);
+			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty, MediaType.Json);
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<CouchCommunicationException>(

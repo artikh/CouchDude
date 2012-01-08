@@ -21,17 +21,18 @@ using System.Net.Http;
 using System.Text;
 using CouchDude.Api;
 using CouchDude.Serialization;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
 {
 	public class CouchErrorTests
 	{
-		private static string ProccessResponse(string responseString)
+		private static string ProccessResponse(string responseJsonString)
 		{
 			var error =
 				new CouchError(new NewtonsoftSerializer(), new HttpResponseMessage(HttpStatusCode.InternalServerError) {
-					Content = new StringContent(responseString, Encoding.UTF8)
+					Content = new JsonContent(responseJsonString)
 				});
 			return error.ToString();
 		}

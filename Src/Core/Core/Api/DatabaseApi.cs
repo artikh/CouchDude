@@ -167,29 +167,11 @@ namespace CouchDude.Api
 			return new DatabaseInfo(exists, uriConstructor.DatabaseName, responseJson);
 		}
 
-		public async Task<Document> RequestDocument(
-			string documentId, 
-			string revision,
-			AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
+		public Task<Document> RequestDocument(
+			string documentId, string revision, AdditionalDocumentProperty additionalProperties = default(AdditionalDocumentProperty))
 		{
 			if (string.IsNullOrEmpty(documentId)) throw new ArgumentNullException("documentId");
-			
-			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision, additionalProperties);
-			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
-
-			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
-			if (!response.IsSuccessStatusCode)
-			{
-				var error = new CouchError(parent.Serializer, response);
-				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
-				if (response.StatusCode == HttpStatusCode.NotFound)
-					return null;
-				error.ThrowCouchCommunicationException();
-			}
-			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
-				return new Document(reader) {
-					DatabaseApiReference = new DatabaseApiReference(this)
-				};
+			return DocumentRequestTask.Start(uriConstructor, this, parent, documentId, revision, additionalProperties);
 		}
 
 		public Task<DocumentInfo> SaveDocument(Document document, bool overwriteConcurrentUpdates)

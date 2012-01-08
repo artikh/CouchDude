@@ -46,7 +46,7 @@ namespace CouchDude.Api
 			synchronousCouchApi = new SynchronousCouchApi(this);
 			replicatorApi = new ReplicatorApi(this, serializer);
 
-			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType.Json));
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }

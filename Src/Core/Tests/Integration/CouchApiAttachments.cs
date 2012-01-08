@@ -46,14 +46,14 @@ namespace CouchDude.Tests.Integration
 		void LoadAttachmentDirectly()
 		{
 			var attachment = dbApi.Synchronously.RequestAttachment(attachmentId, documentId);
-			CheckAttachment(attachment, shouldBeInline: false);
+			CheckAttachment(attachment);
 		}
 
 		void LoadAttachmentAsAPartOfTheDocument() 
 		{
 			var document = dbApi.Synchronously.RequestDocument(documentId);
 			Assert.Equal(lastKnownRevision, document.Revision);
-			CheckAttachment(document.Attachments[attachmentId], shouldBeInline: false);
+			CheckAttachment(document.Attachments[attachmentId]);
 		}
 
 		void LoadAttachmentAsAInlinePartOfTheDocument() 
@@ -61,7 +61,7 @@ namespace CouchDude.Tests.Integration
 			var document = dbApi.Synchronously.RequestDocument(
 				documentId, additionalProperties: AdditionalDocumentProperty.Attachments);
 			Assert.Equal(lastKnownRevision, document.Revision);
-			CheckAttachment(document.Attachments[attachmentId], shouldBeInline: true);
+			CheckAttachment(document.Attachments[attachmentId]);
 		}
 
 		void UpdateAttachment()
@@ -74,12 +74,11 @@ namespace CouchDude.Tests.Integration
 			lastKnownRevision = docInfo.Revision;
 		}
 
-		void CheckAttachment(Attachment attachment, bool shouldBeInline)
+		void CheckAttachment(Attachment attachment)
 		{
 			Assert.Equal("application/x-file", attachment.ContentType);
 			Assert.Equal(attachmentId, attachment.Id);
 			Assert.Equal(attachmentDataBuffer.Length, attachment.Length);
-			Assert.Equal(shouldBeInline, attachment.Inline);
 			Assert.Equal(attachmentDataBuffer, ReadStreamToBuffer(attachment.Syncronously.OpenRead()));
 		}
 

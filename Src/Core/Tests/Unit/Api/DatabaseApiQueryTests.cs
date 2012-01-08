@@ -43,7 +43,7 @@ namespace CouchDude.Tests.Unit.Api
 						doc = new { _id = "doc1" }
 					}	
 				}
-			}.ToJsonString());
+			}.ToJsonObject());
 
 			var couchApi = GetDatabaseApi(handler);
 			var result = couchApi.Synchronously.Query(
@@ -68,7 +68,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowIfDatabaseMissing()
 		{
 			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 
 			Assert.Throws<DatabaseMissingException>(
@@ -87,7 +87,7 @@ namespace CouchDude.Tests.Unit.Api
 				offset = 1,
 				rows = new object [0]	
 				}
-			.ToJsonString());
+			.ToJsonObject());
 
 			var couchApi = GetDatabaseApi(httpClientMock);
 			couchApi.Synchronously.Query(

@@ -35,7 +35,7 @@ namespace CouchDude.Api
 		}
 
 		/// <summary>Returns <see cref="IDatabaseApi"/> </summary>
-		public IDatabaseApi GetOrThrowIfUnavaliable(Func<string> operation)
+		public IDatabaseApi GetOrThrowIfUnavaliable(Func<string> operationName)
 		{
 			if (dbApiWeakReference != null)
 			{
@@ -43,7 +43,7 @@ namespace CouchDude.Api
 				if (dbApi != null) 
 					return dbApi;
 			}
-			throw new LazyLoadingException("Unable to {0} because IDatabaseApi is unavaliable", operation());
+			throw new LazyLoadingException("Unable to {0} because IDatabaseApi is unavaliable", operationName());
 		}
 	}
 }

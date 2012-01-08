@@ -20,7 +20,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -66,7 +66,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			var httpMock = new MockMessageHandler(new { ok = true }.ToJsonString());
+			var httpMock = new MockMessageHandler(new { ok = true }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(() => databaseApi.Synchronously.CopyDocument("doc1", null, null));
@@ -77,7 +77,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowIfDatabaseMissing()
 		{
 			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.CopyDocument("doc1", null, "doc2")
@@ -93,7 +93,7 @@ namespace CouchDude.Tests.Unit.Api
 		private static MockMessageHandler MockHttpClient()
 		{
 			return new MockMessageHandler(
-				new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
+				new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonObject());
 		}
 	}
 }

@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -16,8 +17,7 @@ namespace CouchDude.Tests.Unit.Api
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			var documentAttachment = new Attachment("attachment1") {
-				ContentType = "text/html", 
-				Inline = true
+				ContentType = "text/html"
 			};
 			documentAttachment.SetData(new MemoryStream(Encoding.UTF8.GetBytes("<p>test</p>")));
 
@@ -35,10 +35,7 @@ namespace CouchDude.Tests.Unit.Api
 			var httpMock = MockHttpClient();
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
-			var documentAttachment = new Attachment("attachment1") {
-				ContentType = "text/html", 
-				Inline = true
-			};
+			var documentAttachment = new Attachment("attachment1") { ContentType = "text/html" };
 			documentAttachment.SetData(new MemoryStream(Encoding.UTF8.GetBytes("<p>test</p>")));
 
 			var docInfo = databaseApi.Synchronously.SaveAttachment(documentAttachment, "doc1", "rev1");
@@ -52,7 +49,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpMock = new MockMessageHandler(
 				HttpStatusCode.Conflict,
-				new { error = "conflict", reason = "Document update conflict." }.ToJsonString());
+				new { error = "conflict", reason = "Document update conflict." }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
@@ -63,7 +60,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn500()
 		{
-			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty);
+			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty, MediaType.Json);
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<CouchCommunicationException>(

@@ -53,11 +53,8 @@ namespace CouchDude.Tests.Unit
 			// ReSharper restore RedundantEnumerableCastCall
 			Assert.Equal(3, attachments.Length);
 			Assert.Equal("text/plain", attachments[0].ContentType);
-			Assert.False(attachments[0].Inline);
 			Assert.Equal("text/html", attachments[1].ContentType);
-			Assert.False(attachments[1].Inline);
 			Assert.Equal("application/xml", attachments[2].ContentType);
-			Assert.False(attachments[2].Inline);
 		}
 
 		[Fact]
@@ -125,7 +122,7 @@ namespace CouchDude.Tests.Unit
 
 		}
 
-		static void TestCreation(Func<Document.DocumentAttachmentBag, Attachment> createAction)
+		static void TestCreation(Func<Document.AttachmentBag, Attachment> createAction)
 		{
 			var document = new Document(new {_id = "doc1"}.ToJsonObject());
 

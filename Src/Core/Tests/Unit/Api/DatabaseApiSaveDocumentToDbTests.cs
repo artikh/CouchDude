@@ -31,14 +31,12 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSaveToDbCorrectly()
 		{
-			MockMessageHandler mockMessageHandler;
-			var databaseApi = GetDatabaseApi(
-				out mockMessageHandler,
-				response: new {
-				  ok = true,
-				  id = "doc1",
-				  rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
-				}.ToJsonString());
+			var mockMessageHandler = new MockMessageHandler(new {
+				ok = true,
+				id = "doc1",
+				rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
+			}.ToJsonObject());
+			var databaseApi = Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
 
 			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "John Smith" }.ToDocument());
 
@@ -62,7 +60,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowIfDatabaseMissing()
 		{
 			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8, MediaType.Json)
 			});
 
 			Assert.Throws<DatabaseMissingException>(
@@ -150,13 +148,7 @@ namespace CouchDude.Tests.Unit.Api
 
 		private static IDatabaseApi GetDatabaseApi(string response = "{\"_id\":\"doc1\"}")
 		{
-			MockMessageHandler mockMessageHandler;
-			return GetDatabaseApi(out mockMessageHandler, response);
-		}
-
-		private static IDatabaseApi GetDatabaseApi(out MockMessageHandler mockMessageHandler, string response = "")
-		{
-			mockMessageHandler = new MockMessageHandler(response);
+			var mockMessageHandler = new MockMessageHandler(response, contentType: MediaType.Json);
 			return Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
 		}
 	}

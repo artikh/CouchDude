@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -38,7 +39,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpMock = new MockMessageHandler(
 				HttpStatusCode.Conflict,
-				new { error = "conflict", reason = "Document update conflict." }.ToJsonString());
+				new { error = "conflict", reason = "Document update conflict." }.ToJsonObject());
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<StaleObjectStateException>(
@@ -49,7 +50,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowCouchCommunicationExceptionOn500()
 		{
-			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty);
+			var httpMock = new MockMessageHandler(HttpStatusCode.InternalServerError, string.Empty, MediaType.Json);
 			var databaseApi = CreateCouchApi(httpMock).Db("testdb");
 
 			Assert.Throws<CouchCommunicationException>(

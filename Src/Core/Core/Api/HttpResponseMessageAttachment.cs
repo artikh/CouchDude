@@ -47,15 +47,7 @@ namespace CouchDude.Api
 		}
 
 		public override long Length { get { return httpContent.Headers.ContentLength ?? 0; } }
-
-		public override bool Inline
-		{
-			get { return false; }
-			// ReSharper disable ValueParameterNotUsed
-			set { ThrowNotImplemented(); }
-			// ReSharper restore ValueParameterNotUsed
-		}
-
+		
 		[JetBrains.Annotations.TerminatesProgram]
 		private static void ThrowNotImplemented() { throw new NotImplementedException("Instanece is read-only"); }
 	}

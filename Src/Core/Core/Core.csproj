@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="AdditionalDocumentProperty.cs" />
     <Compile Include="Api\DbUriConstructor.cs" />
+    <Compile Include="Api\DocumentRequestTask.cs" />
     <Compile Include="Api\QueryResultParserBase.cs" />
     <Compile Include="Attachment.cs" />
     <Compile Include="Document.DocumentAttachmentBag.cs" />
@@ -152,6 +153,7 @@
     <Compile Include="Impl\QueryResultExtensions.cs" />
     <Compile Include="LuceneSort.cs" />
     <Compile Include="LuceneType.cs" />
+    <Compile Include="Utils\MediaType.cs" />
     <Compile Include="Utils\DictionaryUtils.cs" />
     <Compile Include="Utils\ExceptionUtils.cs" />
     <Compile Include="Impl\OptionListParser.cs" />

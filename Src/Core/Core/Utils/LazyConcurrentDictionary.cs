@@ -32,5 +32,12 @@ namespace CouchDude.Utils
 
 		/// <summary>Gets value for the key invoking factory if needed.</summary>
 		public TValue Get(TKey key) { return innerDic.GetOrAdd(key, factory); }
+
+		/// <summary>Removes item from the dictionary if it exists.</summary>
+		public bool TryRemove(TKey key)
+		{
+			TValue value;
+			return innerDic.TryRemove(key, out value);
+		}
 	}
 }

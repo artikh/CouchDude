@@ -17,8 +17,10 @@
 #endregion
 
 using System;
+using System.Json;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CouchDude.Tests
@@ -30,10 +32,19 @@ namespace CouchDude.Tests
 		public HttpRequestMessage Request { get; private set; }
 		public string RequestBodyString { get; private set; }
 
-		public MockMessageHandler(string responseText) : this(HttpStatusCode.OK, responseText) { }
+		public MockMessageHandler(JsonValue responseJson) 
+			: this(HttpStatusCode.OK, responseJson.ToString(), "application/json") { }
 
-		public MockMessageHandler(HttpStatusCode code, string responseText)
-			: this(new HttpResponseMessage {StatusCode = code, Content = new StringContent(responseText)}) { }
+		public MockMessageHandler(HttpStatusCode code, JsonValue responseJson) 
+			: this(code, responseJson.ToString(), "application/json") { }
+
+		public MockMessageHandler(string responseText, string contentType) 
+			: this(HttpStatusCode.OK, responseText, contentType) { }
+
+		public MockMessageHandler(HttpStatusCode code, string responseText, string contentType)
+			: this(new HttpResponseMessage {
+					StatusCode = code, Content = new StringContent(responseText, Encoding.UTF8, contentType)
+			}) { }
 
 		public MockMessageHandler(HttpResponseMessage response = null)
 		{

@@ -72,6 +72,16 @@ namespace CouchDude.Tests
 				return reader.ReadToEnd();
 		}
 
+		public static byte[] ReadAsByteArray(this Stream stream) 
+		{
+			using (stream)
+			using (var memoryStream = new MemoryStream())
+			{
+				stream.CopyTo(memoryStream);
+				return memoryStream.ToArray();
+			}
+		}
+
 		public static string GetBodyString(this HttpResponseMessage response)
 		{
 			return response.Content.ReadAsStringAsync().Result;

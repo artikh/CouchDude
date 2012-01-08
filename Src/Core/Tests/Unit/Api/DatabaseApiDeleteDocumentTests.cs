@@ -20,6 +20,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Utils;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api
@@ -29,7 +30,8 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldSendDeleteRequestOnDeletion()
 		{
-			var handler = new MockMessageHandler(new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonString());
+			var handler = new MockMessageHandler(
+				new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonObject());
 			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler).Db("testdb");
 
 			var resultObject = databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
@@ -44,7 +46,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullArguments()
 		{
-			var handler = new MockMessageHandler(new { ok = true }.ToJsonString());
+			var handler = new MockMessageHandler(new { ok = true }.ToJsonObject());
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			Assert.Throws<ArgumentNullException>(
@@ -58,7 +60,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound)
 			{
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => CreateCouchApi(handler).Db("testdb").Synchronously.DeleteDocument("doc1", "rev-123")

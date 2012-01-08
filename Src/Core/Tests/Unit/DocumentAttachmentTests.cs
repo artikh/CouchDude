@@ -1,4 +1,3 @@
-using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -63,31 +62,7 @@ namespace CouchDude.Tests.Unit
 
 			Assert.Equal("text/plain", document.Attachments["attachment1"].ContentType);
 		}
-
-		[Fact]
-		public void ShouldProjectAttachmentStubIndicator()
-		{
-			var document = new Document(
-				new {
-					_id = "doc1",
-					_attachments = new { attachment1 = new { stub = true }}
-				}.ToJsonObject());
-
-			Assert.False(document.Attachments["attachment1"].Inline);
-		}
-
-		[Fact]
-		public void ShouldTreatAttachmentAsInlineIfThereAreNoStub()
-		{
-			var document = new Document(
-				new {
-					_id = "doc1",
-					_attachments = new { attachment1 = new { }}
-				}.ToJsonObject());
-
-			Assert.True(document.Attachments["attachment1"].Inline);
-		}
-
+		
 		[Fact]
 		public void ShouldRetriveDataFromInlineAttachment()
 		{
@@ -141,19 +116,6 @@ namespace CouchDude.Tests.Unit
 				}.ToJsonObject());
 
 			Assert.Throws<LazyLoadingException>(() => document.Attachments["attachment1"].Syncronously.OpenRead());
-		}
-
-		[Fact]
-		public void ShouldSetStubPropertyUsingInline()
-		{
-			var docJson = new { _id = "doc1", _attachments = new { a1 = new { } } }.ToJsonObject();
-			var document = new Document(docJson);
-
-			document.Attachments["a1"].Inline = false;
-			Assert.Equal(true, (bool)docJson.AsDynamic()._attachments.a1.stub);
-
-			document.Attachments["a1"].Inline = true;
-			Assert.False(docJson["_attachments"]["a1"].ContainsKey("stub"));
 		}
 	}
 }

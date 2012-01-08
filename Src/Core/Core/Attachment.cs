@@ -48,10 +48,6 @@ namespace CouchDude
 		/// <summary>Attachment data length.</summary>
 		public virtual long Length { get; private set; }
 
-		/// <summary>Indicates wether attachment is loaded as a part of the document or should 
-		/// it be requested separatly.</summary>
-		public virtual bool Inline { get; set; }
-
 		/// <summary>Syncrounous versions of async <see cref="Attachment"/> methods.</summary>
 		public SyncronousDocumentAttachmentMethods Syncronously
 		{
@@ -59,6 +55,8 @@ namespace CouchDude
 		}
 
 		/// <summary>Open attachment data stream for read.</summary>
+		/// <remarks>Returned stream could be unseakable. 
+		/// Same instance of stream could be returned every time method invoked.</remarks>
 		public virtual Task<Stream> OpenRead()
 		{
 			return TaskEx.FromResult(setStream ?? new MemoryStream(0));
@@ -94,6 +92,8 @@ namespace CouchDude
 			public SyncronousDocumentAttachmentMethods(Attachment parent) : this() { this.parent = parent; }
 
 			/// <summary>Open attachment data stream for read and waits for result.</summary>
+			/// <remarks>Returned stream could be unseakable. 
+			/// Same instance of stream could be returned every time method invoked.</remarks>
 			public Stream OpenRead() { return parent.OpenRead().WaitForResult(); }
 		}
 	}

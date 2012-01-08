@@ -13,6 +13,17 @@ namespace CouchDude
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public class WrappingAttachment : Attachment
 		{
+			/// <summary><see cref="WrappingAttachment"/> data storage options.</summary>
+			public enum DataStorage
+			{
+				/// <summary>Attachment data stored in database and should be requested separatly.</summary>
+				InDatabase,
+				/// <summary>Data included as base64 string within document.</summary>
+				Inline,
+				/// <summary>Data is stored elseware. Data getter should be set prior setting </summary>
+				InMultipart
+			}
+
 			/// <summary>Inline data property name.</summary>
 			protected const string DataPropertyName = "data";
 
@@ -25,8 +36,11 @@ namespace CouchDude
 			/// <summary>Length property name.</summary>
 			protected const string LengthPropertyName = "length";
 
+			const string FollowsPropertyName = "follows";
+
 			static readonly byte[] EmptyBuffer = new byte[0];
 			readonly Document parentDocument;
+			Func<Task<Stream>> dataGetter;
 
 			/// <summary>Creates attachment wrapping existing attachment 
 			/// descriptor (probably loaded from CouchDB)</summary>
@@ -66,6 +80,8 @@ namespace CouchDude
 					if(data != null)
 					{
 						var baseLength = 3*(data.Length/4);
+						if (baseLength == 0)
+							return 0;
 						if (data[data.Length - 2] == '=')
 							return baseLength - 2;
 						if (data[data.Length - 1] == '=')
@@ -77,60 +93,82 @@ namespace CouchDude
 				}
 			}
 
-			/// <summary>Indicates wether attachment is included as base64 string within document or should 
-			/// be requested separatly.</summary>
-			public override bool Inline
+			/// <summary>Indicates where attachment data is stored.</summary>
+			public DataStorage Storage
 			{
-				get { return !AttachmentDescriptor.GetPrimitiveProperty(StubPropertyName, defaultValue: false); }
+				get
+				{
+					var follows = AttachmentDescriptor.GetPrimitiveProperty<bool>(FollowsPropertyName);
+					var stub = AttachmentDescriptor.GetPrimitiveProperty<bool>(StubPropertyName);
+
+					if (follows)
+						return DataStorage.InMultipart;
+					if (stub)
+						return DataStorage.InDatabase;
+					return DataStorage.Inline;
+				}
 				set
 				{
-					if (value)
-						AttachmentDescriptor.Remove(StubPropertyName);
-					else
-						AttachmentDescriptor[StubPropertyName] = true;
+					switch (value)
+					{
+						case DataStorage.InDatabase:
+							AttachmentDescriptor.Remove(FollowsPropertyName);
+							AttachmentDescriptor[StubPropertyName] = true;
+							break;
+						case DataStorage.Inline:
+							AttachmentDescriptor.Remove(FollowsPropertyName);
+							AttachmentDescriptor.Remove(StubPropertyName);
+							break;
+						case DataStorage.InMultipart:
+							AttachmentDescriptor[FollowsPropertyName] = true;
+							AttachmentDescriptor.Remove(StubPropertyName);
+							break;
+						default:
+							throw new ArgumentOutOfRangeException("value");
+					}
 				}
 			}
 
 			/// <summary>Open attachment data stream for read.</summary>
 			public override Task<Stream> OpenRead()
 			{
-				if (Inline)
+				switch (Storage)
 				{
-					var base64String = AttachmentDescriptor.GetPrimitiveProperty<string>(DataPropertyName);
-					var inlineData = base64String.HasNoValue()
-						? EmptyBuffer
-						: Convert.FromBase64String(base64String);
-					Stream inlineDataStream = new MemoryStream(inlineData);
-					return TaskEx.FromResult(inlineDataStream);
+					case DataStorage.Inline:
+						return OpenInlineData();
+					case DataStorage.InDatabase:
+						return OpenDataFromDatabase(Id, parentDocument.Id, parentDocument.Revision);
+					case DataStorage.InMultipart:
+						if (dataGetter == null)
+							throw new InvalidOperationException("Attachment data storage is set to 'InMultipart', but it lacks data getter");
+						return dataGetter();
+					default:
+						throw new ArgumentOutOfRangeException();
 				}
-				else
-				{
-					var attachmentId = Id;
-					var documentId = parentDocument.Id;
-					var documentRevision = parentDocument.Revision;
+			}
 
-					var databaseApi = parentDocument
-						.DatabaseApiReference
-						.GetOrThrowIfUnavaliable(
-							operation: () =>
-								string.Format(
-									"load attachment {0} from document {1}(rev:{2})", attachmentId, documentId,
-									documentRevision)
-						);
+			Task<Stream> OpenInlineData()
+			{
+				var base64String = AttachmentDescriptor.GetPrimitiveProperty<string>(DataPropertyName);
+				return Task.Factory.StartNew(
+					() => {
+						var inlineData = base64String.HasNoValue()? EmptyBuffer: Convert.FromBase64String(base64String);
+						return new MemoryStream(inlineData) as Stream;
+					});
+			}
 
-					return databaseApi
-						.RequestAttachment(attachmentId, documentId, documentRevision)
-						.ContinueWith(
-							requestAttachmentTask => {
-								var recivedAttachment = requestAttachmentTask.Result;
-								AttachmentDescriptor[LengthPropertyName] = recivedAttachment.Length;
-								ContentType = recivedAttachment.ContentType;
-								Inline = recivedAttachment.Inline;
-								return recivedAttachment.OpenRead();
-							}
-						)
-						.Unwrap();
-				}
+			async Task<Stream> OpenDataFromDatabase(string attachmentId, string documentId, string documentRevision)
+			{
+				var databaseApi = parentDocument
+					.DatabaseApiReference
+					.GetOrThrowIfUnavaliable(operationName: () => string.Format("load attachment {0} from document {1}(rev:{2})", attachmentId, documentId, documentRevision));
+
+				var recivedAttachment = 
+					await databaseApi.RequestAttachment(attachmentId, documentId, documentRevision).ConfigureAwait(false);
+
+				AttachmentDescriptor[LengthPropertyName] = recivedAttachment.Length;
+				ContentType = recivedAttachment.ContentType;
+				return await recivedAttachment.OpenRead();
 			}
 
 			/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>
@@ -140,7 +178,7 @@ namespace CouchDude
 				if (!dataStream.CanRead)
 					throw new ArgumentOutOfRangeException("dataStream", dataStream, "Stream should be readable");
 
-				Inline = true;
+				Storage = DataStorage.Inline;
 
 				// TODO: we should not have intermediate byte array here
 				using (dataStream)
@@ -152,6 +190,9 @@ namespace CouchDude
 					AttachmentDescriptor[DataPropertyName] = base64String;
 				}
 			}
+
+			/// <summary>Sets implict data getter multipart loading data.</summary>
+			public void SetDataGetter(Func<Task<Stream>> dataGetter) { this.dataGetter = dataGetter; }
 		}
 	}
 }

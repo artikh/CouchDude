@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound)
 			{
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => GetDatabaseApi(httpClient).Synchronously.RequestLastestDocumentRevision("doc1")

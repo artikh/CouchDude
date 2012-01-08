@@ -65,9 +65,13 @@ namespace CouchDude.Api
 			// ReSharper restore SpecifyACultureInStringConversionExplicitly
 			reason = response.ReasonPhrase;
 
-			if (response.Content == null) return;
+			var content = response.Content;
+			if (content == null) return;
 
-			var responseText = response.Content.ReadAsStringAsync().Result;
+			var contentTypeHeader = content.Headers.ContentType;
+			if (contentTypeHeader == null || contentTypeHeader.MediaType != MediaType.Json) return;
+
+			var responseText = content.ReadAsStringAsync().Result;
 			UpdateUsingErrorDescriptor(serializer, responseText, ref error, ref reason);
 		}
 

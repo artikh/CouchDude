@@ -42,7 +42,7 @@ namespace CouchDude.Tests.Unit.Api
 				new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
 				new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
 				new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(messageHandler).Db("testdb");
 
@@ -87,7 +87,7 @@ namespace CouchDude.Tests.Unit.Api
 		public void ShouldThrowIfDatabaseMissing()
 		{
 			var httpClient = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.NotFound) {
-				Content = new StringContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}", Encoding.UTF8)
+				Content = new JsonContent("{\"error\":\"not_found\",\"reason\":\"no_db_file\"}")
 			});
 			Assert.Throws<DatabaseMissingException>(
 				() => CreateCouchApi(httpClient).Db("testdb").Synchronously.BulkUpdate(
@@ -104,7 +104,7 @@ namespace CouchDude.Tests.Unit.Api
 					new {id = "doc2", rev = "2-1a517022a0c2d4814d51abfedf9bfee8"},
 					new {id = "doc3", rev = "1-1a517022a0c2d4814d51abfedf9bfee9"},
 					new {id = "doc4", rev = "1-1a517022a0c2d4814d51abfedf9bfee0"}
-				}.ToJsonString());
+				}.ToJsonValue());
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
 			var result = databaseApi.Synchronously.BulkUpdate(
@@ -143,7 +143,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "forbidden", reason = "message" }
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
@@ -164,7 +164,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
@@ -186,7 +186,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
@@ -208,7 +208,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" },
 				new { id = "doc2", error = "conflict", reason = "message" }
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 
@@ -230,7 +230,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new object[] {
 				new { id = "doc1", error = "forbidden", reason = "message" },
 				new { id = "doc2", error = "conflict", reason = "message" }
-			}.ToJsonString());
+			}.ToJsonValue());
 
 			IDatabaseApi databaseApi = CreateCouchApi(handler).Db("testdb");
 

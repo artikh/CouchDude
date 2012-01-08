@@ -35,7 +35,7 @@ namespace CouchDude
 		internal const string IdPropertyName = "_id";
 		private  const string AttachmentsPropertyName = "_attachments";
 
-		private DocumentAttachmentBag documentAttachmentBag;
+		private AttachmentBag attachmentBag;
 
 		/// <summary>Underlying <see cref="JsonObject"/> instance.</summary>
 		public JsonObject RawJsonObject { get; private set; }
@@ -114,9 +114,9 @@ namespace CouchDude
 		}
 		
 		/// <summary>Attachment collection.</summary>
-		public DocumentAttachmentBag Attachments
+		public AttachmentBag Attachments
 		{
-			get { return documentAttachmentBag ?? (documentAttachmentBag = new DocumentAttachmentBag(this)); }
+			get { return attachmentBag ?? (attachmentBag = new AttachmentBag(this)); }
 		}
 
 		/// <summary>References (weakly) parent database API instance.</summary>

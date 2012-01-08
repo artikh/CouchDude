@@ -35,6 +35,13 @@ namespace CouchDude.Utils
 		{
 			return (JsonObject) DeepClone((JsonValue) jsonObject);
 		}
+
+		/// <summary>Removes property from JSON object if it is there.</summary>
+		public static void RemoveIfExists(this JsonObject self, string propertyName)
+		{
+			if (self.ContainsKey(propertyName))
+				self.Remove(propertyName);
+		}
 		
 		/// <summary>Returns primitive value of the property or defalut value.</summary>
 		public static T GetPrimitiveProperty<T>(this JsonObject self, string propertyName, T defaultValue = default(T))
