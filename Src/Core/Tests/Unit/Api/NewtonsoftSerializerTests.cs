@@ -18,6 +18,7 @@
 
 using System;
 using CouchDude.Api;
+using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

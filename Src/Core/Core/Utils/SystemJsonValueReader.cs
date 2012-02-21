@@ -18,6 +18,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Json;
 using System.Linq;
 using Newtonsoft.Json;
@@ -32,9 +33,7 @@ namespace CouchDude.Utils
 			public readonly JsonToken TokenType;
 			public readonly object Value;
 
-			public EmitValue(JsonToken tokenType) : this(tokenType, null) {}
-
-			public EmitValue(JsonToken tokenType, object value)
+			public EmitValue(JsonToken tokenType, object value = null)
 			{
 				TokenType = tokenType;
 				Value = value;
@@ -62,7 +61,7 @@ namespace CouchDude.Utils
 
 			if (jsonValueEnumerator.MoveNext())
 			{
-				base.SetToken(jsonValueEnumerator.Current.TokenType, jsonValueEnumerator.Current.Value);
+				SetToken(jsonValueEnumerator.Current.TokenType, jsonValueEnumerator.Current.Value);
 				return true;
 			}
 			return false;
@@ -77,6 +76,38 @@ namespace CouchDude.Utils
 		/// <inheritdoc />
 		public override DateTimeOffset? ReadAsDateTimeOffset() { throw new NotImplementedException(); }
 
+		/// <inheritdoc />
+		public override int? ReadAsInt32() 
+		{
+			Read();
+			if (TokenType == JsonToken.Integer || TokenType == JsonToken.Float)
+			{
+				SetToken(JsonToken.Integer, Convert.ToInt32(Value, CultureInfo.InvariantCulture));
+				return (int)Value;
+			}
+			
+			if (TokenType == JsonToken.Null)
+				return new int?();
+			
+			if (TokenType == JsonToken.String)
+			{
+				int result;
+				if (int.TryParse(
+					(string)Value, 
+					NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite | NumberStyles.AllowLeadingSign, 
+					Culture, 
+					out result))
+				{
+					SetToken(JsonToken.Integer, result);
+					return result;
+				}
+
+				throw new JsonSerializationException(String.Format("Could not convert string to integer: {0}.", Value));
+			}
+
+			throw new JsonSerializationException(String.Format("Error reading integer. Expected a number but got {0}.", TokenType));
+		}
+		
 		static IEnumerable<EmitValue> EnumerateJson(JsonValue jsonValue)
 		{
 			return EnumerateNullIfNullItIs(jsonValue)
