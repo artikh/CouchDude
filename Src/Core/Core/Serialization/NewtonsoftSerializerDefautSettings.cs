@@ -29,7 +29,7 @@ namespace CouchDude.Serialization
 		/// <summary>Standard set of JSON value convertors.</summary>
 		private static readonly JsonConverter[] Converters =
 			new JsonConverter[] {
-				new IsoUtcDateTimeConverter(), new StringEnumConverter(), new StringEnumConverter(), new UriConverter()
+				new IsoUtcDateTimeConverter(), new StringEnumConverter(), new TimeSpanConverter(), new StringEnumConverter(), new UriConverter()
 			};
 
 		/// <summary>Creates default serializer settings.</summary>

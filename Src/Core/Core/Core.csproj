@@ -98,6 +98,7 @@
     <Compile Include="Api\SynchronousDatabaseApi.cs" />
     <Compile Include="Api\LuceneQueryResultParser.cs" />
     <Compile Include="Api\SynchronousReplicatorApi.cs" />
+    <Compile Include="Serialization\TimeSpanConverter.cs" />
     <Compile Include="Serialization\UriConverter.cs" />
     <Compile Include="Api\ViewQueryResultParser.cs" />
     <Compile Include="Configuration\Builders\EntityConfigSettings.cs" />

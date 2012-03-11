@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Json;
 using CouchDude.Configuration;
 using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
@@ -74,6 +75,15 @@ namespace CouchDude.Tests.Unit.Serialization
 			Assert.Throws<ArgumentNullException>(() => serializer.ConvertToJson(entity, null, throwOnError: true));
 			Assert.Throws<ArgumentNullException>(() => serializer.ConvertToJson(null, config, throwOnError: true));
 			// ReSharper restore AssignNullToNotNullAttribute
+		}
+
+		[Fact]
+		public void ShouldSerializeTimeSpan() 
+		{
+			entity = Entity.CreateStandard();
+			config = MockEntityConfig(documentType: "entity", entityType: typeof (Entity));
+			var document = serializer.ConvertToJson(entity, config, throwOnError: true);
+			Assert.Equal(4*60*60*1000, (int)document["timeZoneOffset"]);
 		}
 
 		[Fact]
@@ -210,8 +220,7 @@ namespace CouchDude.Tests.Unit.Serialization
 		public void ShouldThrowOnUncompatibleEntityAndEntityConfig()
 		{
 			entity = new User();
-			config = MockEntityConfig(documentType: "simpleEntity", entityType: typeof(Entity)
-			);
+			config = MockEntityConfig(documentType: "simpleEntity", entityType: typeof(Entity));
 			Assert.Throws<InvalidOperationException>(() => serializer.ConvertToJson(entity, config, true));
 		}
 	}

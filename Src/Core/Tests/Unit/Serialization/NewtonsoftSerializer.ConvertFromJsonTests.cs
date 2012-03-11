@@ -150,15 +150,23 @@ namespace CouchDude.Tests.Unit.Serialization
 						true)
 			);
 		}
-		
+
 		[Fact]
 		public void ShouldThrowParseExceptionOnDeserializationError()
 		{
 			var obj = (JsonObject)JsonValue.Parse(
 				@"{ ""_id"": ""entity.doc1"", ""_rev"": ""123"", ""type"": ""entity"", ""age"": ""not an integer"" }");
-			Assert.Throws<ParseException>(() => 
+			Assert.Throws<ParseException>(() =>
 				serializer.ConvertFromJson(entityConfig, obj, true)
 			);
+		}
+
+		[Fact]
+		public void ShouldDeserializeTimeSpan()
+		{
+			var obj = Entity.CreateDocWithRevision().RawJsonObject;
+			var entity = (Entity)serializer.ConvertFromJson(entityConfig, obj, throwOnError: true);
+			Assert.Equal(TimeSpan.FromHours(4), entity.TimeZoneOffset);
 		}
 		
 		[Fact]

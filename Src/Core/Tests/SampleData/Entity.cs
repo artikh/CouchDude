@@ -45,7 +45,8 @@ namespace CouchDude.Tests.SampleData
 			       		Revision = StandardRevision,
 			       		Name = "John Smith",
 			       		Age = 42,
-			       		Date = new DateTime(1957, 4, 10)
+			       		Date = new DateTime(1957, 4, 10),
+								TimeZoneOffset = TimeSpan.FromHours(4)
 			       	};
 		}
 
@@ -56,7 +57,8 @@ namespace CouchDude.Tests.SampleData
 			       		Id = StandardEntityId,
 			       		Name = "John Smith",
 			       		Age = 42,
-			       		Date = new DateTime(1957, 4, 10)
+								Date = new DateTime(1957, 4, 10),
+								TimeZoneOffset = TimeSpan.FromHours(4)
 			       	};
 		}
 
@@ -69,7 +71,8 @@ namespace CouchDude.Tests.SampleData
 					type = DocType,
 					name = "John Smith",
 					age = 42,
-					date = "1957-04-10T00:00:00Z"
+					date = "1957-04-10T00:00:00Z",
+					timeZoneOffset = 4 * 60 * 60 * 1000
 				}.ToJsonTextReader());
 		}
 
@@ -81,7 +84,8 @@ namespace CouchDude.Tests.SampleData
 					type = DocType,
 					name = "John Smith",
 					age = 42,
-					date = "1957-04-10T00:00:00Z"
+					date = "1957-04-10T00:00:00Z",
+					timeZoneOffset = 4 * 60 * 60 * 1000
 				}.ToJsonTextReader());
 		}
 
@@ -94,6 +98,7 @@ namespace CouchDude.Tests.SampleData
 		public string Name { get; set; }
 		public int Age { get; set; }
 		public DateTime Date { get; set; }
+		public TimeSpan TimeZoneOffset { get; set; }
 
 		public void DoStuff() { }
 	}
