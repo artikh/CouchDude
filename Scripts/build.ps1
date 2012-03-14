@@ -2,7 +2,6 @@ properties {
     Import-Module .\teamcity.psm1
 
     $config = 'Debug'
-    $isDebug = $conifg -eq 'Debug'
     
     $scriptDir = (resolve-path .).Path
     $rootDir = (resolve-path ..).Path;

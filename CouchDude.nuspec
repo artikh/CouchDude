@@ -16,11 +16,13 @@
     <copyright>Copyright 2011</copyright>
 		<tags>couchdb</tags>
     <dependencies>
+			<dependency id="AsyncCTP" version="0.3" />
 			<dependency id="Common.Logging" version="2.0.0" />
-			<dependency id="HttpClient" version="0.6.0" />
-			<dependency id="JsonValue" version="0.6.0" />
-			<dependency id="Newtonsoft.Json" version="4.0.3" />
-            <dependency id="JetBrains.Annotations" version="6.1" />
+			<dependency id="JetBrains.Annotations" version="6.1" />
+			<dependency id="Newtonsoft.Json" version="4.0.8" />
+			<dependency id="System.Json" version="4.0.20126.16343" />
+			<dependency id="System.Net.Http" version="2.0.20126.16343" />
+			<dependency id="System.Net.Http.Formatting" version="4.0.20126.16343" />
     </dependencies>
   </metadata>
 </package>
