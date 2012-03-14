@@ -96,8 +96,8 @@ namespace CouchDude.Tests.Unit.Api
 
 		[Theory]
 		[InlineData("{  rows: {}}")]
-		[InlineData("{ \"total_rows\": \"non a number\", \"offset\": 0, \"rows\":[] }")]
-		[InlineData("{ \"total_rows\": 42, \"offset\": \"non a number\", \"rows\":[] }")]
+		[InlineData("{ \"total_rows\": -2, \"offset\": 0, \"rows\":[] }")]
+		[InlineData("{ \"total_rows\": 42, \"offset\": -3, \"rows\":[] }")]
 		[InlineData("{ \"total_rows\": 42, \"offset\": 0, \"rows\": \"non an array\" }")]
 		public void ShouldThrowParseExceptionOnInvalidResponse(string json)
 		{

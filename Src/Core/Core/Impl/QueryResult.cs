@@ -75,9 +75,9 @@ namespace CouchDude.Impl
 		/// <constructor />
 		protected QueryResult(IEnumerable<TRow> rows, int count, int totalCount, int offset)
 		{
-			if (offset < 0) throw new ArgumentOutOfRangeException("offset", offset, "Offset should be positive number.");
+			if (offset < 0 && offset != -1) throw new ArgumentOutOfRangeException("offset", offset, "Offset should be positive number or -1.");
+			if (totalCount < 0 && totalCount != -1) throw new ArgumentOutOfRangeException("totalCount", offset, "Total count should be positive number or -1.");
 			if (count < 0) throw new ArgumentOutOfRangeException("count", offset, "Count should be positive number.");
-			if (totalCount < 0) throw new ArgumentOutOfRangeException("totalCount", offset, "Total count should be positive number.");
 			if (rows == null) throw new ArgumentNullException("rows");
 
 			this.rows = new ReadOnlyCollection<TRow>(rows.ToList());

@@ -21,18 +21,12 @@ namespace CouchDude.Api
 
 		protected static int GetOffset(JsonObject response)
 		{
-			var offset = response.GetPrimitiveProperty("offset", -1);
-			if(offset == -1)
-				throw new ParseException("Query result is expected to contain integer 'offset' property");
-			return offset;
+			return response.GetPrimitiveProperty("offset", -1);
 		}
 
 		protected static int GetTotalRows(JsonObject response)
 		{
-			var totalRows = response.GetPrimitiveProperty("total_rows", -1);
-			if (totalRows == -1)
-				throw new ParseException("Query result is expected to contain integer 'total_rows' property");
-			return totalRows;
+			return response.GetPrimitiveProperty("total_rows", -1);
 		}
 
 		protected static JsonObject ParseRawResponse(TextReader textReader)

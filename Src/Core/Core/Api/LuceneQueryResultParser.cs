@@ -49,8 +49,14 @@ namespace CouchDude.Api
 				let document = documentJsonObject == null ? null : new Document(documentJsonObject)
 				select new LuceneResultRow(id, fields, score, id, document)
 			).ToArray();
-
-			return new LuceneQueryResult(query, rows, rows.Length, totalRows, offset, fetchDuration, searchDuration, limit, skip);
+			try
+			{
+				return new LuceneQueryResult(
+					query, rows, rows.Length, totalRows, offset, fetchDuration, searchDuration, limit, skip);
+			} catch (ArgumentOutOfRangeException e)
+			{
+				throw  new ParseException(e);
+			}
 		}
 	}
 }

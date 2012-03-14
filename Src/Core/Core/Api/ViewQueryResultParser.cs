@@ -16,6 +16,7 @@
 */
 #endregion
 
+using System;
 using System.IO;
 using System.Json;
 using System.Linq;
@@ -44,8 +45,14 @@ namespace CouchDude.Api
 				let document = documentJsonObject == null ? null : new Document(documentJsonObject)
 				select new ViewResultRow(viewKey, value, documentId, document)
 			).ToArray();
-
-			return new ViewQueryResult(viewQuery, rows, totalRows, offset);
+			try
+			{
+				return new ViewQueryResult(viewQuery, rows, totalRows, offset);
+			} 
+			catch (ArgumentOutOfRangeException e)
+			{
+				throw new ParseException(e);
+			}
 		}
 	}
 }
