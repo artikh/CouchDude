@@ -15,7 +15,7 @@ if ( (get-command invoke-psake -ErrorAction SilentlyContinue) -eq $null ) {
     Import-Module .\Scripts\psake.psm1
 }
 
-$globalAssemblyInfo = (cat .\Src\GlobalAssemblyInfo.cs)
+$globalAssemblyInfo = (cat .\GlobalAssemblyInfo.cs)
 
 $match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
 $currentVersion = $match.Groups[1].Value

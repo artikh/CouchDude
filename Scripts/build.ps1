@@ -1,4 +1,6 @@
 properties {
+    Import-Module .\teamcity.psm1
+
     $config = 'Debug'
     $isDebug = $conifg -eq 'Debug'
     
@@ -6,20 +8,17 @@ properties {
     $rootDir = (resolve-path ..).Path;
     $buildDir = "$rootDir\Build";   
     $srcDir = "$rootDir\Src";
-    
-    if ($packageDir -eq $null) {
-        if (test-path "C:\Dev\Packages") {
-            $packageDir = "C:\Dev\Packages"
-        } else {
-            $packageDir = $buildDir
-        }
-    }
+    $assemblyInfoFileName = "$rootDir\GlobalAssemblyInfo.cs"
 
     if ($version -eq $null) {
-        $globalAssemblyInfo = (cat "$srcDir\GlobalAssemblyInfo.cs")
+        $globalAssemblyInfo = (cat $assemblyInfoFileName)
 
         $match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
         $version = $match.Groups[1].Value
+    }
+    
+    if ($nugetSources -eq $null) {
+        $nugetSources = "https://go.microsoft.com/fwlink/?LinkID=206669"
     }
 }
 
@@ -32,61 +31,27 @@ task clean {
     mkdir -Force $buildDir > $null
 }
 
-task setVersion {
-    $assemblyInfoFileName = "$srcDir\GlobalAssemblyInfo.cs"
-  
+task setVersion {  
     $assembyInfo = [System.IO.File]::ReadAllText($assemblyInfoFileName)
     $assembyInfo = $assembyInfo -replace "Version\((.*)\)]", "Version(`"$version`")]"
     $assembyInfo.Trim() > $assemblyInfoFileName
 }
 
-function build($msbuildFile) {
-    exec { msbuild $msbuildFile /nologo /p:Config=$config /p:Platform='Any Cpu' /maxcpucount /verbosity:minimal }    
+
+task installPackages {    
+    exec { ..\tools\nuget\NuGet.exe install "$rootDir\Src\packages.config" -Source $nugetSources -OutputDirectory "$rootDir\Packages"  }
+    exec { ..\tools\nuget\NuGet.exe install "$rootDir\Tests\packages.config" -Source $nugetSources -OutputDirectory "$rootDir\Packages"  }
 }
 
-task buildCore -depends clean {
-    build "$rootDir\Src\Core\CouchDude.sln"
+task build -depends clean, installPackages {
+    exec { msbuild "$rootDir\CouchDude.sln" /nologo /p:Config=$config /p:Platform='Any Cpu' /maxcpucount /verbosity:minimal }    
 }
 
-task buildSchemeManager -depends clean, updateSchemeManager {
-    build "$rootDir\Src\SchemeManager\SchemeManager.sln"
-}
 
-task buildBootstrapper -depends clean, updateBootstrapperPackages {
-    build "$rootDir\Src\Bootstrapper\Bootstrapper.sln"
-}
-
-task build -depends buildCore, buildSchemeManager, buildBootstrapper
-
-function updatePackages([string]$solutionFile) {
-    exec { ..\tools\nuget\NuGet.exe update $solutionFile -Source "https://go.microsoft.com/fwlink/?LinkID=206669";"$packageDir"  }
-}
-
-task updateBootstrapperPackages -depends buildCore {
-    updatePackages $rootDir\Src\Bootstrapper\Bootstrapper.sln
-}
-
-task updateSchemeManager -depends buildCore {
-    updatePackages $rootDir\Src\SchemeManager\SchemeManager.sln
-}
-
-function runXunitTests ([string]$dllName) {
-    $outputFileName = "$buildDir\" + [System.IO.Path]::GetFileNameWithoutExtension($dllName) + ".html"
-    exec { ..\Tools\xunit\xunit.console.clr4.x86.exe "$dllName" /silent /-trait "level=integration" /html $outputFileName }
-}
-
-task testCore -depends buildCore {
-    runXunitTests "$rootDir\Src\Core\Tests\bin\$config\CouchDude.Tests.dll"
-}
-
-task testSchemeManager -depends buildSchemeManager {
-    runXunitTests "$rootDir\Src\SchemeManager\Tests\bin\$config\CouchDude.SchemeManager.Tests.dll"
-}
-
-task test -depends testCore, testSchemeManager {
-    #if test was succesfull deleting protocol
-    rm $buildDir\CouchDude.Tests.html
-    rm $buildDir\CouchDude.SchemeManager.Tests.html
+task test -depends build {
+    $outputFileName = "$buildDir\test-results-$version.html"
+    exec { ..\Tools\xunit\xunit.console.clr4.x86.exe "$rootDir\Tests\bin\$config\CouchDude.Tests.dll" /silent /-trait "level=integration" /html $outputFileName }
+    TeamCity-PublishArtifact $outputFileName
 }
 
 function replaceToken([string]$fileName, [string]$tokenName, [string]$tokenValue) {
@@ -122,7 +87,7 @@ function createOrClear($dirName) {
 }
 
 function packNuGet([string]$nuspecFile) {
-    exec { ..\tools\nuget\NuGet.exe pack $nuspecFile -OutputDirectory $packageDir }    
+    exec { ..\tools\nuget\NuGet.exe pack $nuspecFile -OutputDirectory $buildDir }    
 }
 
 function prepareAndPackage([string]$templateNuSpec, [array]$fileTemplates) {
@@ -137,21 +102,7 @@ function prepareAndPackage([string]$templateNuSpec, [array]$fileTemplates) {
     del $nuspecFile
 }
 
-task packageCore -depends buildCore {
-    prepareAndPackage -templateNuSpec "$srcDir\Core\Core\CouchDude.nuspec" -fileTemplates ("$srcDir\Core\Core\bin\$config\CouchDude.*")
+task package -depends build {
+    prepareAndPackage -templateNuSpec "$rootDir\CouchDude.nuspec" -fileTemplates ("$srcDir\bin\$config\CouchDude.*")
+    TeamCity-PublishArtifact "$buildDir\CouchDude.$version.nupkg"
 }
-
-task packageSchemeManager -depends buildSchemeManager {
-    prepareAndPackage -templateNuSpec "$srcDir\SchemeManager\Core\CouchDude.SchemeManager.nuspec" -fileTemplates ("$srcDir\SchemeManager\Core\bin\$config\CouchDude.SchemeManager.*")
-}
-
-task packageBootstrapper -depends buildBootstrapper {
-    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper\Core\CouchDude.Bootstrapper.nuspec" -fileTemplates ("$srcDir\Bootstrapper\Core\bin\$config\CouchDude.Bootstrapper.*")
-}
-
-task packageAzureBootstrapper {
-    prepareAndPackage -templateNuSpec "$srcDir\Bootstrapper\Azure\CouchDude.Bootstrapper.Azure.nuspec" `
-                      -fileTemplates ("$srcDir\Bootstrapper\Azure\bin\$config\CouchDude.Bootstrapper.Azure.*")
-}
-
-task package -depends packageCore, packageBootstrapper, packageAzureBootstrapper, packageSchemeManager
