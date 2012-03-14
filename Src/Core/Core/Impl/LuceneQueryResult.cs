@@ -32,14 +32,14 @@ namespace CouchDude.Impl
 		
 		/// <constructor />
 		public LuceneQueryResult(
-			LuceneQuery query, ICollection<LuceneResultRow> rows, int totalCount, int offset, 
+			LuceneQuery query, ICollection<LuceneResultRow> rows, int? totalCount, int? offset, 
 			TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip)
 			: base(rows, totalCount, offset) { Init(query, fetchDuration, searchDuration, limit, skip); }
 
 		/// <constructor />
 		public LuceneQueryResult(
-			LuceneQuery query, IEnumerable<LuceneResultRow> rows, 
-			int count, int totalCount, int offset, TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip)
+			LuceneQuery query, IEnumerable<LuceneResultRow> rows,
+			int count, int? totalCount, int? offset, TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip)
 			: base(rows, count, totalCount, offset) { Init(query, fetchDuration, searchDuration, limit, skip); }
 
 		private void Init(LuceneQuery query, TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip)
@@ -106,14 +106,14 @@ namespace CouchDude.Impl
 		
 		/// <constructor />
 		public LuceneQueryResult(
-			LuceneQuery query, ICollection<LuceneResultRow> rows, int totalCount, int offset,
+			LuceneQuery query, ICollection<LuceneResultRow> rows, int? totalCount, int? offset,
 			TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip, Func<IEnumerable<LuceneResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, totalCount, offset, rowConvertor) { Init(query, fetchDuration, searchDuration, limit, skip); }
 
 		/// <constructor />
 		public LuceneQueryResult(
 			LuceneQuery query, IEnumerable<LuceneResultRow> rows,
-			int count, int totalCount, int offset, TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip,
+			int count, int? totalCount, int? offset, TimeSpan fetchDuration, TimeSpan searchDuration, int limit, int skip,
 			Func<IEnumerable<LuceneResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, count, totalCount, offset, rowConvertor) { Init(query, fetchDuration, searchDuration, limit, skip); }
 

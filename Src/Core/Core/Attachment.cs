@@ -59,7 +59,7 @@ namespace CouchDude
 		/// Same instance of stream could be returned every time method invoked.</remarks>
 		public virtual Task<Stream> OpenRead()
 		{
-			return TaskEx.FromResult(setStream ?? new MemoryStream(0));
+			return TaskUtils.FromResult(setStream ?? new MemoryStream(0));
 		}
 
 		/// <summary>Sets attachment data. Bytes are written to database with parent document.</summary>

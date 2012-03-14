@@ -19,14 +19,23 @@ namespace CouchDude.Api
 			return rowsArray.Cast<JsonObject>();
 		}
 
-		protected static int GetOffset(JsonObject response)
-		{
-			return response.GetPrimitiveProperty("offset", -1);
-		}
+		protected static int? GetOffset(JsonObject response) { return GetIntProperty(response, "offset"); }
 
-		protected static int GetTotalRows(JsonObject response)
+		protected static int? GetTotalRows(JsonObject response) { return GetIntProperty(response, "total_rows"); }
+
+		private static int? GetIntProperty(JsonObject jsonObject, string propertyName)
 		{
-			return response.GetPrimitiveProperty("total_rows", -1);
+			if (!jsonObject.ContainsKey(propertyName))
+				return null;
+			var value = jsonObject[propertyName] as JsonPrimitive;
+			if (value != null)
+			{
+				var intValue = value.Value as int?;
+				if (intValue != null) 
+					return value.Value as int?;
+			}
+
+			throw new ParseException("Response property {0} should be integer value", propertyName);
 		}
 
 		protected static JsonObject ParseRawResponse(TextReader textReader)

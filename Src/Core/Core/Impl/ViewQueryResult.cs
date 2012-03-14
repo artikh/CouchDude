@@ -32,11 +32,11 @@ namespace CouchDude.Impl
 			new ViewQueryResult(query: new ViewQuery(), rows: new ViewResultRow[0], totalCount: 0, offset: 0);
 
 		/// <constructor />
-		public ViewQueryResult(ViewQuery query, ICollection<ViewResultRow> rows, int totalCount, int offset) 
+		public ViewQueryResult(ViewQuery query, ICollection<ViewResultRow> rows, int? totalCount, int? offset) 
 			: base(rows, totalCount, offset) { Query = query; }
 
 		/// <constructor />
-		public ViewQueryResult(ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset) 
+		public ViewQueryResult(ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int? totalCount, int? offset) 
 			: base(rows, count, totalCount, offset) { Query = query; }
 
 		/// <inheritdoc/>
@@ -78,17 +78,17 @@ namespace CouchDude.Impl
 		/// <summary>Empty query result.</summary>
 		// ReSharper disable StaticFieldInGenericType
 		public static readonly IViewQueryResult<T> Empty =
-			new ViewQueryResult<T>(query: new ViewQuery(), rows: new ViewResultRow[0], totalCount: 0, offset: 0, rowConvertor: rows => rows.Select(_ => default(T)));
+			new ViewQueryResult<T>(new ViewQuery(), new ViewResultRow[0], totalCount: 0, offset: 0, rowConvertor: rows => rows.Select(_ => default(T)));
 		// ReSharper restore StaticFieldInGenericType
 
 		/// <constructor />
 		public ViewQueryResult(
-			ViewQuery query, ICollection<ViewResultRow> rows, int totalCount, int offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
+			ViewQuery query, ICollection<ViewResultRow> rows, int? totalCount, int? offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, totalCount, offset, rowConvertor) { Query = query; }
 
 		/// <constructor />
 		public ViewQueryResult(
-			ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int totalCount, int offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
+			ViewQuery query, IEnumerable<ViewResultRow> rows, int count, int? totalCount, int? offset, Func<IEnumerable<ViewResultRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, count, totalCount, offset, rowConvertor) { Query = query; }
 
 		/// <inheritdoc/>

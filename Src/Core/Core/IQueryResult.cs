@@ -30,10 +30,10 @@ namespace CouchDude
 		int Count { get; }
 
 		/// <summary>Total count of items in query target.</summary>
-		int TotalCount { get; }
+		int? TotalCount { get; }
 
 		/// <summary>First result item offset in query target.</summary>
-		int Offset { get; }
+		int? Offset { get; }
 
 		/// <summary>Raw result data.</summary>
 		IEnumerable<TRow> Rows { get; }

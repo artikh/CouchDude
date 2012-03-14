@@ -43,7 +43,7 @@ namespace CouchDude.Utils
 				self.Remove(propertyName);
 		}
 		
-		/// <summary>Returns primitive value of the property or defalut value.</summary>
+		/// <summary>Returns primitive value of the property of certan type or defalut value.</summary>
 		public static T GetPrimitiveProperty<T>(this JsonObject self, string propertyName, T defaultValue = default(T))
 		{
 			if (self == null) return defaultValue;

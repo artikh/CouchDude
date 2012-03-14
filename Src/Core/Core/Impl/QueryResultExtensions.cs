@@ -29,7 +29,7 @@ namespace CouchDude.Impl
 		{
 			return new LuceneQueryResult<T>(
 				result.Query, result.Rows, result.Count, result.TotalCount, result.Offset, 
-				result.FetchDuration, result.SearchDuration, result.Limit, result.Offset,  rowConvertor);
+				result.FetchDuration, result.SearchDuration, result.Limit, result.Offset ?? 0,  rowConvertor);
 		}
 
 		/// <summary>Converts untyped query result ot typed one.</summary>

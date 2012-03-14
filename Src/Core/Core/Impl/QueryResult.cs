@@ -32,14 +32,14 @@ namespace CouchDude.Impl
 		private volatile IEnumerable<T> convertedRows;
 
 		/// <constructor />
-		protected QueryResult(ICollection<TRow> rows, int totalCount, int offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
+		protected QueryResult(ICollection<TRow> rows, int? totalCount, int? offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, totalCount, offset)
 		{
 			this.rowConvertor = rowConvertor;
 		}
 
 		/// <constructor />
-		protected QueryResult(IEnumerable<TRow> rows, int count, int totalCount, int offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
+		protected QueryResult(IEnumerable<TRow> rows, int count, int? totalCount, int? offset, Func<IEnumerable<TRow>, IEnumerable<T>> rowConvertor)
 			: base(rows, count, totalCount, offset)
 		{
 			this.rowConvertor = rowConvertor;
@@ -65,18 +65,20 @@ namespace CouchDude.Impl
 		private readonly IEnumerable<TRow> rows = Enumerable.Empty<TRow>();
 
 		private readonly int count;
-		private readonly int totalCount;
-		private readonly int offset;
+		private readonly int? totalCount;
+		private readonly int? offset;
 
 		/// <constructor />
-		protected QueryResult(ICollection<TRow> rows, int totalCount, int offset)
+		protected QueryResult(ICollection<TRow> rows, int? totalCount, int? offset)
 			: this(rows, rows.Count, totalCount, offset) { }
 
 		/// <constructor />
-		protected QueryResult(IEnumerable<TRow> rows, int count, int totalCount, int offset)
+		protected QueryResult(IEnumerable<TRow> rows, int count, int? totalCount, int? offset)
 		{
-			if (offset < 0 && offset != -1) throw new ArgumentOutOfRangeException("offset", offset, "Offset should be positive number or -1.");
-			if (totalCount < 0 && totalCount != -1) throw new ArgumentOutOfRangeException("totalCount", offset, "Total count should be positive number or -1.");
+			if (offset.HasValue && offset.Value < 0) 
+				throw new ArgumentOutOfRangeException("offset", offset, "Offset should be positive number or null.");
+			if (totalCount.HasValue && totalCount.Value < 0) 
+				throw new ArgumentOutOfRangeException("totalCount", offset, "Total count should be positive number or null.");
 			if (count < 0) throw new ArgumentOutOfRangeException("count", offset, "Count should be positive number.");
 			if (rows == null) throw new ArgumentNullException("rows");
 
@@ -89,9 +91,9 @@ namespace CouchDude.Impl
 		/// <inheritdoc/>
 		public int Count { get { return count; } }
 		/// <inheritdoc/>
-		public int TotalCount { get { return totalCount; } }
+		public int? TotalCount { get { return totalCount; } }
 		/// <inheritdoc/>
-		public int Offset { get { return offset; } }
+		public int? Offset { get { return offset; } }
 		/// <inheritdoc/>
 		public IEnumerable<TRow> Rows { get { return rows; } }
 	}

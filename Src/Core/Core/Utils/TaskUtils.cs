@@ -24,6 +24,14 @@ namespace CouchDude.Utils
 	/// <summary><see cref="Task"/> utility methods.</summary>
 	public static class TaskUtils
 	{
+		/// <summary>Produces task from result.</summary>
+		public static Task<T> FromResult<T>(T result)
+		{
+			var completionSource = new TaskCompletionSource<T>();
+			completionSource.TrySetResult(result);
+			return completionSource.Task;
+		}
+
 		/// <summary>Waits for result of the task returning it result.</summary>
 		public static void WaitForResult(this Task task)
 		{

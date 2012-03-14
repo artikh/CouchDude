@@ -20,7 +20,6 @@ using System;
 using System.Collections.Generic;
 using System.Json;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using CouchDude.Utils;
 
@@ -118,27 +117,35 @@ namespace CouchDude.Api
 
 		public bool IsEmpty { get { return updateDescriptors.Count == 0; } }
 
-		public async Task<IDictionary<string, DocumentInfo>> Execute(
+		public Task<IDictionary<string, DocumentInfo>> Execute(
 			Func<HttpRequestMessage, Task<HttpResponseMessage>> startRequest)
 		{
 			var bulkUpdateUri = uriConstructor.BulkUpdateUri;
-			var request =
-				new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
+			var request = new HttpRequestMessage(HttpMethod.Post, bulkUpdateUri) { Content = new JsonContent(FormatDescriptor()) };
+			return startRequest(request).ContinueWith<Task<IDictionary<string, DocumentInfo>>>(HandleResponse).Unwrap();
+		}
 
-			var response = await startRequest(request).ConfigureAwait(false);
+		private Task<IDictionary<string, DocumentInfo>> HandleResponse(Task<HttpResponseMessage> requestTask)
+		{
+			var response = requestTask.Result;
+
 			if (!response.IsSuccessStatusCode)
 			{
 				var error = new CouchError(serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowCouchCommunicationException();
 			}
+			return response.Content.ReadAsJsonArrayAsync().ContinueWith<IDictionary<string, DocumentInfo>>(ProcessResponseData);
+		}
 
-			dynamic responseDescriptors = await response.Content.ReadAsJsonArrayAsync().ConfigureAwait(false);
+		private IDictionary<string, DocumentInfo> ProcessResponseData(Task<JsonArray> readDataTask)
+		{
+			var responseDescriptors = readDataTask.Result.AsDynamic();
 			foreach (var responseDescriptor in responseDescriptors)
 			{
 				string errorName = responseDescriptor.error;
 				string documentId = responseDescriptor.id;
-				if(errorName != null) 
+				if (errorName != null)
 					CollectError(documentId, responseDescriptor.ToString());
 				else
 				{
@@ -147,7 +154,7 @@ namespace CouchDude.Api
 				}
 			}
 
-			switch(exceptions.Count)
+			switch (exceptions.Count)
 			{
 				case 0:
 					return result;
