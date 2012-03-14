@@ -27,7 +27,7 @@ namespace CouchDude.Utils
 		public static JsonValue DeepClone(this JsonValue jsonValue)
 		{
 			// HACK: Implement proper visitor here
-			return JsonValue.Parse(jsonValue.ToString(JsonSaveOptions.None));
+			return JsonValue.Parse(jsonValue.ToString());
 		}
 
 		/// <summary>Clones JSON value.</summary>

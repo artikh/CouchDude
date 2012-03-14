@@ -51,7 +51,7 @@ namespace CouchDude.Tests
 				throw new TimeoutException("Wait handle wait timeout expired");
 		}
 
-		public static string ToJsonString(this object self) { return self.ToJsonValue().ToString(JsonSaveOptions.None); }
+		public static string ToJsonString(this object self) { return self.ToJsonValue().ToString(); }
 
 		public static JsonValue ToJsonValue(this object self) { return Serializer.ConvertToJson(self, throwOnError: true); }
 
