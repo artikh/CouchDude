@@ -12,3 +12,5 @@ _ReSharper.*
 *.tmp
 *.eprj
 *.user.ps1
+*.local.xml
+packages

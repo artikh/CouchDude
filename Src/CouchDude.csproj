@@ -66,7 +66,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\GlobalAssemblyInfo.cs">
+    <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AdditionalDocumentProperty.cs" />
@@ -238,10 +238,10 @@
     <Compile Include="Document.WrappingDocumentAttachment.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\CouchDude.licenseheader">
+    <Compile Include="Api\DatabaseApi.DocumentSaver.cs" />
+    <None Include="..\CouchDude.licenseheader">
       <Link>CouchDude.licenseheader</Link>
     </None>
-    <Compile Include="Api\DatabaseApi.DocumentSaver.cs" />
     <None Include="CouchDude.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -289,9 +289,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Core.crunchproject.local.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
