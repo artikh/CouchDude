@@ -42,7 +42,7 @@ task setVersion {
 
 task installPackages {    
     dir -Path $rootDir -Recurse -Filter packages.config | %{    
-        exec { ..\tools\nuget\NuGet.exe install $_.FullName -Source $nugetSources -OutputDirectory "$srcDir\Packages"  }
+        exec { ..\tools\nuget\NuGet.exe install $_.FullName -Source $nugetSources -OutputDirectory "$rootDir\Packages"  }
     }
 }
 
