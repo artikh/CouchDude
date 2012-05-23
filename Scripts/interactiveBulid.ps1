@@ -20,6 +20,14 @@ $globalAssemblyInfo = (cat .\GlobalAssemblyInfo.cs)
 $match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
 $currentVersion = $match.Groups[1].Value
 
+if($currentVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$") {
+    $currentVersion = $currentVersion + ".0"
+    
+if($currentVersion -notmatch "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0).([1-9]\d*|0)$") {
+    echo "Current version $currentVersion written in $globalAssemblyInfo is invalid."
+    $currentVersion = '0.0.0.0'
+}
+
 echo "Current version is $currentVersion"
 
 $versionSegments = $currentVersion.Split('.')
@@ -38,6 +46,7 @@ while($true) {
 
     if ($newVersion.ToLower().StartsWith('c')) {
         Write-Host "Using current version"
+        
         $newVersion = $currentVersion
     } else {
         if ($newVersion.Length -eq 0) {
