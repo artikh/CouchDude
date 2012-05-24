@@ -13,9 +13,8 @@ properties {
     $srcDir = "$rootDir\Src";
     $assemblyInfoFileName = "$rootDir\GlobalAssemblyInfo.cs"
         
-    $version = detectVersion $version $assemblyInfoFileName $buildNumber
-    $dotNetVersion = formatDotNetVersion $version
-    $nuGetVersion = formatNuGetVersion $version
+    $version = detectVersion $version $assemblyInfoFileName
+    TeamCity-SetBuildNumber $version
     
     echo "Building version $nuGetVersion"
     
@@ -35,7 +34,7 @@ task clean {
 
 task setVersion {  
     $assembyInfo = [System.IO.File]::ReadAllText($assemblyInfoFileName)
-    $assembyInfo = $assembyInfo -replace "Version\((.*)\)]", "Version(`"$dotNetVersion`")]"
+    $assembyInfo = $assembyInfo -replace "Version\((.*)\)]", "Version(`"$version`")]"
     $assembyInfo.Trim() > $assemblyInfoFileName
 }
 
@@ -52,12 +51,12 @@ task build -depends clean, installPackages {
 
 
 task test -depends build {
-    $outputFileName = "$buildDir\test-results-$dotNetVersion.html"
+    $outputFileName = "$buildDir\test-results-$version.html"
     exec { & "$rootDir\Tools\xunit\xunit.console.clr4.x86.exe" "$rootDir\Tests\bin\$config\CouchDude.Tests.dll" /silent /-trait level=integration /html "$outputFileName" }
     TeamCity-PublishArtifact $outputFileName
 }
 
 task package -depends build {
-    prepareAndPackage -templateNuSpec "$rootDir\CouchDude.nuspec" -fileTemplates ("$srcDir\bin\$config\CouchDude.*") -version $nuGetVersion
-    TeamCity-PublishArtifact "$buildDir\CouchDude.$nuGetVersion.nupkg"
+    prepareAndPackage -templateNuSpec "$rootDir\CouchDude.nuspec" -fileTemplates ("$srcDir\bin\$config\CouchDude.*") -version $version
+    TeamCity-PublishArtifact "$buildDir\CouchDude.$version.nupkg"
 }

@@ -1,5 +1,6 @@
-function exec
-{
+.\utils.ps1
+
+function exec {
     [CmdletBinding()]
     param(
         [Parameter(Position=0,Mandatory=1)][scriptblock]$cmd,
@@ -20,12 +21,12 @@ $globalAssemblyInfo = (cat .\GlobalAssemblyInfo.cs)
 $match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
 $currentVersion = $match.Groups[1].Value
 
-if($currentVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$") {
-    $currentVersion = $currentVersion + ".0"
+if($currentVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0).([1-9]\d*|0)$") {
+    $currentVersion = $currentVersion.Substring(0, $currentVersion.LastIndexOf('.'))
 }
-if($currentVersion -notmatch "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0).([1-9]\d*|0)$") {
+if($currentVersion -notmatch "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$") {
     echo "Current version $currentVersion written in $globalAssemblyInfo is invalid."
-    $currentVersion = '0.0.0.0'
+    $currentVersion = '0.0.0'
 }
 
 echo "Current version is $currentVersion"
@@ -55,7 +56,7 @@ while($true) {
         Write-Host "Using version $newVersion"
     }
 
-    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
+    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
         Write-Host "Version is malformed please try again"
     }
     else {
@@ -93,8 +94,9 @@ try {
 
 if ($psake.build_success -and $commit) {
     Write-Host "Committing changes"
+    exec { git add . }
     exec { git add -u }
-    exec { git commit }
+    exec { git commit -m $newVersion --edit }
 
     Write-Host "Creating tag"
     exec { git tag -f "v$newVersion" }
