@@ -22,7 +22,7 @@ $currentVersion = $match.Groups[1].Value
 
 if($currentVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$") {
     $currentVersion = $currentVersion + ".0"
-    
+}
 if($currentVersion -notmatch "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0).([1-9]\d*|0)$") {
     echo "Current version $currentVersion written in $globalAssemblyInfo is invalid."
     $currentVersion = '0.0.0.0'
@@ -55,14 +55,13 @@ while($true) {
         Write-Host "Using version $newVersion"
     }
 
-    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
+    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
         Write-Host "Version is malformed please try again"
     }
     else {
         break
     }
 }
-
 
 try {
     $taskList = (Read-Host -Prompt "Enter task list [default]")

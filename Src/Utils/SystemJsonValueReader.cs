@@ -67,13 +67,24 @@ namespace CouchDude.Utils
 			return false;
 		}
 
-		/// <inheritdoc />
+        /// <inheritdoc />
+        public override string ReadAsString() 
+        {
+            Read();
+            SetToken(JsonToken.String, Value);
+            return Value.ToString(); 
+        }
+
+	    /// <inheritdoc />
 		public override byte[] ReadAsBytes() { throw new NotImplementedException(); }
 
 		/// <inheritdoc />
 		public override decimal? ReadAsDecimal() { throw new NotImplementedException(); }
 
-		/// <inheritdoc />
+        /// <inheritdoc />
+        public override DateTime? ReadAsDateTime() { throw new NotImplementedException(); }
+
+	    /// <inheritdoc />
 		public override DateTimeOffset? ReadAsDateTimeOffset() { throw new NotImplementedException(); }
 
 		/// <inheritdoc />
