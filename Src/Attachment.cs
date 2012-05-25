@@ -21,6 +21,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using CouchDude.Utils;
+using TaskUtils = CouchDude.Utils.TaskUtils;
 
 namespace CouchDude
 {

@@ -94,7 +94,7 @@ namespace CouchDude.Tests.Unit
 
 			var databaseApi = Mock.Of<IDatabaseApi>(
 				a => a.RequestAttachment("attachment1", "doc1", "rev1") == 
-					TaskEx.FromResult(
+					TaskUtils.FromResult(
 						new HttpResponseMessageAttachment("attachment1", new HttpResponseMessage(HttpStatusCode.OK) {
 							Content = new StringContent("test", Encoding.UTF8, "text/plain")
 						}) as Attachment
