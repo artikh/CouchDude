@@ -13,7 +13,7 @@ properties {
     $srcDir = "$rootDir\Src";
     $assemblyInfoFileName = "$rootDir\GlobalAssemblyInfo.cs"
         
-    $version = detectVersion $version $assemblyInfoFileName
+    $version = detectVersion $version $assemblyInfoFileName $buildNumber
     TeamCity-SetBuildNumber $version
     
     echo "Building version $nuGetVersion"
