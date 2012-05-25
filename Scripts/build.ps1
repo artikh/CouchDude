@@ -57,6 +57,6 @@ task test -depends build {
 }
 
 task package -depends build {
-    prepareAndPackage -templateNuSpec "$rootDir\CouchDude.nuspec" -fileTemplates ("$srcDir\bin\$config\CouchDude.*") -version $version
+    prepareAndPackage -templateNuSpec "$rootDir\CouchDude.nuspec" -fileTemplates ("$srcDir\bin\$config\CouchDude.*") -version $version -packagesFileName "$srcDir\packages.config"
     TeamCity-PublishArtifact "$buildDir\CouchDude.$version.nupkg"
 }

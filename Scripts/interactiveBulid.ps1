@@ -1,4 +1,4 @@
-.\utils.ps1
+. .\Scripts\utils.ps1
 
 function exec {
     [CmdletBinding()]
@@ -16,31 +16,17 @@ if ( (get-command invoke-psake -ErrorAction SilentlyContinue) -eq $null ) {
     Import-Module .\Scripts\psake.psm1
 }
 
-$globalAssemblyInfo = (cat .\GlobalAssemblyInfo.cs)
-
-$match = [regex]::Match($globalAssemblyInfo, '\[assembly: AssemblyVersion\("([\.\d]+)"\)\]')
-$currentVersion = $match.Groups[1].Value
-
-if($currentVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0).([1-9]\d*|0)$") {
-    $currentVersion = $currentVersion.Substring(0, $currentVersion.LastIndexOf('.'))
-}
-if($currentVersion -notmatch "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$") {
-    echo "Current version $currentVersion written in $globalAssemblyInfo is invalid."
-    $currentVersion = '0.0.0'
-}
+$currentVersion = detectVersion -assemblyInfoFileName .\GlobalAssemblyInfo.cs
 
 echo "Current version is $currentVersion"
 
-$versionSegments = $currentVersion.Split('.')
-$lastVersionSegmentIndex = $versionSegments.Length - 1
-$lastVersionSegment = $versionSegments[$lastVersionSegmentIndex]
-$lastVersion = [int]::Parse($lastVersionSegment)
-$lastVersion++
+$suggestedNewVersion = incrementVersion $currentVersion
 
-$versionSegments[$lastVersionSegmentIndex] = $lastVersion.ToString()
-$suggestedNewVersion = [string]::Join('.', $versionSegments)
+while((verifyVersion $newVersion) -eq $null) {
+    if($newVersion -ne $null) {
+        Write-Host "Version is malformed please try again"
+    }
 
-while($true) {
     try {
         $newVersion = (Read-Host -Prompt "Enter new version [$suggestedNewVersion]")
     } catch { }
@@ -53,16 +39,10 @@ while($true) {
         if ($newVersion.Length -eq 0) {
             $newVersion = $suggestedNewVersion;
         }
-        Write-Host "Using version $newVersion"
-    }
-
-    if( -not ($newVersion -match "^([1-9]\d*|0)\.([1-9]\d*|0)\.([1-9]\d*|0)$")) {
-        Write-Host "Version is malformed please try again"
-    }
-    else {
-        break
     }
 }
+
+Write-Host "Using version $newVersion"
 
 try {
     $taskList = (Read-Host -Prompt "Enter task list [default]")
