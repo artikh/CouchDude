@@ -38,11 +38,11 @@ namespace CouchDude.Tests.Unit.Api
 			}.ToJsonObject());
 			var databaseApi = Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
 
-			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "John Smith" }.ToDocument());
+			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "Стас Гиркин" }.ToDocument());
 
 			Assert.Equal("http://example.com:5984/testdb/doc1", mockMessageHandler.Request.RequestUri.ToString());
 			Assert.Equal(HttpMethod.Put, mockMessageHandler.Request.Method);
-			Assert.Equal(new { _id = "doc1", name = "John Smith" }.ToJsonString(), mockMessageHandler.RequestBodyString);
+			Assert.Equal(new { _id = "doc1", name = "Стас Гиркин" }.ToJsonString(), mockMessageHandler.RequestBodyString);
 			Assert.Equal(new DocumentInfo("doc1", "1-1a517022a0c2d4814d51abfedf9bfee7"), result);
 		}
 

@@ -25,7 +25,13 @@ namespace CouchDude.Tests.SampleData
 			get 
 			{ 
 				return ConfigureCouchDude.With()
-					.ServerUri("http://127.0.0.1:5984")
+					.ServerUri(
+#if FIDDLER
+					"http://ipv4.fiddler:5984"
+#else
+					"http://127.0.0.1:5984"
+#endif
+					)
 					.DefaultDatabaseName("testdb")
 					.MappingEntities()
 						.FromAssemblyOf<IEntity>()

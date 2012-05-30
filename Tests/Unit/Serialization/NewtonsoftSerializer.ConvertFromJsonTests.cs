@@ -132,7 +132,7 @@ namespace CouchDude.Tests.Unit.Serialization
 						new {
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
-							name = "John Smith"
+							name = "Стас Гиркин"
 						}.ToJsonObject(),
 						true)
 				);
@@ -146,7 +146,7 @@ namespace CouchDude.Tests.Unit.Serialization
 				() => 
 					serializer.ConvertFromJson(
 						entityConfig,
-						new { _id = "entity.doc1", type = "entity", name = "John Smith" }.ToJsonObject(),
+						new { _id = "entity.doc1", type = "entity", name = "Стас Гиркин" }.ToJsonObject(),
 						true)
 			);
 		}

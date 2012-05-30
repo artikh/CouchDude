@@ -47,6 +47,8 @@ namespace CouchDude.Api
 			replicatorApi = new ReplicatorApi(this, serializer);
 
 			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType.Json));
+			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }

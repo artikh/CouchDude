@@ -28,7 +28,7 @@ namespace CouchDude.Utils
 	/// <summary>Extension methods for <see cref="System.Net.Http"/> API.</summary>
 	internal static class HttpClientHelpers
 	{
-		private readonly static Encoding DefaultHttpEncoding = Encoding.GetEncoding(0x6faf);
+		private readonly static Encoding Utf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
 		public static async Task<JsonArray> ReadAsJsonArrayAsync(this HttpContent self)
 		{
@@ -44,10 +44,10 @@ namespace CouchDude.Utils
 
 		public static async Task<JsonValue> ReadAsJsonValueAsync(this HttpContent self)
 		{
-			using (var stream = await self.ReadAsStreamAsync().ConfigureAwait(false))
+			using (var reader = await self.ReadAsUtf8TextReaderAsync().ConfigureAwait(false))
 				try
 				{
-					return JsonValue.Load(stream);
+					return JsonValue.Load(reader);
 				}
 				catch (Exception e)
 				{
@@ -56,33 +56,13 @@ namespace CouchDude.Utils
 		}
 
 		/// <summary>Constructs text reader over HTTP content using response's encoding info.</summary>
-		public static async Task<TextReader> ReadAsTextReaderAsync(this HttpContent self)
+		public static async Task<TextReader> ReadAsUtf8TextReaderAsync(this HttpContent self)
 		{
 			if (self == null)
 				return null;
 
-			var encoding = GetContentEncoding(self);
-			return new StreamReader(await self.ReadAsStreamAsync().ConfigureAwait(false), encoding);
-		}
-
-		private static Encoding GetContentEncoding(HttpContent httpContent)
-		{
-			var encoding = DefaultHttpEncoding;
-			var contentType = httpContent.Headers.ContentType;
-			if (contentType != null && contentType.CharSet != null)
-			{
-				try
-				{
-					encoding = Encoding.GetEncoding(contentType.CharSet);
-				}
-				catch (ArgumentException exception)
-				{
-					throw new InvalidOperationException(
-						"The character set provided in ContentType is invalid. Cannot read content as string using an invalid character set.",
-						exception);
-				}
-			}
-			return encoding;
+			var stream = await self.ReadAsStreamAsync().ConfigureAwait(false);
+			return new StreamReader(stream, Utf8Encoding);
 		}
 	}
 }

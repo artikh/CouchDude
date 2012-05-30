@@ -41,7 +41,7 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldReturnSameInstancePerformingLoadAfterSave()
 		{
-			var entity = new Entity { Id = "doc1", Name = "John Smith" };
+			var entity = new Entity { Id = "doc1", Name = "Стас Гиркин" };
 			var session = new CouchSession(Default.Settings, MockCouchApi());
 			session.Save(entity);
 			var loadedEntity = session.Synchronously.Load<Entity>("doc1");
@@ -68,7 +68,7 @@ namespace CouchDude.Tests.Unit.Impl
 			Assert.NotNull(loadedEntity);
 			Assert.Equal(Entity.StandardEntityId, loadedEntity.Id);
 			Assert.Equal(Entity.StandardRevision, loadedEntity.Revision);
-			Assert.Equal("John Smith", loadedEntity.Name);
+			Assert.Equal("Стас Гиркин", loadedEntity.Name);
 		}
 
 		[Fact]
@@ -83,7 +83,7 @@ namespace CouchDude.Tests.Unit.Impl
 			var loadedEntity = new CouchSession(Default.Settings, couchApi).Synchronously.Load<EntityWithoutRevision>("doc1");
 			Assert.NotNull(loadedEntity);
 			Assert.Equal("doc1", loadedEntity.Id);
-			Assert.Equal("John Smith", loadedEntity.Name);
+			Assert.Equal("Стас Гиркин", loadedEntity.Name);
 		}
 
 		[Fact]
@@ -125,7 +125,7 @@ namespace CouchDude.Tests.Unit.Impl
 							_id = "entity" + ".doc1",
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
 							type = "entity",
-							name = "John Smith"
+							name = "Стас Гиркин"
 						}.ToDocument())
 				);
 			databaseApiMock

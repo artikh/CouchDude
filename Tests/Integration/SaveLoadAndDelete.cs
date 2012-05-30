@@ -34,7 +34,7 @@ namespace CouchDude.Tests.Integration
 
 			var savedEntity = new Entity {
 				Id = Guid.NewGuid().ToString(),
-				Name = "John Smith",
+				Name = "Стас Гиркин",
 				Age = 42,
 				Date = DateTime.UtcNow
 			};
@@ -74,7 +74,7 @@ namespace CouchDude.Tests.Integration
 			var savedEntity = new EntityWithoutRevision
 			                  	{
 			                  		Id = Guid.NewGuid().ToString(),
-			                  		Name = "John Smith",
+			                  		Name = "Стас Гиркин",
 			                  		Age = 42,
 			                  		Date = DateTime.UtcNow
 			                  	};

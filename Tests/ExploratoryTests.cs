@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDude.Tests.SampleData;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -114,7 +115,7 @@ namespace CouchDude.Tests
 
 			Assert.Equal("http://www.example.com/value%2fvalue", uri.ToString());
 		}
-
+		
 		[Fact]
 		public void ShouldWaitTillChildTaskFinishes()
 		{
@@ -140,7 +141,7 @@ namespace CouchDude.Tests
 	}
 
 
-public static class UriFix
+	public static class UriFix
 	{
 		private const int UnEscapeDotsAndSlashes = 0x2000000;
 		private const int SimpleUserSyntax = 0x20000;

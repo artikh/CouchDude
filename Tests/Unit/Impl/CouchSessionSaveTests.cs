@@ -36,7 +36,7 @@ namespace CouchDude.Tests.Unit.Impl
 					new Entity {
 						Id = "doc1",
 						Revision = "42-1a517022a0c2d4814d51abfedf9bfee7",
-						Name = "John Smith"
+						Name = "Стас Гиркин"
 					}
 				)
 			);
@@ -54,7 +54,7 @@ namespace CouchDude.Tests.Unit.Impl
 		[Fact]
 		public void ShouldGenerateIdIfNoneSet()
 		{
-			var savingEntity = new Entity { Name = "John Smith" };
+			var savingEntity = new Entity { Name = "Стас Гиркин" };
 			ISession session = new CouchSession(Default.Settings, Mock.Of<ICouchApi>());
 			session.Save(savingEntity);
 

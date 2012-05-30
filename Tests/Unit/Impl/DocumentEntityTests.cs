@@ -124,7 +124,7 @@ namespace CouchDude.Tests.Unit.Impl
 			entity = (Entity)documentEntity.Entity;
 			Assert.Equal(Entity.StandardEntityId, entity.Id);
 			Assert.Equal(Entity.StandardRevision, entity.Revision);
-			Assert.Equal("John Smith", entity.Name);
+			Assert.Equal("Стас Гиркин", entity.Name);
 			Assert.Equal(42, entity.Age);
 		}
 
@@ -144,7 +144,7 @@ namespace CouchDude.Tests.Unit.Impl
 		{
 			Assert.Throws<DocumentTypeMissingException>(
 				() => DocumentEntity.FromDocument(
-					new { _id = "entity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), 
+					new { _id = "entity.doc1", _rev = "42-1a517022a0c2d4814d51abfedf9bfee7", name = "Стас Гиркин" }.ToDocument(), 
 					Default.Settings
 			));
 		}

@@ -36,7 +36,7 @@ namespace CouchDude.Tests.SampleData
 			return new EntityWithoutRevision
 				{
 					Id = StandardEntityId,
-					Name = "John Smith",
+					Name = "Стас Гиркин",
 					Age = 42,
 					Date = new DateTime(1957, 4, 10)
 				};
@@ -48,7 +48,7 @@ namespace CouchDude.Tests.SampleData
 				_id = StandardDocId,
 				_rev = StandardRevision,
 				type = DocType,
-				name = "John Smith",
+				name = "Стас Гиркин",
 				age = 42,
 				date = "1959-04-10T00:00:00Z"
 			}.ToDocument();

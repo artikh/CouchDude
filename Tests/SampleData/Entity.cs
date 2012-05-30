@@ -43,7 +43,7 @@ namespace CouchDude.Tests.SampleData
 			       	{
 			       		Id = StandardEntityId,
 			       		Revision = StandardRevision,
-			       		Name = "John Smith",
+			       		Name = "Стас Гиркин",
 			       		Age = 42,
 			       		Date = new DateTime(1957, 4, 10),
 								TimeZoneOffset = TimeSpan.FromHours(4)
@@ -55,7 +55,7 @@ namespace CouchDude.Tests.SampleData
 			return new Entity
 			       	{
 			       		Id = StandardEntityId,
-			       		Name = "John Smith",
+			       		Name = "Стас Гиркин",
 			       		Age = 42,
 								Date = new DateTime(1957, 4, 10),
 								TimeZoneOffset = TimeSpan.FromHours(4)
@@ -69,7 +69,7 @@ namespace CouchDude.Tests.SampleData
 					_id = StandardDocId,
 					_rev = StandardRevision,
 					type = DocType,
-					name = "John Smith",
+					name = "Стас Гиркин",
 					age = 42,
 					date = "1957-04-10T00:00:00Z",
 					timeZoneOffset = 4 * 60 * 60 * 1000
@@ -82,7 +82,7 @@ namespace CouchDude.Tests.SampleData
 				new {
 					_id = StandardDocId,
 					type = DocType,
-					name = "John Smith",
+					name = "Стас Гиркин",
 					age = 42,
 					date = "1957-04-10T00:00:00Z",
 					timeZoneOffset = 4 * 60 * 60 * 1000

@@ -35,13 +35,13 @@ namespace CouchDude.Tests.Integration
 			var doc2Id = Guid.NewGuid() + ".doc2";
 			var doc3Id = Guid.NewGuid() + ".doc3";
 
-			var doc2Result = dbApi.Synchronously.SaveDocument(new {_id = doc2Id, name = "John Smith"}.ToDocument());
+			var doc2Result = dbApi.Synchronously.SaveDocument(new {_id = doc2Id, name = "Стас Гиркин"}.ToDocument());
 			var doc3Result = dbApi.Synchronously.SaveDocument(new {_id = doc3Id, name = "John Dow"}.ToDocument());
 
 			var result = dbApi.Synchronously.BulkUpdate(
 				x => {
 					x.Create(new {_id = doc1Id, name = "James Scully"}.ToDocument());
-					x.Update(new {_id = doc2Id, _rev = doc2Result.Revision, name = "John Smith", age = 42}.ToDocument());
+					x.Update(new {_id = doc2Id, _rev = doc2Result.Revision, name = "Стас Гиркин", age = 42}.ToDocument());
 					x.Delete(doc3Result.Id, doc3Result.Revision);
 				});
 
@@ -56,7 +56,7 @@ namespace CouchDude.Tests.Integration
 
 			var loadedDoc2 = dbApi.Synchronously.RequestDocument(doc2Id);
 			Assert.NotNull(loadedDoc2);
-			Assert.Equal("John Smith", (string)loadedDoc2.RawJsonObject["name"]);
+			Assert.Equal("Стас Гиркин", (string)loadedDoc2.RawJsonObject["name"]);
 			Assert.Equal(42, (int)loadedDoc2.RawJsonObject["age"]);
 
 			var loadedDoc3 = dbApi.Synchronously.RequestDocument(doc3Id);

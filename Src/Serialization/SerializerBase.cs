@@ -23,7 +23,6 @@ using System.Json;
 using Common.Logging;
 using CouchDude.Configuration;
 using CouchDude.Utils;
-using JetBrains.Annotations;
 
 namespace CouchDude.Serialization
 {
@@ -33,26 +32,22 @@ namespace CouchDude.Serialization
 		private static readonly ILog Log = LogManager.GetCurrentClassLogger();
 		
 		/// <inheritdoc />
-		public abstract void Serialize(
-			[NotNull] TextWriter target, [NotNull] object source, bool throwOnError);
+		public abstract void Serialize(TextWriter target, object source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract object Deserialize([NotNull] Type targetType, [NotNull] TextReader source, bool throwOnError);
+		public abstract object Deserialize(Type targetType, TextReader source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract JsonValue ConvertToJson([NotNull] object source, bool throwOnError);
+		public abstract JsonValue ConvertToJson(object source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract object ConvertFromJson(
-			[NotNull] Type targetType, [NotNull] JsonValue source, bool throwOnError);
+		public abstract object ConvertFromJson(Type targetType, JsonValue source, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract JsonObject ConvertToJson(
-			[NotNull] object sourceEntity, [NotNull] IEntityConfig entityConfig, bool throwOnError);
+		public abstract JsonObject ConvertToJson(object sourceEntity, IEntityConfig entityConfig, bool throwOnError);
 
 		/// <inheritdoc />
-		public abstract object ConvertFromJson(
-			[NotNull] IEntityConfig entityConfig, [NotNull] JsonObject source, bool throwOnError);
+		public abstract object ConvertFromJson(IEntityConfig entityConfig, JsonObject source, bool throwOnError);
 
 		/// <summary>Implements basic check and convertion logic for ConvertToJson method.</summary>
 		protected static JsonObject CheckAndConvertToJson(
@@ -92,8 +87,9 @@ namespace CouchDude.Serialization
 
 			// The only way simple to place special properties at the top is to write object again
 			// Should investigate this as potential perf botleneck.
-			var properties = new List<KeyValuePair<string, JsonValue>>();
-			properties.Add(new KeyValuePair<string, JsonValue>(Document.IdPropertyName, documentId));
+			var properties = new List<KeyValuePair<string, JsonValue>> {
+				new KeyValuePair<string, JsonValue>(Document.IdPropertyName, documentId)
+			};
 			if (!string.IsNullOrWhiteSpace(documentRevision))
 				properties.Add(new KeyValuePair<string, JsonValue>(Document.RevisionPropertyName, documentRevision));
 			properties.Add(new KeyValuePair<string, JsonValue>(Document.TypePropertyName, documentType));

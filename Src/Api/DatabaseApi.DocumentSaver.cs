@@ -7,7 +7,7 @@ namespace CouchDude.Api
 {
 	partial class DatabaseApi
 	{
-		private class DocumentSaver
+		private class SaveDocumentTask
 		{
 			private const int DefaultConflictUpdateAttemps = 7;
 
@@ -17,7 +17,7 @@ namespace CouchDude.Api
 			private readonly Func<CouchError, DocumentInfo> conflictAction;
 			private readonly TaskCompletionSource<DocumentInfo> completionSource;
 
-			private DocumentSaver(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
+			private SaveDocumentTask(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
 			{
 				this.parent = parent;
 				this.document = document;
@@ -29,9 +29,9 @@ namespace CouchDude.Api
 				else conflictAction = ThrowConflict;
 			}
 
-			public static Task<DocumentInfo> StartSaving(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
+			public static Task<DocumentInfo> Start(DatabaseApi parent, Document document, bool overwriteConcurrentUpdates)
 			{
-				var saver = new DocumentSaver(parent, document, overwriteConcurrentUpdates);
+				var saver = new SaveDocumentTask(parent, document, overwriteConcurrentUpdates);
 				return overwriteConcurrentUpdates ? saver.SaveOverriding() : saver.Save();
 			}
 

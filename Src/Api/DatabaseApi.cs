@@ -180,7 +180,7 @@ namespace CouchDude.Api
 			if (document.Id.HasNoValue())
 				throw new ArgumentException("Document ID should not be empty or null.", "document");
 
-			return DocumentSaver.StartSaving(this, document, overwriteConcurrentUpdates);
+			return SaveDocumentTask.Start(this, document, overwriteConcurrentUpdates);
 		}
 
 		public async Task<DocumentInfo> DeleteDocument(string documentId, string revision)
@@ -296,7 +296,7 @@ namespace CouchDude.Api
 				error.ThrowViewNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();
 			}
-			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
+			using (var reader = await response.Content.ReadAsUtf8TextReaderAsync().ConfigureAwait(false))
 				return ViewQueryResultParser.Parse(reader, query);
 		}
 
@@ -312,7 +312,7 @@ namespace CouchDude.Api
 				error.ThrowLuceneIndexNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();
 			}
-			using (var reader = await response.Content.ReadAsTextReaderAsync().ConfigureAwait(false))
+			using (var reader = await response.Content.ReadAsUtf8TextReaderAsync().ConfigureAwait(false))
 				return LuceneQueryResultParser.Parse(reader, query);
 		}
 

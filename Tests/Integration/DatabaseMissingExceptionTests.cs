@@ -37,10 +37,12 @@ namespace CouchDude.Tests.Integration
 
 			using (var session = sessionFactory.CreateSession(databaseName: randomDbName))
 				Assert.Throws<DatabaseMissingException>(() => session.Synchronously.Query<ViewData>(new ViewQuery { ViewName = "_all_docs" }));
-
+			
+			/* couchdb-lucene
 			using (var session = sessionFactory.CreateSession(databaseName: randomDbName))
 				Assert.Throws<DatabaseMissingException>(
 					() => session.Synchronously.QueryLucene<ViewData>(new LuceneQuery { DesignDocumentName = "dd", IndexName = "ld" }));
+			*/
 		}
 	}
 }

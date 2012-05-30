@@ -36,7 +36,7 @@ namespace CouchDude.Api
 			switch (mediaType)
 			{
 				case MediaType.Json:
-					return ReadDocument(databaseApi, await content.ReadAsTextReaderAsync());
+					return ReadDocument(databaseApi, await content.ReadAsUtf8TextReaderAsync());
 				case MediaType.Multipart:
 					return await ReadMultipart(databaseApi, content);
 				default:
@@ -53,7 +53,7 @@ namespace CouchDude.Api
 			if (jsonPart == null)
 				return null;
 
-			var document = ReadDocument(couchApi, await jsonPart.ReadAsTextReaderAsync());
+			var document = ReadDocument(couchApi, await jsonPart.ReadAsUtf8TextReaderAsync());
 			PrefillAttachmentDataGetters(multipart, document);
 			return document;
 		}

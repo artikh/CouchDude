@@ -35,7 +35,7 @@ namespace CouchDude.Tests.Unit.Api
 				new {
 					_id = "doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-					name = "John Smith"
+					name = "Стас Гиркин"
 				}.ToJsonObject());
 
 			var databaseApi = GetDatabaseApi(handler);
@@ -49,7 +49,7 @@ namespace CouchDude.Tests.Unit.Api
 				{
 					_id = "doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-					name = "John Smith"
+					name = "Стас Гиркин"
 				}.ToDocument(),
 				result
 			);
@@ -62,7 +62,7 @@ namespace CouchDude.Tests.Unit.Api
 				{
 					_id = "docs/doc1",
 					_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-					name = "John Smith"
+					name = "Стас Гиркин"
 				}.ToJsonObject());
 			var databaseApi = GetDatabaseApi(httpMock);
 			databaseApi.Synchronously.RequestDocument("docs/doc1");
@@ -89,7 +89,7 @@ namespace CouchDude.Tests.Unit.Api
 					{
 						_id = "_design/docs/doc1",
 						_rev = "1-1a517022a0c2d4814d51abfedf9bfee7",
-						name = "John Smith"
+						name = "Стас Гиркин"
 					}.ToJsonObject());
 			var databaseApi = GetDatabaseApi(httpMock);
 
@@ -185,7 +185,7 @@ namespace CouchDude.Tests.Unit.Api
 			var handler = new MockMessageHandler(new HttpResponseMessage(HttpStatusCode.OK) {
 				Content = new MultipartContent("related", boundary: "6ad0c5d817d55a9956ffa537b38fa466") {
 					new StringContent(
-						new { _id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToJsonString(), 
+						new { _id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "Стас Гиркин" }.ToJsonString(), 
 						Encoding.UTF8, "application/json"
 					),
 					new ByteArrayContent(new byte[] { 42, 42, 42 }),
@@ -198,7 +198,7 @@ namespace CouchDude.Tests.Unit.Api
 			var result = databaseApi.Synchronously.RequestDocument("doc1");
 
 			Assert.Equal(
-				new {_id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "John Smith" }.ToDocument(), result
+				new {_id = "doc1", _rev = "1-1a517022a0c2d4814d51abfedf9bfee7", name = "Стас Гиркин" }.ToDocument(), result
 			);
 		}
 
@@ -211,7 +211,7 @@ namespace CouchDude.Tests.Unit.Api
 						new {	
 							_id = "doc1", 
 							_rev = "1-1a517022a0c2d4814d51abfedf9bfee7", 
-							name = "John Smith",
+							name = "Стас Гиркин",
 							_attachments = new {
 								attachment1 = new {
 									content_type = "application/x-file",
@@ -256,7 +256,7 @@ namespace CouchDude.Tests.Unit.Api
 						new {
 							_id = "doc1", 
 							_rev = "1-1a517022a0c2d4814d51abfedf9bfee7", 
-							name = "John Smith",
+							name = "Стас Гиркин",
 							_attachments = new {
 								attachment1 = new { content_type = "application/x-file", data = "" },
 								attachment2 = new { content_type = "application/x-file", data = "" }
