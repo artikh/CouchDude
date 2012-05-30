@@ -14,3 +14,4 @@ _ReSharper.*
 *.user.ps1
 *.local.xml
 packages
+TestResults
