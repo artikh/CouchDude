@@ -218,7 +218,7 @@ namespace CouchDude.Api
 			var fullOriginalDocumentUri = uriConstructor.GetFullDocumentUri(originalDocumentId, originalDocumentRevision);
 			var request = new HttpRequestMessage(CopyHttpMethod, fullOriginalDocumentUri);
 			var targetDocumentUriString = uriConstructor.GetDocumentUriString(targetDocumentId, targetDocumentRevision);
-			request.Headers.AddWithoutValidation("Destination", targetDocumentUriString);
+			request.Headers.TryAddWithoutValidation("Destination", targetDocumentUriString);
 
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
 

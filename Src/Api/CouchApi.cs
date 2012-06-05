@@ -39,7 +39,8 @@ namespace CouchDude.Api
 		public CouchApi(Uri serverUri, ISerializer serializer): this(serverUri, serializer, null) { }
 
 		/// <constructor />
-		public CouchApi(Uri serverUri, ISerializer serializer, HttpMessageHandler handler): base(handler)
+		public CouchApi(Uri serverUri, ISerializer serializer, HttpMessageHandler handler)
+			: base(handler ?? new HttpClientHandler())
 		{
 			Serializer = serializer;
 			uriConstructor = new UriConstructor(serverUri);
