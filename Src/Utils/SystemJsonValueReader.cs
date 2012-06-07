@@ -72,7 +72,7 @@ namespace CouchDude.Utils
         {
             Read();
             SetToken(JsonToken.String, Value);
-            return Value.ToString(); 
+            return Value == null? null: Value.ToString(); 
         }
 
 	    /// <inheritdoc />
