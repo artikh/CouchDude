@@ -96,6 +96,7 @@
     <Compile Include="Integration\SaveAndGetAll.cs" />
     <Compile Include="Integration\SaveUpdateLoadAndDelete.cs" />
     <Compile Include="MockMessageHandler.cs" />
+    <Compile Include="Regress\UnableToCastInt32ValueToString.cs" />
     <Compile Include="SampleData\Default.cs" />
     <Compile Include="SampleData\IEntity.cs" />
     <Compile Include="SampleData\SimpleDerivedEntity.cs" />

@@ -147,7 +147,7 @@ namespace CouchDude.Serialization
 				{
 					return serializer.Deserialize(reader, targetType);
 				}
-				catch (JsonSerializationException e)
+				catch (JsonException e)
 				{
 					return LogAndThrowParseExceptionIfNeeded<object>(
 						throwOnError, e, "Error converting JSON to object of provided type {0}", targetType);
