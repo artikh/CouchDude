@@ -120,7 +120,7 @@ namespace CouchDude.Tests.Unit.Impl
 			databaseApiMock
 				.Setup(ca => ca.RequestDocument(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<AdditionalDocumentProperty>()))
 				.Returns(
-					(string id, string revision, AdditionalDocumentProperty additionalProperties) => TaskUtils.FromResult(
+					(string id, string revision, AdditionalDocumentProperty additionalProperties) => TaskEx.FromResult(
 						new {
 							_id = "entity" + ".doc1",
 							_rev = "42-1a517022a0c2d4814d51abfedf9bfee7",
