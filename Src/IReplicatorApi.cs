@@ -15,8 +15,11 @@ namespace CouchDude
 		/// <summary>Demands replication task from replicator database deletion.</summary>
 		Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask);
 
-		/// <summary>Requests all replication task namess.</summary>
-		Task<IEnumerable<string>> GetAllDescriptorNames();
+		/// <summary>Requests all replication task names.</summary>
+		Task<ICollection<string>> GetAllDescriptorNames();
+
+		/// <summary>Requests all replication task descriptors.</summary>
+		Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors();
 
 		/// <summary>Synchronous version of API.</summary>
 		ISynchronousReplicatorApi Synchronously { get; }

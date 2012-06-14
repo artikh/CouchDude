@@ -16,7 +16,7 @@ namespace CouchDude.Tests.Unit.Api
 
 		static ICouchApi GetCouchApi(MockMessageHandler messageHandler = null)
 		{
-			return Factory.CreateCouchApi("http://example.com", messageHandler ?? new MockMessageHandler());
+			return Factory.CreateCouchApi("http://example.com", handler: messageHandler ?? new MockMessageHandler());
 		}
 
 		[Fact]
@@ -166,7 +166,6 @@ namespace CouchDude.Tests.Unit.Api
 					""total_rows"":5,
 					""offset"":0,
 					""rows"":[
-						{""id"":""_design/_replicator"",""key"":""_design/_replicator"",""value"":{""rev"":""1-5bfa2c99eefe2b2eb4962db50aa3cfd4""}},
 						{""id"":""rep0"",""key"":""rep1"",""value"":{""rev"":""7-f245a7c9c32dcbd32fdf76b632626c51""}},
 						{""id"":""rep1"",""key"":""rep2"",""value"":{""rev"":""1-cabb24990caa4fe70bc8adf9aba7d56f""}},
 						{""id"":""rep2"",""key"":""rep3"",""value"":{""rev"":""2-c570644b63cb0417ed6d119a3df79c34""}},
@@ -189,7 +188,7 @@ namespace CouchDude.Tests.Unit.Api
 			GetCouchApi(httpClientMock).Replicator.Synchronously.GetAllDescriptorNames();
 
 			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
-			Assert.Equal("http://example.com/_replicator/_all_docs", httpClientMock.Request.RequestUri.ToString());
+			Assert.Equal("http://example.com/_replicator/_all_docs?startkey=\"_design\"&endkey=\"_design0\"", httpClientMock.Request.RequestUri.ToString());
 		}
 
 		[Fact]

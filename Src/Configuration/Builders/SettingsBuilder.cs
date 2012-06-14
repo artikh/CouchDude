@@ -46,6 +46,13 @@ namespace CouchDude.Configuration.Builders
 			return t.IsClass && !t.IsAbstract && !t.IsNotPublic && !t.IsNested;
 		}
 
+		/// <summary>Sets CouchDB server access credentials.</summary>
+		public SettingsBuilder Credentials(Credentials credentials)
+		{
+			settings.Credentials = credentials;
+			return this;
+		}
+		
 		/// <summary>Sets CouchDB server URI.</summary>
 		public SettingsBuilder ServerUri(Uri serverUri)
 		{

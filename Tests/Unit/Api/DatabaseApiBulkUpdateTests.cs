@@ -31,7 +31,7 @@ namespace CouchDude.Tests.Unit.Api
 	{
 		private static ICouchApi CreateCouchApi(MockMessageHandler handler = null)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", handler);
+			return Factory.CreateCouchApi("http://example.com:5984/", handler: handler);
 		}
 
 		[Fact]

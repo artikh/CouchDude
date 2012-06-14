@@ -36,10 +36,11 @@ namespace CouchDude.Api
 		private readonly IReplicatorApi replicatorApi;
 
 		/// <constructor />
-		public CouchApi(Uri serverUri, ISerializer serializer): this(serverUri, serializer, null) { }
+		public CouchApi(Uri serverUri, Credentials credentials, ISerializer serializer)
+			: this(serverUri,  credentials, serializer, null) { }
 
 		/// <constructor />
-		public CouchApi(Uri serverUri, ISerializer serializer, HttpMessageHandler handler)
+		public CouchApi(Uri serverUri, Credentials credentials, ISerializer serializer, HttpMessageHandler handler)
 			: base(handler ?? new HttpClientHandler())
 		{
 			Serializer = serializer;
@@ -47,9 +48,12 @@ namespace CouchDude.Api
 			synchronousCouchApi = new SynchronousCouchApi(this);
 			replicatorApi = new ReplicatorApi(this, serializer);
 
+			BaseAddress = serverUri;
 			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType.Json));
 			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+			if (credentials != null)
+				DefaultRequestHeaders.Authorization = credentials.ToAuthenticationHeader();
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }

@@ -44,9 +44,7 @@ namespace CouchDude.Api
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
 			var doc = await replicatorDbApi.RequestDocument(id);
-			return doc != null 
-				? serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true) 
-				: null;
+			return doc != null? DeserializeReplicationDescriptor(doc): null;
 		}
 
 		public Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
@@ -60,13 +58,28 @@ namespace CouchDude.Api
 			return replicatorDbApi.DeleteDocument(replicationTask.Id, replicationTask.Revision);
 		}
 
-		public Task<IEnumerable<string>> GetAllDescriptorNames()
+		public async Task<ICollection<string>> GetAllDescriptorNames()
 		{
-			return replicatorDbApi.Query(new ViewQuery{ ViewName = "_all_docs"}).ContinueWith(
-				t => t.Result.Rows.Select(row => row.DocumentId).Where(docId => !docId.StartsWith("_design/"))
-			);
+			var names = await replicatorDbApi.Query(GetAllReplicationDescriptorsQuery(includeDocs: false));
+			return names.Rows.Select(r => r.DocumentId).ToArray();
+		}
+
+		public async Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors()
+		{
+			var result = await replicatorDbApi.Query(GetAllReplicationDescriptorsQuery(includeDocs: true));
+			return result.Rows.Select(r => DeserializeReplicationDescriptor(r.Document)).ToArray();
+		}
+
+		static ViewQuery GetAllReplicationDescriptorsQuery(bool includeDocs)
+		{
+			return new ViewQuery { ViewName = "_all_docs", StartKey = "_design", EndKey = "_design0", IncludeDocs = includeDocs };
 		}
 
 		public ISynchronousReplicatorApi Synchronously { get { return synchronousReplicatorApi; } }
+
+		ReplicationTaskDescriptor DeserializeReplicationDescriptor(Document doc)
+		{
+			return serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true);
+		}
 	}
 }

@@ -25,11 +25,11 @@ using CouchDude.Utils;
 namespace CouchDude
 {
 	/// <summary>CouchDude settings.</summary>
-	public class Settings : IEntityConfigRepository
+	public class Settings: IEntityConfigRepository
 	{
-		private readonly EntityRegistry entityRegistry = new EntityRegistry();
-		private Uri serverUri;
-		private string defaultDatabaseName;
+		readonly EntityRegistry entityRegistry = new EntityRegistry();
+		Uri serverUri;
+		string defaultDatabaseName;
 
 		/// <summary>Base server URL.</summary>
 		public Uri ServerUri
@@ -47,6 +47,9 @@ namespace CouchDude
 			}
 		}
 
+		/// <summary>Server access credentials.</summary>
+		public Credentials Credentials { get; set; }
+
 		/// <summary>Database name.</summary>
 		public string DefaultDatabaseName
 		{
@@ -57,8 +60,6 @@ namespace CouchDude
 					throw new ArgumentNullException("value");
 				CheckIf.DatabaseNameIsOk(value, "value");
 				
-
-				if (defaultDatabaseName == value) return;
 				defaultDatabaseName = value;
 			}
 		}

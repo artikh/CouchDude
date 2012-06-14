@@ -33,26 +33,26 @@ namespace CouchDude
 			if(settings == null) throw new ArgumentNullException("settings");
 			if(settings.Incomplete) throw new ArgumentException("Settings object initalization have not finished yet.", "settings");
 
-			return new CouchSessionFactory(settings, s => CreateCouchApi(s.ServerUri, serializer: s.Serializer));
+			return new CouchSessionFactory(settings, s => CreateCouchApi(s.ServerUri, credentials: s.Credentials, serializer: s.Serializer));
 		}
 		
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
 		public static ICouchApi CreateCouchApi(
-			string serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
+			string serverAddress, HttpMessageHandler handler = null, Credentials credentials = null, ISerializer serializer = null)
 		{
 			if(string.IsNullOrWhiteSpace(serverAddress)) throw new ArgumentNullException("serverAddress");
 
-			return CreateCouchApi(new Uri(serverAddress, UriKind.Absolute), handler, serializer ?? CreateSerializer());
+			return CreateCouchApi(new Uri(serverAddress, UriKind.Absolute), handler, credentials, serializer ?? CreateSerializer());
 		}
 
 		/// <summary>Creates new <see cref="IDatabaseApi"/> instance associated with provided server address.</summary>
 		public static ICouchApi CreateCouchApi(
-			Uri serverAddress, HttpMessageHandler handler = null, ISerializer serializer = null)
+			Uri serverAddress, HttpMessageHandler handler = null, Credentials credentials = null, ISerializer serializer = null)
 		{
 			if (serverAddress == null) throw new ArgumentNullException("serverAddress");
 			if (!serverAddress.IsAbsoluteUri) throw new ArgumentException("Server address should be absolute URI.", "serverAddress");
 
-			return new CouchApi(serverAddress, serializer ?? CreateSerializer(), handler);
+			return new CouchApi(serverAddress, credentials, serializer ?? CreateSerializer(), handler);
 		}
 
 		/// <summary>Creates default <see cref="ISerializer"/> implementation.</summary>
