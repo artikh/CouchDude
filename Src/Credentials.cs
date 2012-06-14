@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http.Headers;
-using System.Security;
 using System.Text;
 
 namespace CouchDude
@@ -12,12 +11,12 @@ namespace CouchDude
 		public readonly string UserName;
 
 		/// <summary>Access password.</summary>
-		public readonly SecureString Password;
+		public readonly string Password;
 
 		AuthenticationHeaderValue authenticationHeader;
 
 		/// <constructor />
-		public Credentials(string userName, SecureString password)
+		public Credentials(string userName, string password)
 		{
 			UserName = userName;
 			Password = password;

@@ -47,9 +47,9 @@ namespace CouchDude.Configuration.Builders
 		}
 
 		/// <summary>Sets CouchDB server access credentials.</summary>
-		public SettingsBuilder Credentials(Credentials credentials)
+		public SettingsBuilder Credentials(string userName, string password)
 		{
-			settings.Credentials = credentials;
+			settings.Credentials = new Credentials(userName, password);
 			return this;
 		}
 		
