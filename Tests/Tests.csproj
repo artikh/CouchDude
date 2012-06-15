@@ -111,6 +111,7 @@
     <Compile Include="Unit\Api\CouchApiFactoryTests.cs" />
     <Compile Include="Unit\Api\DatabaseApiRequestAttachmentTest.cs" />
     <Compile Include="Unit\Api\DatabaseApiSaveAttachmentTest.cs" />
+    <Compile Include="Unit\Api\DatabaseApiUpdateSecurityDescriptorTests.cs" />
     <Compile Include="Unit\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Api\ReplicatorApiTests.cs" />
     <Compile Include="Unit\Api\ViewResultParserTests.cs" />

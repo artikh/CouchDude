@@ -74,6 +74,7 @@
     <Compile Include="Api\QueryResultParserBase.cs" />
     <Compile Include="Attachment.cs" />
     <Compile Include="Credentials.cs" />
+    <Compile Include="DatabaseSecurityDescriptor.cs" />
     <Compile Include="Document.DocumentAttachmentBag.cs" />
     <Compile Include="Api\BulkUpdateBatch.cs" />
     <Compile Include="Api\CouchApi.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="Api\HttpResponseMessageAttachment.cs" />
     <Compile Include="Exceptions\DocumentAttachmentNotFoundException.cs" />
     <Compile Include="Exceptions\DocumentNotFoundException.cs" />
+    <Compile Include="NamesRoles.cs" />
     <Compile Include="Serialization\CamelCasePrivateSetterPropertyContractResolver.cs" />
     <Compile Include="Serialization\EntityContractResolver.cs" />
     <Compile Include="ISerializer.cs" />

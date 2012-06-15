@@ -17,9 +17,9 @@
 #endregion
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CouchDude.Api;
 
 namespace CouchDude
 {
@@ -78,6 +78,9 @@ namespace CouchDude
 
 		/// <summary>Demands database status information.</summary>
 		Task<DatabaseInfo> RequestInfo();
+
+		/// <summary>Updates database security descriptor.</summary>
+		Task UpdateSecurityDescriptor(DatabaseSecurityDescriptor securityDescriptor);
 		
 		/// <summary>Synchronous version of databes-level APIs.</summary>
 		ISynchronousDatabaseApi Synchronously { get; }

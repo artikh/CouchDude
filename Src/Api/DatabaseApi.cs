@@ -59,6 +59,19 @@ namespace CouchDude.Api
 			}
 		}
 
+		/// <summary>Updates database security descriptor.</summary>
+		public async Task UpdateSecurityDescriptor(DatabaseSecurityDescriptor securityDescriptor)
+		{
+			var request = new HttpRequestMessage(HttpMethod.Put, uriConstructor.SecurityDescriptorUri) {
+				Content = new JsonContent(parent.Serializer.ConvertToJson(securityDescriptor, throwOnError: true))
+			};
+			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
+			if (response.IsSuccessStatusCode) return;
+			var couchError = new CouchError(parent.Serializer, response);
+			couchError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
+			couchError.ThrowCouchCommunicationException();
+		}
+
 		public async Task Delete()
 		{
 			var response = await parent

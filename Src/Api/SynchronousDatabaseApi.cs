@@ -114,5 +114,10 @@ namespace CouchDude.Api
 		{
 			return databaseApi.RequestInfo().WaitForResult();
 		}
+
+		public void UpdateSecurityDescriptor(DatabaseSecurityDescriptor securityDescriptor)
+		{
+			databaseApi.UpdateSecurityDescriptor(securityDescriptor).WaitForResult();
+		}
 	}
 }

@@ -27,5 +27,10 @@ namespace CouchDude.Api
 		{
 			return replicatorApi.GetAllDescriptorNames().WaitForResult();
 		}
+
+		public ICollection<ReplicationTaskDescriptor> GetAllDescriptors()
+		{
+			return replicatorApi.GetAllDescriptors().WaitForResult();
+		}
 	}
 }

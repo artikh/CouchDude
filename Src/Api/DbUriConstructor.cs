@@ -32,6 +32,7 @@ namespace CouchDude.Api
 		private readonly Uri databaseUriWithSlash;
 		private readonly Uri databaseFtiEndpoint;
 		private Uri bulkUpdateUri;
+		private Uri securityDescriptorUri;
 
 		public DbUriConstructor(UriConstructor parent, string databaseName): this()
 		{
@@ -45,6 +46,11 @@ namespace CouchDude.Api
 		public Uri BulkUpdateUri
 		{
 			get { return bulkUpdateUri ?? (bulkUpdateUri = new Uri(databaseUriWithSlash, "_bulk_docs")); }
+		}
+
+		public Uri SecurityDescriptorUri
+		{
+			get { return securityDescriptorUri ?? (securityDescriptorUri = new Uri(databaseUriWithSlash, "_security")); }
 		}
 
 		[Pure]

@@ -40,7 +40,8 @@ namespace CouchDude
 		DocumentInfo SaveDocument(Document document, bool overwriteConcurrentUpdates);
 		
 		/// <summary>Creates new document by copying another document's content.</summary>
-		DocumentInfo CopyDocument(string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null);
+		DocumentInfo CopyDocument(
+			string originalDocumentId, string originalDocumentRevision, string targetDocumentId, string targetDocumentRevision = null);
 
 		/// <summary>Retrives current document revision from CouchDB and waits for the result of the operation. </summary>
 		/// <remarks><c>null</c> returned if there is no such document in database.</remarks>
@@ -77,5 +78,8 @@ namespace CouchDude
 
 		/// <summary>Demands database status information and waits for result of the operation.</summary>
 		DatabaseInfo RequestInfo();
+		
+		/// <summary>Updates database security descriptor.</summary>
+		void UpdateSecurityDescriptor(DatabaseSecurityDescriptor securityDescriptor);
 	}
 }

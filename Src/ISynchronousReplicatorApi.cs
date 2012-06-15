@@ -16,5 +16,8 @@ namespace CouchDude
 
 		/// <summary>Retrives all replication task names.</summary>
 		IEnumerable<string> GetAllDescriptorNames();
+
+		/// <summary>Requests all replication task descriptors.</summary>
+		ICollection<ReplicationTaskDescriptor> GetAllDescriptors();
 	}
 }
