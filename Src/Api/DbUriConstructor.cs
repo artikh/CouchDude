@@ -111,7 +111,7 @@ namespace CouchDude.Api
 			var uriStringBuilder = new StringBuilder();
 			AppendDocId(uriStringBuilder, docId);
 			uriStringBuilder.Append("/");
-			AppendReplacingFowardSlash(uriStringBuilder, attachmentId);
+			uriStringBuilder.Append(Uri.EscapeDataString(attachmentId));
 			AppendRevisionIfNeeded(uriStringBuilder, revision);
 			return uriStringBuilder.ToString();
 		}
@@ -153,10 +153,10 @@ namespace CouchDude.Api
 			if (docId.StartsWith(designDocumentPrefix))
 			{
 				uriStringBuilder.Append(designDocumentPrefix);
-				AppendReplacingFowardSlash(uriStringBuilder, docId.Substring(designDocumentPrefix.Length));
+				uriStringBuilder.Append(Uri.EscapeDataString(docId.Substring(designDocumentPrefix.Length)));
 			}
 			else
-				AppendReplacingFowardSlash(uriStringBuilder, docId);
+				uriStringBuilder.Append(Uri.EscapeDataString(docId));
 		}
 
 		private static void AppendReplacingFowardSlash(StringBuilder stringBuilder, string stringToAppend)
