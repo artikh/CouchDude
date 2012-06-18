@@ -188,7 +188,7 @@ namespace CouchDude.Tests.Unit.Api
 			GetCouchApi(httpClientMock).Replicator.Synchronously.GetAllDescriptorNames();
 
 			Assert.Equal(HttpMethod.Get, httpClientMock.Request.Method);
-			Assert.Equal("http://example.com/_replicator/_all_docs?startkey=\"_design\"&endkey=\"_design0\"", httpClientMock.Request.RequestUri.ToString());
+			Assert.Equal("http://example.com/_replicator/_all_docs", httpClientMock.Request.RequestUri.ToString());
 		}
 
 		[Fact]

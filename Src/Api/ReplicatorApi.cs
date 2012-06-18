@@ -58,21 +58,20 @@ namespace CouchDude.Api
 			return replicatorDbApi.DeleteDocument(replicationTask.Id, replicationTask.Revision);
 		}
 
-		public async Task<ICollection<string>> GetAllDescriptorNames()
+		public Task<ICollection<string>> GetAllDescriptorNames()
 		{
-			var names = await replicatorDbApi.Query(GetAllReplicationDescriptorsQuery(includeDocs: false));
-			return names.Rows.Select(r => r.DocumentId).ToArray();
+			return SelectReplicationDescriptors(r => r.DocumentId, includeDocs: false);
 		}
 
-		public async Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors()
+		public Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors()
 		{
-			var result = await replicatorDbApi.Query(GetAllReplicationDescriptorsQuery(includeDocs: true));
-			return result.Rows.Select(r => DeserializeReplicationDescriptor(r.Document)).ToArray();
+			return SelectReplicationDescriptors(r => DeserializeReplicationDescriptor(r.Document), includeDocs: false);
 		}
 
-		static ViewQuery GetAllReplicationDescriptorsQuery(bool includeDocs)
+		async Task<ICollection<T>> SelectReplicationDescriptors<T>(Func<ViewResultRow, T> transform, bool includeDocs)
 		{
-			return new ViewQuery { ViewName = "_all_docs", StartKey = "_design", EndKey = "_design0", IncludeDocs = includeDocs };
+			var result = await replicatorDbApi.Query(new ViewQuery {ViewName = "_all_docs", IncludeDocs = includeDocs});
+			return result.Rows.Where(r => !r.DocumentId.StartsWith("_design/")).Select(transform).ToArray();
 		}
 
 		public ISynchronousReplicatorApi Synchronously { get { return synchronousReplicatorApi; } }
