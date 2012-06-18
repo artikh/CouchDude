@@ -19,6 +19,7 @@
 using System;
 using CouchDude.Api;
 using CouchDude.Impl;
+using JetBrains.Annotations;
 
 namespace CouchDude
 {
@@ -32,6 +33,13 @@ namespace CouchDude
 			if(settings.Incomplete) throw new ArgumentException("Settings object initalization have not finished yet.", "settings");
 
 			return new CouchSessionFactory(settings, s => new CouchApi(s.CouchApiSettings));
+		}
+
+		/// <summary>Creates <see cref="ICouchApi"/> instance from settings.</summary>
+		public static ICouchApi CreateCouchApi([NotNull] this CouchApiSettings settings)
+		{
+			if (settings == null) throw new ArgumentNullException("settings");
+			return new CouchApi(settings);
 		}
 	}
 }
