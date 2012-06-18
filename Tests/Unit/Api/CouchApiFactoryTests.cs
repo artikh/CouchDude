@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 using CouchDude.Api;
 using CouchDude.Serialization;
 using Xunit;
@@ -28,10 +29,10 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnIncorrectParameters()
 		{
-			Assert.Throws<ArgumentNullException>(() => Factory.CreateCouchApi(""));
-			Assert.Throws<ArgumentNullException>(() => Factory.CreateCouchApi((Uri)null));
-			Assert.Throws<UriFormatException>(() => Factory.CreateCouchApi(new Uri("/some/relative/uri")));
-			Assert.Throws<UriFormatException>(() => Factory.CreateCouchApi(new Uri("/some malformed uri")));
+			Assert.Throws<ArgumentNullException>(() => (ICouchApi) new CouchApi(new CouchApiSettings(""), null));
+			Assert.Throws<ArgumentNullException>(() => (ICouchApi) new CouchApi(new CouchApiSettings((Uri)null), null));
+			Assert.Throws<UriFormatException>(() => (ICouchApi) new CouchApi(new CouchApiSettings(new Uri("/some/relative/uri")), null));
+			Assert.Throws<UriFormatException>(() => (ICouchApi) new CouchApi(new CouchApiSettings(new Uri("/some malformed uri")), null));
 		}
 	}
 }

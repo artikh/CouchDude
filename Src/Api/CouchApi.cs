@@ -30,30 +30,28 @@ namespace CouchDude.Api
 {
 	internal class CouchApi: HttpClient, ICouchApi
 	{
-		internal readonly ISerializer Serializer;
 		private readonly ISynchronousCouchApi synchronousCouchApi;
 		private readonly UriConstructor uriConstructor;
 		private readonly IReplicatorApi replicatorApi;
 
+		internal readonly CouchApiSettings Settings;
+		
 		/// <constructor />
-		public CouchApi(Uri serverUri, Credentials credentials, ISerializer serializer)
-			: this(serverUri,  credentials, serializer, null) { }
-
-		/// <constructor />
-		public CouchApi(Uri serverUri, Credentials credentials, ISerializer serializer, HttpMessageHandler handler)
-			: base(handler ?? new HttpClientHandler())
+		public CouchApi(CouchApiSettings settings, HttpMessageHandler messageHandler = null)
+			: base(messageHandler ?? new HttpClientHandler())
 		{
-			Serializer = serializer;
-			uriConstructor = new UriConstructor(serverUri);
-			synchronousCouchApi = new SynchronousCouchApi(this);
-			replicatorApi = new ReplicatorApi(this, serializer);
+			Settings = settings;
 
-			BaseAddress = serverUri;
+			uriConstructor = new UriConstructor(settings.ServerUri);
+			synchronousCouchApi = new SynchronousCouchApi(this);
+			replicatorApi = new ReplicatorApi(this);
+
+			BaseAddress = settings.ServerUri;
 			DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(MediaType.Json));
 			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
 			DefaultRequestHeaders.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-			if (credentials != null)
-				DefaultRequestHeaders.Authorization = credentials.ToAuthenticationHeader();
+			if (settings.Credentials != null)
+				DefaultRequestHeaders.Authorization = settings.Credentials.ToAuthenticationHeader();
 		}
 
 		public IReplicatorApi Replicator { get { return replicatorApi; } }
@@ -73,12 +71,12 @@ namespace CouchDude.Api
 			var response = await RequestCouchDb(request).ConfigureAwait(false);
 
 			if (!response.IsSuccessStatusCode)
-				new CouchError(Serializer, response).ThrowCouchCommunicationException();
+				new CouchError(Settings.Serializer, response).ThrowCouchCommunicationException();
 
 			using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
 			using (var responseReader = new StreamReader(responseStream))
 			{
-				var dbs = (ICollection<string>) Serializer.Deserialize(typeof(string[]), responseReader, throwOnError: false);
+				var dbs = (ICollection<string>) Settings.Serializer.Deserialize(typeof(string[]), responseReader, throwOnError: false);
 				if(dbs == null)
 					throw new CouchCommunicationException(
 						"Unexpected data recived from CouchDB: {0}", await response.Content.ReadAsStringAsync());

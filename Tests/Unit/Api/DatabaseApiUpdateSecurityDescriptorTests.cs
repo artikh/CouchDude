@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
+using CouchDude.Api;
 using CouchDude.Utils;
 using Xunit;
 
@@ -51,7 +52,7 @@ namespace CouchDude.Tests.Unit.Api
 
 		private static ICouchApi CreateCouchApi(MockMessageHandler handler = null)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", handler);
+			return new CouchApi(new CouchApiSettings("http://example.com:5984/"), handler);
 		}
 	}
 }

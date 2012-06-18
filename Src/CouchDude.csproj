@@ -70,6 +70,7 @@
       <Link>Properties\GlobalAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AdditionalDocumentProperty.cs" />
+    <Compile Include="CouchApiSettings.cs" />
     <Compile Include="Api\DbUriConstructor.cs" />
     <Compile Include="Api\DocumentRequestTask.cs" />
     <Compile Include="Api\QueryResultParserBase.cs" />

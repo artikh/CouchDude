@@ -24,7 +24,7 @@ namespace CouchDude.Api
 			var response = await couchApi.RequestCouchDb(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(couchApi.Serializer, response);
+				var error = new CouchError(couchApi.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				if (response.StatusCode == HttpStatusCode.NotFound)
 					return null;

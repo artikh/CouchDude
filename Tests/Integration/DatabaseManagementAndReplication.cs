@@ -1,6 +1,8 @@
 using System;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CouchDude.Api;
 using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -17,7 +19,7 @@ namespace CouchDude.Tests.Integration
 			var dbB = "db_" + Guid.NewGuid();
 			var savedDocument = Entity.CreateDocWithoutRevision();
 
-			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
+			var couchApi = (ICouchApi) new CouchApi(new CouchApiSettings("http://127.0.0.1:5984/"), null);
 			couchApi.Db(dbA).Synchronously.Create();
 			var docInfo = couchApi.Db(dbA).Synchronously.SaveDocument(savedDocument);
 

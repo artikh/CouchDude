@@ -48,7 +48,7 @@ namespace CouchDude.Api
 				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var couchError = new CouchError(parent.Serializer, response);
+				var couchError = new CouchError(parent.Settings.Serializer, response);
 				if (couchError.IsAlreadyDatabaseExists)
 					if (throwIfExists)
 						throw new CouchCommunicationException(
@@ -63,11 +63,11 @@ namespace CouchDude.Api
 		public async Task UpdateSecurityDescriptor(DatabaseSecurityDescriptor securityDescriptor)
 		{
 			var request = new HttpRequestMessage(HttpMethod.Put, uriConstructor.SecurityDescriptorUri) {
-				Content = new JsonContent(parent.Serializer.ConvertToJson(securityDescriptor, throwOnError: true))
+				Content = new JsonContent(parent.Settings.Serializer.ConvertToJson(securityDescriptor, throwOnError: true))
 			};
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
 			if (response.IsSuccessStatusCode) return;
-			var couchError = new CouchError(parent.Serializer, response);
+			var couchError = new CouchError(parent.Settings.Serializer, response);
 			couchError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 			couchError.ThrowCouchCommunicationException();
 		}
@@ -78,7 +78,7 @@ namespace CouchDude.Api
 				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowCouchCommunicationException();
 			}
@@ -97,7 +97,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				if (error.IsAttachmentMissingFromDocument)
 					return null;
@@ -128,7 +128,7 @@ namespace CouchDude.Api
 			}
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowStaleStateExceptionIfNedded(
 					string.Format("saving attachment ID '{0}'", attachment.Id), documentId, documentRevision);
@@ -148,7 +148,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(requestMessage).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor.DatabaseName);
 				error.ThrowAttachmentMissingException(attachmentId, documentId, documentRevision);
 				error.ThrowDocumentNotFoundIfNedded(documentId, documentRevision);
@@ -167,7 +167,7 @@ namespace CouchDude.Api
 			JsonObject responseJson = null;
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				if (error.IsDatabaseMissing)
 					exists = false;
 				else
@@ -207,7 +207,7 @@ namespace CouchDude.Api
 			var response = await parent.RequestCouchDb(request).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowStaleStateExceptionIfNedded("delete", documentId, revision);
 				error.ThrowCouchCommunicationException();
@@ -237,7 +237,7 @@ namespace CouchDude.Api
 
 			if (!response.IsSuccessStatusCode)
 			{
-				var couchApiError = new CouchError(parent.Serializer, response);
+				var couchApiError = new CouchError(parent.Settings.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				couchApiError.ThrowStaleStateExceptionForDocumentCopyIfNedded(
 					originalDocumentId, originalDocumentRevision, targetDocumentId, targetDocumentRevision);
@@ -260,7 +260,7 @@ namespace CouchDude.Api
 
 		private async Task<IDictionary<string, DocumentInfo>> BulkUpdateInternal(Action<IBulkUpdateBatch> updateCommandBuilder)
 		{
-			var unitOfWork = new BulkUpdateBatch(uriConstructor, parent.Serializer);
+			var unitOfWork = new BulkUpdateBatch(uriConstructor, parent.Settings.Serializer);
 			updateCommandBuilder(unitOfWork);
 			if (unitOfWork.IsEmpty)
 				return EmptyDictionary;
@@ -279,7 +279,7 @@ namespace CouchDude.Api
 
 			if (!response.IsSuccessStatusCode)
 			{
-				var couchApiError = new CouchError(parent.Serializer, response);
+				var couchApiError = new CouchError(parent.Settings.Serializer, response);
 				couchApiError.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				couchApiError.ThrowStaleStateExceptionIfNedded("update", documentId);
 				couchApiError.ThrowInvalidDocumentExceptionIfNedded(documentId);
@@ -304,7 +304,7 @@ namespace CouchDude.Api
 			var response = await StartQuery(uriConstructor.GetQueryUri(query)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowViewNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();
@@ -320,7 +320,7 @@ namespace CouchDude.Api
 			var response = await StartQuery(uriConstructor.GetQueryUri(query)).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
-				var error = new CouchError(parent.Serializer, response);
+				var error = new CouchError(parent.Settings.Serializer, response);
 				error.ThrowDatabaseMissingExceptionIfNedded(uriConstructor);
 				error.ThrowLuceneIndexNotFoundExceptionIfNedded(query);
 				error.ThrowCouchCommunicationException();

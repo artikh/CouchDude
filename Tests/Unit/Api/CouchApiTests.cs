@@ -17,6 +17,8 @@
 #endregion
 
 using System;
+using System.Net.Http;
+using CouchDude.Api;
 using CouchDude.Serialization;
 using Xunit;
 using Xunit.Extensions;
@@ -28,7 +30,7 @@ namespace CouchDude.Tests.Unit.Api
 		[Fact]
 		public void ShouldThrowOnNullEmptyOrWhitespaceDbName()
 		{
-			var couchApi = Factory.CreateCouchApi("http://example.com");
+			var couchApi = (ICouchApi) new CouchApi(new CouchApiSettings("http://example.com"), null);
 			Assert.Throws<ArgumentNullException>(() => couchApi.Db(null));
 			Assert.Throws<ArgumentNullException>(() => couchApi.Db(string.Empty));
 			Assert.Throws<ArgumentNullException>(() => couchApi.Db("   "));
@@ -46,7 +48,7 @@ namespace CouchDude.Tests.Unit.Api
 		[InlineData("-db1")]
 		public void ShouldThrowOnInvalidDbName(string invalidDbName)
 		{
-			var couchApi = Factory.CreateCouchApi("http://example.com");
+			var couchApi = (ICouchApi) new CouchApi(new CouchApiSettings("http://example.com"), null);
 			var exception = Assert.Throws<ArgumentOutOfRangeException>(() => couchApi.Db(invalidDbName));
 			Assert.Equal(invalidDbName, exception.ActualValue as string);
 		}
@@ -62,7 +64,7 @@ namespace CouchDude.Tests.Unit.Api
 		[InlineData("a-db1")]
 		public void ShouldNotThrowOnValidDbName(string validDbName)
 		{
-			var couchApi = Factory.CreateCouchApi("http://example.com");
+			var couchApi = (ICouchApi) new CouchApi(new CouchApiSettings("http://example.com"), null);
 			Assert.DoesNotThrow(() => couchApi.Db(validDbName));
 		}
 	}

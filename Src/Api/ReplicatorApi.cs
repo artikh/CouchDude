@@ -9,15 +9,15 @@ namespace CouchDude.Api
 {
 	class ReplicatorApi : IReplicatorApi
 	{
-		private readonly ISerializer serializer;
+		readonly CouchApi parent;
 		private readonly ISynchronousReplicatorApi synchronousReplicatorApi;
 		private readonly IDatabaseApi replicatorDbApi;
 
-		public ReplicatorApi(ICouchApi couchApi, ISerializer serializer)
+		public ReplicatorApi(CouchApi parent)
 		{
-			this.serializer = serializer;
+			this.parent = parent;
 			synchronousReplicatorApi = new SynchronousReplicatorApi(this);
-			replicatorDbApi = couchApi.Db("_replicator");
+			replicatorDbApi = parent.Db(parent.Settings.ReplicatorDatabase);
 		}
 
 		public async Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask)
@@ -26,7 +26,7 @@ namespace CouchDude.Api
 			if (replicationTask.Id.HasNoValue()) 
 				throw new ArgumentException("Replication task descriptor ID should be specified", "replicationTask");
 			
-			var json = (JsonObject)serializer.ConvertToJson(replicationTask);
+			var json = (JsonObject)parent.Settings.Serializer.ConvertToJson(replicationTask);
 
 			var doc = new Document(new JsonObject(
 				from kvp in json
@@ -44,7 +44,7 @@ namespace CouchDude.Api
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
 			var doc = await replicatorDbApi.RequestDocument(id);
-			return doc != null? DeserializeReplicationDescriptor(doc): null;
+			return doc != null? parent.Settings.Serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true): null;
 		}
 
 		public Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
@@ -65,7 +65,11 @@ namespace CouchDude.Api
 
 		public Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors()
 		{
-			return SelectReplicationDescriptors(r => DeserializeReplicationDescriptor(r.Document), includeDocs: false);
+			var serializer = parent.Settings.Serializer;
+			return SelectReplicationDescriptors(
+				r => serializer.ConvertFromJson<ReplicationTaskDescriptor>(r.Document.RawJsonObject, throwOnError: true), 
+				includeDocs: true
+			);
 		}
 
 		async Task<ICollection<T>> SelectReplicationDescriptors<T>(Func<ViewResultRow, T> transform, bool includeDocs)
@@ -75,10 +79,5 @@ namespace CouchDude.Api
 		}
 
 		public ISynchronousReplicatorApi Synchronously { get { return synchronousReplicatorApi; } }
-
-		ReplicationTaskDescriptor DeserializeReplicationDescriptor(Document doc)
-		{
-			return serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true);
-		}
 	}
 }

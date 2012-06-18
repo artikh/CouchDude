@@ -134,5 +134,17 @@ namespace CouchDude
 				currentType = currentType.BaseType;
 			}
 		}
+
+		/// <summary>Create CouchApi settings object.</summary>
+		public CouchApiSettings CouchApiSettings
+		{
+			get
+			{
+				return new CouchApiSettings(ServerUri) {
+					Credentials = Credentials,
+					Serializer = Serializer
+				};
+			}
+		}
 	}
 }

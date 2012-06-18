@@ -20,6 +20,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Api;
 using CouchDude.Utils;
 using Xunit;
 
@@ -32,7 +33,7 @@ namespace CouchDude.Tests.Unit.Api
 		{
 			var handler = new MockMessageHandler(
 				new { ok = true, id = "doc1", rev = "1-1a517022a0c2d4814d51abfedf9bfee7" }.ToJsonObject());
-			IDatabaseApi databaseApi = Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler).Db("testdb");
+			IDatabaseApi databaseApi = ((ICouchApi) new CouchApi(new CouchApiSettings(new Uri("http://example.com:5984/")), handler)).Db("testdb");
 
 			var resultObject = databaseApi.Synchronously.DeleteDocument(docId: "doc1", revision: "1-1a517022a0c2d4814d51abfedf9bfee7");
 
@@ -69,7 +70,7 @@ namespace CouchDude.Tests.Unit.Api
 
 		private static ICouchApi CreateCouchApi(MockMessageHandler handler)
 		{
-			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), handler);
+			return new CouchApi(new CouchApiSettings(new Uri("http://example.com:5984/")), handler);
 		}
 	}
 }

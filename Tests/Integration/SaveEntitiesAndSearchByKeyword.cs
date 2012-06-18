@@ -18,6 +18,8 @@
 
 using System;
 using System.Linq;
+using System.Net.Http;
+using CouchDude.Api;
 using CouchDude.Serialization;
 using CouchDude.Tests.SampleData;
 using Xunit;
@@ -29,7 +31,7 @@ namespace CouchDude.Tests.Integration
 	{
 		public SaveEntitiesAndSearchByKeyword()
 		{
-			var databaseApi = Factory.CreateCouchApi(new Uri("http://127.0.0.1:5984")).Db("testdb");
+			var databaseApi = ((ICouchApi) new CouchApi(new CouchApiSettings("http://127.0.0.1:5984"), null)).Db("testdb");
 
 			var luceneDoc = new {
 				_id = "_design/lucene",

@@ -20,6 +20,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Api;
 using CouchDude.Tests.SampleData;
 using CouchDude.Utils;
 using Xunit;
@@ -36,7 +37,7 @@ namespace CouchDude.Tests.Unit.Api
 				id = "doc1",
 				rev = "1-1a517022a0c2d4814d51abfedf9bfee7"
 			}.ToJsonObject());
-			var databaseApi = Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
+			var databaseApi = ((ICouchApi) new CouchApi(new CouchApiSettings("http://example.com:5984/"), mockMessageHandler)).Db("testdb");
 
 			var result = databaseApi.Synchronously.SaveDocument(new { _id = "doc1", name = "Стас Гиркин" }.ToDocument());
 
@@ -143,13 +144,13 @@ namespace CouchDude.Tests.Unit.Api
 
 		private static IDatabaseApi GetDatabaseApi(MockMessageHandler handler)
 		{
-			return Factory.CreateCouchApi("http://example.com:5984/", handler).Db("tesdb");
+			return ((ICouchApi) new CouchApi(new CouchApiSettings("http://example.com:5984/"), handler)).Db("tesdb");
 		}
 
 		private static IDatabaseApi GetDatabaseApi(string response = "{\"_id\":\"doc1\"}")
 		{
 			var mockMessageHandler = new MockMessageHandler(response, contentType: MediaType.Json);
-			return Factory.CreateCouchApi("http://example.com:5984/", mockMessageHandler).Db("testdb");
+			return ((ICouchApi) new CouchApi(new CouchApiSettings("http://example.com:5984/"), mockMessageHandler)).Db("testdb");
 		}
 	}
 }

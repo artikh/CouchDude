@@ -17,6 +17,8 @@
 #endregion
 
 using System;
+using System.Net.Http;
+using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
@@ -27,7 +29,7 @@ namespace CouchDude.Tests.Integration
 		[Fact]
 		public void ShouldDoUpdateInBulkFlowlessly()
 		{
-			var couchApi = Factory.CreateCouchApi("http://127.0.0.1:5984/");
+			var couchApi = (ICouchApi) new CouchApi(new CouchApiSettings("http://127.0.0.1:5984/"), null);
 			var dbApi = couchApi.Db("testdb");
 			dbApi.Synchronously.Create(throwIfExists: false);
 

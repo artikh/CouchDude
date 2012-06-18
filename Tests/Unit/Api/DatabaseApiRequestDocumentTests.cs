@@ -20,6 +20,7 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Text;
+using CouchDude.Api;
 using CouchDude.Tests.SampleData;
 using CouchDude.Utils;
 using Xunit;
@@ -286,7 +287,7 @@ namespace CouchDude.Tests.Unit.Api
 
 		private static IDatabaseApi GetDatabaseApi(MockMessageHandler httpMockMessageHandler)
 		{
-			return Factory.CreateCouchApi(new Uri("http://example.com:5984/"), httpMockMessageHandler).Db("testdb");
+			return ((ICouchApi) new CouchApi(new CouchApiSettings(new Uri("http://example.com:5984/")), httpMockMessageHandler)).Db("testdb");
 		}
 	}
 }

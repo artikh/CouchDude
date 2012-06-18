@@ -71,14 +71,15 @@ namespace CouchDude.Api
 
 			private async Task<DocumentInfo> Save()
 			{
-				var request = new HttpRequestMessage(HttpMethod.Put, parent.uriConstructor.GetFullDocumentUri(document.Id));
-				request.Content = new JsonContent(document.RawJsonObject);
+				var request = new HttpRequestMessage(HttpMethod.Put, parent.uriConstructor.GetFullDocumentUri(document.Id)) {
+					Content = new JsonContent(document.RawJsonObject)
+				};
 
 				var response = await parent.parent.RequestCouchDb(request).ConfigureAwait(false);
 				var documentId = document.Id;
 				if (!response.IsSuccessStatusCode)
 				{
-					var error = new CouchError(parent.parent.Serializer, response);
+					var error = new CouchError(parent.parent.Settings.Serializer, response);
 					error.ThrowDatabaseMissingExceptionIfNedded(parent.uriConstructor);
 					if (error.IsConflict)
 						return conflictAction(error);

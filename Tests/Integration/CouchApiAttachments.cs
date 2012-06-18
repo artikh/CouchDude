@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CouchDude.Api;
 using Xunit;
 
 namespace CouchDude.Tests.Integration
@@ -13,7 +14,7 @@ namespace CouchDude.Tests.Integration
 		readonly string attachmentId = Guid.NewGuid().ToString();
 		string lastKnownRevision;
 		byte[] attachmentDataBuffer;
-		readonly IDatabaseApi dbApi = Factory.CreateCouchApi("http://127.0.0.1:5984/").Db("testdb");
+		readonly IDatabaseApi dbApi = ((ICouchApi) new CouchApi(new CouchApiSettings("http://127.0.0.1:5984/"), null)).Db("testdb");
 
 		public CouchApiAttachments()
 		{
