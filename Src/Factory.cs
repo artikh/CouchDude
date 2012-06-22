@@ -17,6 +17,7 @@
 #endregion
 
 using System;
+using System.Net.Http;
 using CouchDude.Api;
 using CouchDude.Impl;
 using JetBrains.Annotations;
@@ -36,10 +37,13 @@ namespace CouchDude
 		}
 
 		/// <summary>Creates <see cref="ICouchApi"/> instance from settings.</summary>
-		public static ICouchApi CreateCouchApi([NotNull] this CouchApiSettings settings)
+		public static ICouchApi CreateCouchApi([NotNull] this CouchApiSettings settings) { return CreateCouchApi(settings, null); }
+
+		/// <summary>Creates <see cref="ICouchApi"/> instance from settings.</summary>
+		public static ICouchApi CreateCouchApi([NotNull] this CouchApiSettings settings, HttpMessageHandler handler)
 		{
 			if (settings == null) throw new ArgumentNullException("settings");
-			return new CouchApi(settings);
+			return new CouchApi(settings, handler);
 		}
 	}
 }
