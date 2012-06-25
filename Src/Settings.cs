@@ -42,15 +42,15 @@ namespace CouchDude
 				if (!value.IsAbsoluteUri)
 					throw new ArgumentException("Server URL should be absolute.", "value");
 				
-				if(serverUri != null && !string.IsNullOrWhiteSpace(serverUri.UserInfo))
+				if(!string.IsNullOrWhiteSpace(value.UserInfo))
 				{
-					var chunks = serverUri.UserInfo.Split(':');
+					var chunks = value.UserInfo.Split(':');
 					if (chunks.Length == 2)
 						Credentials = new Credentials(chunks[0], chunks[1]);
-					serverUri = new UriBuilder(serverUri) {UserName = string.Empty, Password = string.Empty}.Uri;
+					serverUri = new UriBuilder(value) {UserName = string.Empty, Password = string.Empty}.Uri;
 				}
-
-				serverUri = value;
+				else
+					serverUri = value;
 			}
 		}
 

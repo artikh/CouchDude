@@ -25,6 +25,15 @@ namespace CouchDude.Tests.Unit
 	public class SettingsTests
 	{
 		[Fact]
+		public void ShouldTakePasswordFromServerUri()
+		{
+			var settings = new Settings(new Uri("http://user1:passw0rd@example.com:4242"), "testdb");
+			Assert.Equal("user1", settings.Credentials.UserName);
+			Assert.Equal("passw0rd", settings.Credentials.Password);
+			Assert.Equal("http://example.com:4242/", settings.ServerUri.ToString());
+		}
+
+		[Fact]
 		public void ShouldThrowOnUppercasedDbName()
 		{
 			Assert.Throws<ArgumentOutOfRangeException>(
