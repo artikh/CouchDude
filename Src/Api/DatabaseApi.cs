@@ -45,7 +45,8 @@ namespace CouchDude.Api
 		public async Task Create(bool throwIfExists = true)
 		{
 			var response = await parent
-				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri)).ConfigureAwait(false);
+				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Put, uriConstructor.DatabaseUri))
+				.ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
 				var couchError = new CouchError(parent.Settings.Serializer, response);
@@ -75,7 +76,8 @@ namespace CouchDude.Api
 		public async Task Delete()
 		{
 			var response = await parent
-				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri)).ConfigureAwait(false);
+				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Delete, uriConstructor.DatabaseUri))
+				.ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
 				var error = new CouchError(parent.Settings.Serializer, response);
@@ -161,8 +163,9 @@ namespace CouchDude.Api
 
 		public async Task<DatabaseInfo> RequestInfo()
 		{
-			var response =
-				await parent.RequestCouchDb(new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri)).ConfigureAwait(false);
+			var response = await parent
+				.RequestCouchDb(new HttpRequestMessage(HttpMethod.Get, uriConstructor.DatabaseUri))
+				.ConfigureAwait(false);
 			var exists = true;
 			JsonObject responseJson = null;
 			if (!response.IsSuccessStatusCode)
@@ -265,7 +268,8 @@ namespace CouchDude.Api
 			if (unitOfWork.IsEmpty)
 				return EmptyDictionary;
 			else
-				return await unitOfWork.Execute(request => parent.RequestCouchDb(request)).ConfigureAwait(false);
+				return await unitOfWork
+					.Execute(request => parent.RequestCouchDb(request)).ConfigureAwait(false);
 		}
 
 		public async Task<string> RequestLastestDocumentRevision(string documentId)

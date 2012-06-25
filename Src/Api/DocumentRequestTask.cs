@@ -36,9 +36,12 @@ namespace CouchDude.Api
 			switch (mediaType)
 			{
 				case MediaType.Json:
-					return ReadDocument(databaseApi, await content.ReadAsUtf8TextReaderAsync());
+					return ReadDocument(
+						databaseApi, 
+						await content.ReadAsUtf8TextReaderAsync().ConfigureAwait(false)
+					);
 				case MediaType.Multipart:
-					return await ReadMultipart(databaseApi, content);
+					return await ReadMultipart(databaseApi, content).ConfigureAwait(false);
 				default:
 					throw new CouchCommunicationException(
 						"Unexpected media type response recived requesting CouchDB document: {0}", mediaType);
@@ -53,7 +56,8 @@ namespace CouchDude.Api
 			if (jsonPart == null)
 				return null;
 
-			var document = ReadDocument(couchApi, await jsonPart.ReadAsUtf8TextReaderAsync());
+			var document = ReadDocument(
+				couchApi, await jsonPart.ReadAsUtf8TextReaderAsync().ConfigureAwait(false));
 			PrefillAttachmentDataGetters(multipart, document);
 			return document;
 		}

@@ -168,7 +168,7 @@ namespace CouchDude
 
 				AttachmentDescriptor[LengthPropertyName] = recivedAttachment.Length;
 				ContentType = recivedAttachment.ContentType;
-				return await recivedAttachment.OpenRead();
+				return await recivedAttachment.OpenRead().ConfigureAwait(false);
 			}
 
 			/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>

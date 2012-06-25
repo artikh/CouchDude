@@ -34,7 +34,9 @@ namespace CouchDude.Api
 				select kvp
 			));
 
-			var docInfo = await replicatorDbApi.SaveDocument(doc, overwriteConcurrentUpdates: true);
+			var docInfo = await replicatorDbApi
+				.SaveDocument(doc, overwriteConcurrentUpdates: true)
+				.ConfigureAwait(false);
 			replicationTask.Revision = docInfo.Revision;
 			return docInfo;
 		}
@@ -43,7 +45,7 @@ namespace CouchDude.Api
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
-			var doc = await replicatorDbApi.RequestDocument(id);
+			var doc = await replicatorDbApi.RequestDocument(id).ConfigureAwait(false);
 			return doc != null? parent.Settings.Serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true): null;
 		}
 
@@ -74,7 +76,9 @@ namespace CouchDude.Api
 
 		async Task<ICollection<T>> SelectReplicationDescriptors<T>(Func<ViewResultRow, T> transform, bool includeDocs)
 		{
-			var result = await replicatorDbApi.Query(new ViewQuery {ViewName = "_all_docs", IncludeDocs = includeDocs});
+			var result = await replicatorDbApi
+				.Query(new ViewQuery { ViewName = "_all_docs", IncludeDocs = includeDocs })
+				.ConfigureAwait(false);
 			return result.Rows.Where(r => !r.DocumentId.StartsWith("_design/")).Select(transform).ToArray();
 		}
 

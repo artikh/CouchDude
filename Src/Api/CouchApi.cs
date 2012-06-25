@@ -79,7 +79,8 @@ namespace CouchDude.Api
 				var dbs = (ICollection<string>) Settings.Serializer.Deserialize(typeof(string[]), responseReader, throwOnError: false);
 				if(dbs == null)
 					throw new CouchCommunicationException(
-						"Unexpected data recived from CouchDB: {0}", await response.Content.ReadAsStringAsync());
+						"Unexpected data recived from CouchDB: {0}", 
+						await response.Content.ReadAsStringAsync().ConfigureAwait(false));
 				return dbs;
 			}
 		}
