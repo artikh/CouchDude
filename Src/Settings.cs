@@ -42,7 +42,7 @@ namespace CouchDude
 				if (!value.IsAbsoluteUri)
 					throw new ArgumentException("Server URL should be absolute.", "value");
 				
-				if(!string.IsNullOrWhiteSpace(serverUri.UserInfo))
+				if(serverUri != null && !string.IsNullOrWhiteSpace(serverUri.UserInfo))
 				{
 					var chunks = serverUri.UserInfo.Split(':');
 					if (chunks.Length == 2)
