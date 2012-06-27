@@ -120,7 +120,7 @@ namespace CouchDude.Impl
 		}
 
 		/// <inheritdoc/>
-		public async Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
+		public Task<TEntity> Load<TEntity>(string entityId) where TEntity : class
 		{
 			if (string.IsNullOrWhiteSpace(entityId))
 				throw new ArgumentNullException("entityId");
@@ -135,7 +135,7 @@ namespace CouchDude.Impl
 				{
 					if (cachedEntity != null && !(cachedEntity is TEntity))
 						throw new EntityTypeMismatchException(cachedEntity.GetType(), typeof(TEntity));
-					return (TEntity)cachedEntity;
+					return TaskEx.FromResult((TEntity)cachedEntity);
 				}
 			}
 			
@@ -143,56 +143,60 @@ namespace CouchDude.Impl
 			if (entityConfig == null)
 				throw new EntityTypeNotRegistredException(typeof(TEntity));
 			var docId = entityConfig.ConvertEntityIdToDocumentId(entityId);
-			var document = await databaseApi.RequestDocument(docId).ConfigureAwait(false);
-			if (document == null)
-				return default(TEntity);
-			lock (unitOfWork)
-			{
-				unitOfWork.UpdateWithDocument(document);
-				object freshlyUpdatedEntity;
-				unitOfWork.TryGetByEntityIdAndType(entityId, typeof (TEntity), out freshlyUpdatedEntity);
 
-				if(freshlyUpdatedEntity != null && !(freshlyUpdatedEntity is TEntity))
-					throw new EntityTypeMismatchException(document.Type, typeof(TEntity));
+			using (SyncContext.SwitchToDefault())
+				return databaseApi.RequestDocument(docId).ContinueWith(
+					rt => {
+						var document = rt.Result;
+						if (document == null)
+							return default(TEntity);
+						lock (unitOfWork)
+						{
+							unitOfWork.UpdateWithDocument(document);
+							object freshlyUpdatedEntity;
+							unitOfWork.TryGetByEntityIdAndType(entityId, typeof (TEntity), out freshlyUpdatedEntity);
 
-				return (TEntity)freshlyUpdatedEntity;
-			}
-		}
+							if (freshlyUpdatedEntity != null && !(freshlyUpdatedEntity is TEntity))
+								throw new EntityTypeMismatchException(document.Type, typeof (TEntity));
 
-		/// <inheritdoc/>
-		public Task StartSavingChanges()
-		{
-			return Task.Factory
-				.StartNew(
-					() => {
-						WaitForFlushIfInProgress();
-						Log.Info("Reseting session flush event");
-						unitOfWorkFlashInProgressEvent.Reset();
-
-						databaseApi
-							.BulkUpdate(bulk => unitOfWork.ApplyChanges(bulk))
-							.ContinueWith(HandleChangesSaveCompleted, TaskContinuationOptions.AttachedToParent);
+							return (TEntity) freshlyUpdatedEntity;
+						}
 					});
 		}
 
-		private void HandleChangesSaveCompleted(Task<IDictionary<string, DocumentInfo>> saveChangesTask)
+		/// <inheritdoc/>
+		public Task StartSavingChanges() 
 		{
-			// releasing mutex before locking on unitOfWork to prevent dead lock
-			Log.Info("Setting session flush event due save operation completion");
-			unitOfWorkFlashInProgressEvent.Set();
-
-			if (saveChangesTask.IsFaulted)
-			{
-				var aggregateException = saveChangesTask.Exception;
-				if (aggregateException != null)
-					throw aggregateException.Flatten();
-			}
-			lock (unitOfWork)
-				unitOfWork.UpdateRevisions(saveChangesTask.Result.Values);
+			using (SyncContext.SwitchToDefault())
+				return StartSavingChangesInternal();
 		}
 
-		private static void GenerateIdIfNeeded(
-			object entity, IEntityConfig entityConfiguration, IIdGenerator idGenerator)
+		async Task StartSavingChangesInternal()
+		{
+			await TaskEx.Yield();
+
+			WaitForFlushIfInProgress();
+			Log.Info("Reseting session flush event");
+			unitOfWorkFlashInProgressEvent.Reset();
+			try
+			{
+				var result = await databaseApi.BulkUpdate(bulk => unitOfWork.ApplyChanges(bulk));
+				// releasing mutex before locking on unitOfWork to prevent dead lock
+				Log.Info("Setting session flush event due save operation completion");
+				unitOfWorkFlashInProgressEvent.Set();
+				lock (unitOfWork)
+					unitOfWork.UpdateRevisions(result.Values);
+			}
+			catch (Exception e)
+			{
+				var aggregateException = e as AggregateException;
+				if (aggregateException != null)
+					throw aggregateException.Flatten();
+				throw;
+			}
+		}
+
+		private static void GenerateIdIfNeeded(object entity, IEntityConfig entityConfiguration, IIdGenerator idGenerator)
 		{
 			var id = entityConfiguration.GetId(entity);
 			if (id == null)

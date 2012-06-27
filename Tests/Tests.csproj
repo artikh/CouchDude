@@ -104,6 +104,7 @@
     <Compile Include="SampleData\ViewData.cs" />
     <Compile Include="SampleData\EntityWithoutRevision.cs" />
     <Compile Include="SampleData\Entity.cs" />
+    <Compile Include="Unit\Api\CouchApiSynchronizationContextTests.cs" />
     <Compile Include="Unit\Api\DatabaseApiDeleteAttachmentTest.cs" />
     <Compile Include="Unit\Api\DatabaseApiDeleteDocumentTests.cs" />
     <Compile Include="Unit\Api\DatabaseApiManagmentOperationsTests.cs" />
@@ -116,6 +117,8 @@
     <Compile Include="Unit\Api\FullTextSearchResultParserTests.cs" />
     <Compile Include="Unit\Api\ReplicatorApiTests.cs" />
     <Compile Include="Unit\Api\ViewResultParserTests.cs" />
+    <Compile Include="Unit\Impl\CouchSessionSynchronizationContextTests.cs" />
+    <Compile Include="Unit\Utils\SynchronizationContextTestsBase.cs" />
     <Compile Include="Unit\Configuration\DefaultEntityConfigConventionsTests.cs" />
     <Compile Include="Unit\Configuration\EntityConfigTests.cs" />
     <Compile Include="Unit\Configuration\EntityRegistryTests.cs" />

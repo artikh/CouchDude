@@ -21,7 +21,7 @@ namespace CouchDude.Api
 			var documentUri = uriConstructor.GetFullDocumentUri(documentId, revision, additionalProperties);
 			var request = new HttpRequestMessage(HttpMethod.Get, documentUri);
 
-			var response = await couchApi.RequestCouchDb(request).ConfigureAwait(false);
+			var response = await couchApi.RequestCouchDb(request);
 			if (!response.IsSuccessStatusCode)
 			{
 				var error = new CouchError(couchApi.Settings.Serializer, response);
@@ -38,10 +38,10 @@ namespace CouchDude.Api
 				case MediaType.Json:
 					return ReadDocument(
 						databaseApi, 
-						await content.ReadAsUtf8TextReaderAsync().ConfigureAwait(false)
+						await content.ReadAsUtf8TextReaderAsync()
 					);
 				case MediaType.Multipart:
-					return await ReadMultipart(databaseApi, content).ConfigureAwait(false);
+					return await ReadMultipart(databaseApi, content);
 				default:
 					throw new CouchCommunicationException(
 						"Unexpected media type response recived requesting CouchDB document: {0}", mediaType);
@@ -50,14 +50,14 @@ namespace CouchDude.Api
 
 		static async Task<Document> ReadMultipart(DatabaseApi couchApi, HttpContent content)
 		{
-			var multipart = (await content.ReadAsMultipartAsync().ConfigureAwait(false)).ToArray();
+			var multipart = (await content.ReadAsMultipartAsync()).ToArray();
 			var jsonPart = multipart.FirstOrDefault(
 				part => part.Headers.ContentType != null && part.Headers.ContentType.MediaType == MediaType.Json);
 			if (jsonPart == null)
 				return null;
 
 			var document = ReadDocument(
-				couchApi, await jsonPart.ReadAsUtf8TextReaderAsync().ConfigureAwait(false));
+				couchApi, await jsonPart.ReadAsUtf8TextReaderAsync());
 			PrefillAttachmentDataGetters(multipart, document);
 			return document;
 		}

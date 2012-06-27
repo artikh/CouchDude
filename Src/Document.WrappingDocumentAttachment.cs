@@ -164,11 +164,11 @@ namespace CouchDude
 					.GetOrThrowIfUnavaliable(operationName: () => string.Format("load attachment {0} from document {1}(rev:{2})", attachmentId, documentId, documentRevision));
 
 				var recivedAttachment = 
-					await databaseApi.RequestAttachment(attachmentId, documentId, documentRevision).ConfigureAwait(false);
+					await databaseApi.RequestAttachment(attachmentId, documentId, documentRevision);
 
 				AttachmentDescriptor[LengthPropertyName] = recivedAttachment.Length;
 				ContentType = recivedAttachment.ContentType;
-				return await recivedAttachment.OpenRead().ConfigureAwait(false);
+				return await recivedAttachment.OpenRead();
 			}
 
 			/// <summary>Converts sets attachment data (inline). Attachment gets saved with parent document.</summary>

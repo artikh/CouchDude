@@ -17,9 +17,7 @@
 #endregion
 
 using System;
-using System.Net.Http;
 using CouchDude.Api;
-using CouchDude.Serialization;
 using Xunit;
 
 namespace CouchDude.Tests.Unit.Api

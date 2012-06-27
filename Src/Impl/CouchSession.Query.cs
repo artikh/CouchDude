@@ -28,14 +28,38 @@ namespace CouchDude.Impl
 	public partial class CouchSession
 	{
 		/// <inheritdoc/>
-		public async Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query)
+		public Task<ILuceneQueryResult<T>> QueryLucene<T>(LuceneQuery query)
 		{
 			if (query == null)
 				throw new ArgumentNullException("query");
-			var isEntityType = CheckIfEntityType<T>(query);
+			var isEntityType = IsEntityType<T>();
+			if (isEntityType && !query.IncludeDocs)
+				throw CreateShouldUseIncludeDocsException();
 			WaitForFlushIfInProgress();
 
-			var rawQueryResult = await databaseApi.QueryLucene(query).ConfigureAwait(false);
+			using (SyncContext.SwitchToDefault())
+				return QueryLuceneInternal<T>(query, isEntityType);
+		}
+
+		/// <inheritdoc/>
+		public Task<IViewQueryResult<T>> Query<T>(ViewQuery query)
+		{
+			if (query == null)
+				throw new ArgumentNullException("query");
+			if (query.Skip >= 10)
+				throw new ArgumentException("View query should not use skip option greater then 9 (see http://tinyurl.com/couch-skip)", "query");
+			var isEntityType = IsEntityType<T>();
+			if (isEntityType && !query.IncludeDocs)
+				throw CreateShouldUseIncludeDocsException();
+			WaitForFlushIfInProgress();
+			
+			using (SyncContext.SwitchToDefault())
+				return QueryInternal<T>(query, isEntityType);
+		}
+
+		async Task<ILuceneQueryResult<T>> QueryLuceneInternal<T>(LuceneQuery query, bool isEntityType)
+		{
+			var rawQueryResult = await databaseApi.QueryLucene(query);
 			if (!isEntityType)
 				return rawQueryResult.OfType(DeserializeViewData<T, LuceneResultRow>);
 
@@ -43,33 +67,24 @@ namespace CouchDude.Impl
 			return rawQueryResult.OfType(GetEntities<T, LuceneResultRow>);
 		}
 
-		/// <inheritdoc/>
-		public async Task<IViewQueryResult<T>> Query<T>(ViewQuery query)
+		async Task<IViewQueryResult<T>> QueryInternal<T>(ViewQuery query, bool isEntityType)
 		{
-			if (query == null)
-				throw new ArgumentNullException("query");
-			if (query.Skip >= 10)
-				throw new ArgumentException(
-					"View query should not use skip option greater then 9 (see http://tinyurl.com/couch-skip)", "query");
-			var isEntityType = CheckIfEntityType<T>(query);
-			WaitForFlushIfInProgress();
-
-			var rawQueryResult = await databaseApi.Query(query).ConfigureAwait(false);
-			if (!isEntityType) 
+			var rawQueryResult = await databaseApi.Query(query);
+			if (!isEntityType)
 				return rawQueryResult.OfType(DeserializeViewData<T, ViewResultRow>);
-						
+
 			UpdateUnitOfWork(rawQueryResult.Rows);
 			return rawQueryResult.OfType(GetEntities<T, ViewResultRow>);
 		}
-
-		// ReSharper disable UnusedParameter.Local
-		private bool CheckIfEntityType<T>(IQuery query)
-		// ReSharper restore UnusedParameter.Local
+		
+		private static QueryException CreateShouldUseIncludeDocsException()
 		{
-			var isEntityType = settings.TryGetConfig(typeof (T)) != null;
-			if (isEntityType && !query.IncludeDocs)
-				throw new QueryException("You should use IncludeDocs query option when querying for entities.");
-			return isEntityType;
+			return new QueryException("You should use IncludeDocs query option when querying for entities.");
+		}
+
+		private bool IsEntityType<T>()
+		{
+			return settings.TryGetConfig(typeof (T)) != null;
 		}
 
 

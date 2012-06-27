@@ -75,7 +75,7 @@ namespace CouchDude.Api
 					Content = new JsonContent(document.RawJsonObject)
 				};
 
-				var response = await parent.parent.RequestCouchDb(request).ConfigureAwait(false);
+				var response = await parent.parent.RequestCouchDb(request);
 				var documentId = document.Id;
 				if (!response.IsSuccessStatusCode)
 				{
@@ -86,7 +86,7 @@ namespace CouchDude.Api
 					error.ThrowInvalidDocumentExceptionIfNedded(documentId);
 					error.ThrowCouchCommunicationException();
 				}
-				return await ReadDocumentInfo(response).ConfigureAwait(false);
+				return await ReadDocumentInfo(response);
 			}
 		}
 	}

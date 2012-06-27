@@ -19,10 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Net.Sockets;
 using System.Threading.Tasks;
 using CouchDude.Utils;
 
@@ -64,23 +62,32 @@ namespace CouchDude.Api
 			return new DatabaseApi(this, uriConstructor.Db(databaseName));
 		}
 
-		public async Task<ICollection<string>> RequestAllDbNames()
+		public Task<ICollection<string>> RequestAllDbNames() 
+		{
+			using(SyncContext.SwitchToDefault())
+				return RequestAllDbNamesInternal();
+		}
+
+		async Task<ICollection<string>> RequestAllDbNamesInternal()
 		{
 			var request = new HttpRequestMessage(HttpMethod.Get, uriConstructor.AllDbUri);
 
-			var response = await RequestCouchDb(request).ConfigureAwait(false);
+			var response = await this.RequestCouchDb(request);
 
 			if (!response.IsSuccessStatusCode)
 				new CouchError(Settings.Serializer, response).ThrowCouchCommunicationException();
 
-			using (var responseStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false))
+			using (var responseStream = await response.Content.ReadAsStreamAsync())
 			using (var responseReader = new StreamReader(responseStream))
 			{
-				var dbs = (ICollection<string>) Settings.Serializer.Deserialize(typeof(string[]), responseReader, throwOnError: false);
-				if(dbs == null)
-					throw new CouchCommunicationException(
-						"Unexpected data recived from CouchDB: {0}", 
-						await response.Content.ReadAsStringAsync().ConfigureAwait(false));
+				var dbs =
+					(ICollection<string>)
+						Settings.Serializer.Deserialize(typeof (string[]), responseReader, throwOnError: false);
+				if (dbs == null)
+				{
+					var recivedString = await response.Content.ReadAsStringAsync();
+					throw new CouchCommunicationException("Unexpected data recived from CouchDB: {0}", recivedString);
+				}
 				return dbs;
 			}
 		}
@@ -89,33 +96,5 @@ namespace CouchDude.Api
 
 		public IReplicatorApi ReplicatorApi { get { return replicatorApi; } }
 
-		internal async Task<HttpResponseMessage> RequestCouchDb(HttpRequestMessage request)
-		{
-			try
-			{
-				return await SendAsync(request).ConfigureAwait(false);
-			}
-			catch(Exception e)
-			{
-				var aggregateException = e as AggregateException;
-				if (aggregateException != null)
-				{
-					var innerExceptions = aggregateException.InnerExceptions;
-
-					var newInnerExceptions = new Exception[innerExceptions.Count];
-					for (var i = 0; i < innerExceptions.Count; i++)
-						newInnerExceptions[i] = WrapIfNeeded(innerExceptions[i]);
-					throw new AggregateException(aggregateException.Message, newInnerExceptions);
-				}
-				
-				throw WrapIfNeeded(e);
-			}
-		}
-
-		private Exception WrapIfNeeded(Exception e)
-		{
-			return e is WebException || e is SocketException || e is HttpRequestException
-				? new CouchCommunicationException(e) : e;
-		}
 	}
 }

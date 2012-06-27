@@ -18,9 +18,9 @@
 
 using System;
 
-using CouchDude.Api;
 using CouchDude.Impl;
 using CouchDude.Tests.SampleData;
+using CouchDude.Tests.Unit.Utils;
 using Moq;
 using Xunit;
 

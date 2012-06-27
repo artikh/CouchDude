@@ -32,19 +32,19 @@ namespace CouchDude.Utils
 
 		public static async Task<JsonArray> ReadAsJsonArrayAsync(this HttpContent self)
 		{
-			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);
+			var jsonValue = await self.ReadAsJsonValueAsync();
 			return jsonValue as JsonArray;
 		}
 
 		public static async Task<JsonObject> ReadAsJsonObjectAsync(this HttpContent self)
 		{
-			var jsonValue = await self.ReadAsJsonValueAsync().ConfigureAwait(false);
+			var jsonValue = await self.ReadAsJsonValueAsync();
 			return jsonValue as JsonObject;
 		}
 
 		public static async Task<JsonValue> ReadAsJsonValueAsync(this HttpContent self)
 		{
-			using (var reader = await self.ReadAsUtf8TextReaderAsync().ConfigureAwait(false))
+			using (var reader = await self.ReadAsUtf8TextReaderAsync())
 				try
 				{
 					return JsonValue.Load(reader);
@@ -61,7 +61,7 @@ namespace CouchDude.Utils
 			if (self == null)
 				return null;
 
-			var stream = await self.ReadAsStreamAsync().ConfigureAwait(false);
+			var stream = await self.ReadAsStreamAsync();
 			return new StreamReader(stream, Utf8Encoding);
 		}
 	}

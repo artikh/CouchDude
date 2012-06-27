@@ -20,7 +20,7 @@ namespace CouchDude.Api
 			replicatorDbApi = parent.Db(parent.Settings.ReplicatorDatabase);
 		}
 
-		public async Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask)
+		public Task<DocumentInfo> SaveDescriptor(ReplicationTaskDescriptor replicationTask)
 		{
 			if (replicationTask == null) throw new ArgumentNullException("replicationTask");
 			if (replicationTask.Id.HasNoValue()) 
@@ -34,19 +34,28 @@ namespace CouchDude.Api
 				select kvp
 			));
 
-			var docInfo = await replicatorDbApi
-				.SaveDocument(doc, overwriteConcurrentUpdates: true)
-				.ConfigureAwait(false);
-			replicationTask.Revision = docInfo.Revision;
-			return docInfo;
+			using (SyncContext.SwitchToDefault())
+				return replicatorDbApi.SaveDocument(doc, overwriteConcurrentUpdates: true)
+					.ContinueWith(rt => {
+						var docInfo = rt.Result;
+						replicationTask.Revision = docInfo.Revision;
+						return docInfo;
+					});
 		}
 
-		public async Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
+		public Task<ReplicationTaskDescriptor> RequestDescriptorById(string id)
 		{
 			if (id.HasNoValue()) throw new ArgumentNullException("id");
 
-			var doc = await replicatorDbApi.RequestDocument(id).ConfigureAwait(false);
-			return doc != null? parent.Settings.Serializer.ConvertFromJson<ReplicationTaskDescriptor>(doc.RawJsonObject, throwOnError: true): null;
+			using (SyncContext.SwitchToDefault())
+				return replicatorDbApi.RequestDocument(id).ContinueWith(
+				rt => {
+					var doc = rt.Result;
+					return doc != null
+						? parent.Settings.Serializer.ConvertFromJson<ReplicationTaskDescriptor>(
+							doc.RawJsonObject, throwOnError: true)
+						: null;
+				});
 		}
 
 		public Task<DocumentInfo> DeleteDescriptor(ReplicationTaskDescriptor replicationTask)
@@ -57,29 +66,36 @@ namespace CouchDude.Api
 			if (replicationTask.Revision.HasNoValue())
 				throw new ArgumentException("Replication task descriptor revision should be specified", "replicationTask");
 
-			return replicatorDbApi.DeleteDocument(replicationTask.Id, replicationTask.Revision);
+			using (SyncContext.SwitchToDefault())
+				return replicatorDbApi.DeleteDocument(replicationTask.Id, replicationTask.Revision);
 		}
 
 		public Task<ICollection<string>> GetAllDescriptorNames()
 		{
-			return SelectReplicationDescriptors(r => r.DocumentId, includeDocs: false);
+			using (SyncContext.SwitchToDefault())
+				return SelectReplicationDescriptors(r => r.DocumentId, includeDocs: false);
 		}
 
 		public Task<ICollection<ReplicationTaskDescriptor>> GetAllDescriptors()
 		{
 			var serializer = parent.Settings.Serializer;
-			return SelectReplicationDescriptors(
-				r => serializer.ConvertFromJson<ReplicationTaskDescriptor>(r.Document.RawJsonObject, throwOnError: true), 
-				includeDocs: true
-			);
+			using (SyncContext.SwitchToDefault())
+				return SelectReplicationDescriptors(
+					r => serializer.ConvertFromJson<ReplicationTaskDescriptor>(r.Document.RawJsonObject, throwOnError: true), 
+					includeDocs: true
+				);
 		}
 
-		async Task<ICollection<T>> SelectReplicationDescriptors<T>(Func<ViewResultRow, T> transform, bool includeDocs)
+		Task<ICollection<T>> SelectReplicationDescriptors<T>(Func<ViewResultRow, T> transform, bool includeDocs)
 		{
-			var result = await replicatorDbApi
-				.Query(new ViewQuery { ViewName = "_all_docs", IncludeDocs = includeDocs })
-				.ConfigureAwait(false);
-			return result.Rows.Where(r => !r.DocumentId.StartsWith("_design/")).Select(transform).ToArray();
+			using (SyncContext.SwitchToDefault())
+				return replicatorDbApi
+				.Query(new ViewQuery {ViewName = "_all_docs", IncludeDocs = includeDocs})
+				.ContinueWith<ICollection<T>>(
+					rt => {
+						var result = rt.Result;
+						return result.Rows.Where(r => !r.DocumentId.StartsWith("_design/")).Select(transform).ToArray();
+					});
 		}
 
 		public ISynchronousReplicatorApi Synchronously { get { return synchronousReplicatorApi; } }
